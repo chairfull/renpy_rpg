@@ -9,25 +9,12 @@ define e = Character("Eileen")
 # The game starts here.
 
 label start:
+    "Welcome to the AI RPG."
+    # Trigger the intro scene
+    jump scene_intro_start
 
-    # Show a background. This uses a placeholder by default, but you can
-    # add a file (named either "bg room.png" or "bg room.jpg") to the
-    # images directory to show it.
-
-    scene bg room
-
-    # This shows a character sprite. A placeholder is used, but you can
-    # replace it by adding a file named "eileen happy.png" to the images
-    # directory.
-
-    show eileen happy
-
-    # These display lines of dialogue.
-
-    e "You've created a new Ren'Py game."
-
-    e "Once you add a story, pictures, and music, you can release it to the world!"
-
-    # This ends the game.
-
-    return
+label world_loop:
+    window hide
+    # Using call screen is safer for interactions that should return here
+    call screen navigation_screen
+    jump world_loop
