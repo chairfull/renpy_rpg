@@ -1,105 +1,101 @@
 screen navigation_screen():
-    add "gui/overlay/main_menu.png" # Placeholder for background
-
-    default current_loc = rpg_world.current_location
-
-    vbox:
-        align (0.5, 0.1)
-        text "[current_loc.name]" size 40 color "#fff"
-        text "[current_loc.description]" italic True size 20 color "#ccc"
-
-    # Single Action Buttons
-    vbox:
-        align (0.9, 0.5)
-        spacing 10
-        textbutton "Map" action Show("map_screen")
-        textbutton "Inventory" action Show("character_management_screen")
-        textbutton "Gallery" action Show("gallery_screen")
-
-    # Entity and Character Buttons
-    vbox:
-        align (0.1, 0.5)
-        spacing 10
-        
-        if current_loc.entities:
-            label "Interact"
-            for entity in current_loc.entities:
-                textbutton entity.name action Function(entity.interact)
-
-        if current_loc.characters:
-            null height 20
-            label "Characters"
-            for char in current_loc.characters:
-                textbutton char.name action Function(char.interact)
-
-    # HUD (Stats & Time)
-    vbox:
-        align (0.05, 0.05)
-        text "[time_manager.time_string]" size 20 color "#fb0"
-        text "Actor: [rpg_world.active_actor_name]" size 16 color "#fff"
-        text "HP: [rpg_world.actor.stats.hp]/[rpg_world.actor.stats.max_hp]" size 18
-        text "Strength: [rpg_world.actor.stats.strength]" size 16
-
-screen map_screen():
-    modal True
-    add Solid("#000a")
+    tag menu
+    add "#0a0a0a"
     
-    label "World Map" align (0.5, 0.1)
+    $ loc = rpg_world.current_location
     
-    # We show connections from CURRENT location
-    default current_loc = rpg_world.current_location
-    
-    vpgrid:
-        cols 3
+    hbox:
         spacing 20
         align (0.5, 0.5)
-        draggable True
-        mousewheel True
         
-        for dest_id, desc in current_loc.connections.items():
-            $ dest = rpg_world.locations.get(dest_id)
+        # Location Info
+        frame:
+            background "#1a1a1a"
+            xsize 400
+            ysize 600
+            padding (20, 20)
             vbox:
-                spacing 5
-                # Styling: unvisited locations are italicized and slightly dimmer
-                if dest and not dest.visited:
-                    textbutton "[desc]" action [Function(rpg_world.move_to, dest_id), Hide("map_screen")]:
-                        text_italic True
-                        text_color "#aaa"
-                else:
-                    textbutton "[desc]" action [Function(rpg_world.move_to, dest_id), Hide("map_screen")]
+                spacing 10
+                text "[loc.name]" size 40 color "#ffffff"
+                text "[loc.description]" size 18 color "#cccccc" italic True
+                null height 20
+                text "Time: [time_manager.time_string]" size 20 color "#ffd700"
                 
-                # In the future, we can add a small image here
-                frame:
-                    xsize 200 ysize 120
-                    background Solid("#333")
-                    text "[dest_id]" align (0.5, 0.5)
+                null height 30
+                text "Available Paths:" size 24 color "#ffffff"
+                for dest_id, desc in loc.connections.items():
+                    textbutton "[desc]":
+                        action Function(rpg_world.move_to, dest_id)
+                        text_size 20
 
-    textbutton "Close Map" action Hide("map_screen") align (0.5, 0.9)
-
-screen character_management_screen():
-    modal True
-    add Solid("#000b")
-
-    vbox:
-        align (0.5, 0.5)
-        spacing 20
-        text "Character Sheet: [rpg_world.active_actor_name]" size 50
-
-        hbox:
-            spacing 50
+        # Entities at location
+        frame:
+            background "#1a1a1a"
+            xsize 400
+            ysize 600
+            padding (20, 20)
             vbox:
-                label "Stats"
-                text "Strength: [rpg_world.actor.stats.strength]"
-                text "Dexterity: [rpg_world.actor.stats.dexterity]"
-                text "Intelligence: [rpg_world.actor.stats.intelligence]"
-                text "Charisma: [rpg_world.actor.stats.charisma]"
+                spacing 10
+                text "Interactions:" size 24 color "#ffffff"
+                for entity in loc.entities:
+                    textbutton "[entity.name]":
+                        action Function(entity.interact)
+                        text_size 20
+                
+                for char in loc.characters:
+                    textbutton "[char.name]":
+                        action Function(char.interact)
+                        text_size 20
 
+        # Side Menu
+        frame:
+            background "#1a1a1a"
+            xsize 200
+            ysize 600
+            padding (10, 10)
             vbox:
-                label "Inventory"
-                if not rpg_world.actor.items:
-                    text "Empty"
-                else:
-                    for item in rpg_world.actor.items:
-                        textbutton item.name action [Function(rpg_world.actor.equip, item), SelectedIf(rpg_world.actor.equipped_items.get(item.outfit_part) == item)]
+                spacing 15
+                xfill True
+                textbutton "Inventory":
+                    action ShowMenu("inventory_screen")
+                    xfill True
+                textbutton "Character":
+                    action ShowMenu("character_sheet")
+                    xfill True
+                textbutton "Gallery":
+                    action ShowMenu("gallery_screen")
+                    xfill True
+                textbutton "Quests":
+                    action ShowMenu("quest_log_screen")
+                    xfill True
+                
+                null height 20
+                textbutton "Quit":
+                    action Quit(confirm=True)
+                    xfill True
 
-        textbutton "Close" action Hide("character_management_screen")
+screen notify(message):
+    zorder 100
+    style_prefix "notify"
+
+    frame at notify_appear:
+        background "#2a2a2a"
+        padding (20, 10)
+        xalign 0.5
+        ypos 50
+        
+        text "[message!t]":
+            color "#ffd700"
+            size 20
+
+    timer 3.2 action Hide('notify')
+
+transform notify_appear:
+    on show:
+        alpha 0.0 yoffset -20
+        linear .25 alpha 1.0 yoffset 0
+    on hide:
+        linear .5 alpha 0.0 yoffset -20
+
+style notify_frame is empty
+style notify_text is empty
