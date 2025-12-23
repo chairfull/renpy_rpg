@@ -24,17 +24,13 @@ screen navigation_screen():
         if current_loc.entities:
             label "Interact"
             for entity in current_loc.entities:
-                if entity.label:
-                    textbutton entity.name action Jump(entity.label)
-                else:
-                    textbutton entity.name action Function(entity.interact)
+                textbutton entity.name action Function(entity.interact)
 
         if current_loc.characters:
             null height 20
             label "Characters"
             for char in current_loc.characters:
-                # FIXED: Using Ren'Py If action for dynamic label/interaction logic
-                textbutton char.name action If(char.label, Jump(char.label), Function(char.interact))
+                textbutton char.name action Function(char.interact)
 
     # HUD (Stats & Time)
     vbox:
