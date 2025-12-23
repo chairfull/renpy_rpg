@@ -146,6 +146,8 @@ python early:
                     try:
                         import renpy
                         config.developer = True
+                        renpy.reload_script("generated/generated_labels.rpy")
+                        renpy.reload_all()
                         renpy.full_restart()
                     except:
                         pass
