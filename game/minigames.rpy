@@ -10,7 +10,7 @@ init python:
     # Example minigame: A simple dice roll check
     def roll_dice_minigame(stat_name, difficulty):
         roll = random.randint(1, 20)
-        stat_value = getattr(pc.stats, stat_name)
+        stat_value = getattr(rpg_world.actor.stats, stat_name)
         total = roll + (stat_value - 10) // 2
         
         renpy.say(None, f"Rolling for {stat_name}... You rolled a {roll} + { (stat_value - 10) // 2 } bonus.")
@@ -32,7 +32,4 @@ label test_minigame:
         "Maybe next time."
     jump world_loop
 
-# Add minigame entity to town square
-init python:
-    training_dummy = Entity("Training Dummy", "A sturdy wooden dummy.", label="test_minigame")
-    town_square.add_entity(training_dummy)
+# The training dummy is now handled through the square.md data file.
