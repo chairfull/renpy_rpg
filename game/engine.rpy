@@ -126,9 +126,32 @@ python early:
                 
                 if not os.path.exists(output_dir):
                     os.makedirs(output_dir)
-                with open(output_file, "w", encoding="utf-8") as out:
-                    out.write("".join(final_content))
+
+                new_script_content = "".join(final_content)
                 
+                # Check if content actually changed to avoid reload loop
+                current_content = ""
+                if os.path.exists(output_file):
+                    with open(output_file, "r", encoding="utf-8") as f:
+                        current_content = f.read()
+                
+                if new_script_content != current_content:
+                    with open(output_file, "w", encoding="utf-8") as out:
+                        out.write(new_script_content)
+                    
+                    debug_info.append("Content changed! Triggering renpy.reload_script()...\n")
+                    # Writing log BEFORE reload so we don't lose it
+                    with open(log_file, "w") as f: f.writelines(debug_info)
+                    
+                    try:
+                        import renpy
+                        config.developer = True
+                        renpy.reload_script()
+                    except:
+                        pass
+                else:
+                    debug_info.append("No changes detected. Skipping reload.\n")
+
                 debug_info.append("Successfully generated labels.\n")
 
             except Exception as e:

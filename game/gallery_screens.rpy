@@ -2,7 +2,7 @@ default gallery_tab = "achievements"
 
 screen gallery_screen():
     modal True
-    add Solid("#000da") # Dark glassy background
+    add Solid("#000000da") # Dark glassy background
 
     vbox:
         align (0.5, 0.4)

@@ -1,0 +1,10 @@
+﻿I'm sorry, but errors were detected in your script. Please correct the
+errors listed below, and try again.
+
+
+File "game/gallery_screens.rpy", line 18: The transform statement is not a valid child of the text statement.
+    text "Compendium" size 50 xalign 0.5 transform:
+                                                  ^
+
+Ren'Py Version: Ren'Py 8.4.1.25072401
+Tue Dec 23 16:05:38 2025
