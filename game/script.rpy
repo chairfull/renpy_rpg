@@ -15,7 +15,7 @@ label start:
     
     # SAFE JUMP: Check if the generated label exists before jumping
     python:
-        target_label = "SCENE_intro__start"
+        target_label = "SCENE__intro__start"
         if renpy.has_label(target_label):
             renpy.jump(target_label)
         else:

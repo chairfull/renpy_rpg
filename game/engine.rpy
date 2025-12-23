@@ -80,8 +80,8 @@ python early:
                     flow_match = re.search(r'```flow\s*\r?\n(.*?)\r?\n```', section_body, re.DOTALL)
                     if flow_match:
                         flow_content = flow_match.group(1)
-                        label_name = f"{prefix}_{obj_id}_{heading_slug}"
-                        if obj_type == "scene" and heading_slug == "start": label_name = f"SCENE_{obj_id}__start"
+                        label_name = f"{prefix}__{obj_id}__{heading_slug}"
+                        # if obj_type == "scene" and heading_slug == "start": label_name = f"SCENE__{obj_id}__start"
                         if not detected_label: detected_label = label_name
                         
                         script_parts.append(f"label {label_name}:\n")
