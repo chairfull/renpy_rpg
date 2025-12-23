@@ -146,7 +146,7 @@ python early:
                     try:
                         import renpy
                         config.developer = True
-                        renpy.reload_script()
+                        renpy.full_restart()
                     except:
                         pass
                 else:
