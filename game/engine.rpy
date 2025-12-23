@@ -2,85 +2,81 @@ python early:
     import os
     import re
 
-    class FlowGenerator:
+    class MarkdownParser:
         @staticmethod
-        def parse_flow_block(block_text, context_name):
-            renpy_lines = []
-            lines = [l.strip() for l in block_text.split('\n') if l.strip()]
-            chars_to_fetch = set()
-            for line in lines:
-                if ':' in line and not line.startswith('$'):
-                    char_id = line.split(':', 1)[0].strip().lower()
-                    chars_to_fetch.add(char_id)
+        def parse(filepath):
+            with renpy.file(filepath) as f:
+                content = f.read().decode("utf-8")
             
-            for cid in chars_to_fetch:
-                renpy_lines.append(f'    $ {cid} = rpg_world.characters.get("{cid.capitalize()}")')
+            fm_match = re.search(r'---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+            if not fm_match: return None, None
             
-            for line in lines:
-                if line.startswith('$'):
-                    renpy_lines.append(f'    {line}')
-                elif ':' in line:
-                    char_id, text = line.split(':', 1)
-                    char_id = char_id.strip().lower()
-                    text = text.strip().replace('"', '\\"')
-                    renpy_lines.append(f'    {char_id} "{text}"')
-                else:
-                    text = line.replace('"', '\\"')
-                    renpy_lines.append(f'    "{text}"')
-            return renpy_lines
+            fm_text = fm_match.group(1)
+            body_text = content[fm_match.end():].strip()
+            
+            props = {}
+            for line in fm_text.split('\n'):
+                if ':' in line:
+                    k, v = line.split(':', 1)
+                    props[k.strip()] = v.strip()
+            return props, body_text
 
         @staticmethod
-        def generate():
-            data_dir = "game/data"
-            if not os.path.exists(data_dir): data_dir = "data"
-            if not os.path.exists(data_dir): return
-
-            # Determine project root from data_dir
-            project_root = os.path.dirname(data_dir) if "game/data" in data_dir else "."
-            output_dir = os.path.join(project_root, "generated")
+        def generate_scripts():
+            # Output path must use physical disk path
+            output_dir = os.path.join(renpy.config.gamedir, "generated")
             output_file = os.path.join(output_dir, "generated_labels.rpy")
-            
             if not os.path.exists(output_dir): os.makedirs(output_dir)
             
             final_content = ["# AUTOMATICALLY GENERATED LABELS - DO NOT EDIT\n"]
-            for root, dirs, files in os.walk(data_dir):
-                for filename in files:
-                    if filename.endswith(".md"):
-                        filepath = os.path.join(root, filename)
-                        with open(filepath, "r", encoding="utf-8") as f:
-                            content = f.read()
-                        
-                        fm_match = re.search(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
-                        if fm_match:
-                            fm_text = fm_match.group(1)
-                            props = {}
-                            for line in fm_text.split('\n'):
-                                if ':' in line:
-                                    k, v = line.split(':', 1)
-                                    props[k.strip()] = v.strip()
-                            
-                            obj_id = props.get('id', props.get('name', 'unknown')).lower()
-                            obj_type = props.get('type', 'location')
-                            prefix = "char_" if obj_type == "character" else "scene_" if obj_type == "scene" else "loc_"
+            
+            for f in renpy.list_files():
+                if f.startswith("data/") and f.endswith(".md"):
+                    props, body = MarkdownParser.parse(f)
+                    if not props: continue
+                    
+                    obj_id = props.get('id', props.get('name', 'unknown')).lower()
+                    obj_type = props.get('type', 'location')
+                    prefix = "char_" if obj_type == "character" else "scene_" if obj_type == "scene" else "loc_"
 
-                            sections = re.finditer(r'^#+\s*(.*?)\n.*?```flow\s*\n(.*?)\n```', content, re.DOTALL | re.MULTILINE)
-                            for section in sections:
-                                heading = section.group(1).strip().lower().replace(' ', '_')
-                                flow_body = section.group(2)
-                                label_name = f"{prefix}{obj_id}_{heading}"
-                                
-                                final_content.append(f"label {label_name}:\n")
-                                block_lines = FlowGenerator.parse_flow_block(flow_body, obj_id)
-                                final_content.extend([line + "\n" for line in block_lines])
-                                
-                                if obj_type == 'scene' and heading == 'start':
-                                    final_content.append(f"    $ scene_manager.unlock('{obj_id}')\n")
-                                final_content.append("    jump world_loop\n\n")
+                    sections = re.finditer(r'^#+\s*(.*?)\n.*?```flow\s*\n(.*?)\n```', body, re.DOTALL | re.MULTILINE)
+                    for section in sections:
+                        heading = section.group(1).strip().lower().replace(' ', '_')
+                        flow_body = section.group(2)
+                        
+                        label_name = f"scene_{obj_id}_start" if obj_type == "scene" else f"{prefix}{obj_id}_{heading}"
+                        final_content.append(f"label {label_name}:\n")
+                        
+                        # Process flow lines
+                        lines = [l.strip() for l in flow_body.split('\n') if l.strip()]
+                        chars_to_fetch = set()
+                        for line in lines:
+                            if ':' in line and not line.startswith('$'):
+                                chars_to_fetch.add(line.split(':', 1)[0].strip().lower())
+                        
+                        for cid in chars_to_fetch:
+                            final_content.append(f'    $ {cid} = rpg_world.characters.get("{cid.capitalize()}")\n')
+                        
+                        for line in lines:
+                            if line.startswith('$'):
+                                final_content.append(f'    {line}\n')
+                            elif ':' in line:
+                                char_id, text = line.split(':', 1)
+                                char_id = char_id.strip().lower()
+                                text = text.strip().replace('"', '\\"')
+                                final_content.append(f'    {char_id} "{text}"\n')
+                            else:
+                                text = line.replace('"', '\\"')
+                                final_content.append(f'    "{text}"\n')
+                        
+                        if obj_type == 'scene':
+                            final_content.append(f"    $ scene_manager.unlock('{obj_id}')\n")
+                        final_content.append("    jump world_loop\n\n")
 
             with open(output_file, "w", encoding="utf-8") as out:
                 out.write("".join(final_content))
 
-    FlowGenerator.generate()
+    MarkdownParser.generate_scripts()
 
 init -10 python:
     import random
@@ -270,57 +266,34 @@ init -10 python:
             if display_hour == 0: display_hour = 12
             return f"Day {self.day} - {display_hour:02d}:{self.minute:02d} {period}"
 
-    import os
-    import re
+    # Consolidated Loader
+    def load_all():
+        for f in renpy.list_files():
+            if f.startswith("data/") and f.endswith(".md"):
+                props, body = MarkdownParser.parse(f)
+                if not props: continue
+                
+                obj_type = props.get('type', 'location')
+                obj_id = props.get('id', props.get('name', 'unknown')).lower()
+                
+                # Use same label logic
+                detected_label = None
+                flow_headings = re.findall(r'^#+\s*(.*?)\n.*?```flow', body, re.DOTALL | re.MULTILINE)
+                if flow_headings:
+                    best_heading = flow_headings[0].strip().lower().replace(' ', '_')
+                    prefix = "char_" if obj_type == "character" else "scene_" if obj_type == "scene" else "loc_"
+                    detected_label = f"scene_{obj_id}_start" if obj_type == "scene" else f"{prefix}{obj_id}_{best_heading}"
 
-    class MarkdownParser:
-        @staticmethod
-        def parse_file(filepath):
-            with renpy.file(filepath) as f:
-                content = f.read().decode("utf-8")
-            
-            parts = content.split('---')
-            if len(parts) < 3: return None
-            
-            fm_text = parts[1].strip()
-            body_text = parts[2].strip()
-            
-            props = {}
-            for line in fm_text.split('\n'):
-                if k := line.split(':', 1):
-                    if len(k) == 2: props[k[0].strip()] = k[1].strip()
-            
-            obj_type = props.get('type', 'location')
-            obj_id = props.get('id', props.get('name', 'unknown')).lower()
-            
-            # Auto-detect label from the FIRST flow block
-            detected_label = None
-            flow_headings = re.findall(r'^#+\s*(.*?)\n.*?```flow', body_text, re.DOTALL | re.MULTILINE)
-            if flow_headings:
-                best_heading = flow_headings[0].strip().lower().replace(' ', '_')
-                prefix = "char_" if obj_type == "character" else "scene_" if obj_type == "scene" else "loc_"
-                detected_label = f"{prefix}{obj_id}_{best_heading}"
-
-            if obj_type == 'location':
-                loc = Location(id=obj_id, name=props.get('name', obj_id), description=props.get('description', ''))
-                return loc
-            elif obj_type == 'character':
-                char = RPGCharacter(name=props.get('name'), description=props.get('description', ''), label=props.get('label', detected_label), location_id=props.get('location', None))
-                wiki_manager.register(char.name, char.description)
-                return char
-            elif obj_type == 'scene':
-                scene = Scene(id=obj_id, name=props.get('name', obj_id), start_label=f"scene_{obj_id}_start", end_label=f"scene_{obj_id}_end")
-                scene_manager.add_scene(scene)
-                return None
-            return None
-
-        @staticmethod
-        def load_all(directory="data"):
-            for filename in renpy.list_files():
-                if filename.startswith(directory + "/") and filename.endswith(".md"):
-                    obj = MarkdownParser.parse_file(filename)
-                    if isinstance(obj, Location): rpg_world.add_location(obj)
-                    elif isinstance(obj, RPGCharacter): rpg_world.add_character(obj)
+                if obj_type == 'location':
+                    loc = Location(id=obj_id, name=props.get('name', obj_id), description=props.get('description', ''))
+                    rpg_world.add_location(loc)
+                elif obj_type == 'character':
+                    char = RPGCharacter(name=props.get('name'), description=props.get('description', ''), label=props.get('label', detected_label), location_id=props.get('location', None))
+                    wiki_manager.register(char.name, char.description)
+                    rpg_world.add_character(char)
+                elif obj_type == 'scene':
+                    scene = Scene(id=obj_id, name=props.get('name', obj_id), start_label=f"scene_{obj_id}_start", end_label=f"scene_{obj_id}_end")
+                    scene_manager.add_scene(scene)
 
     rpg_world = GameWorld()
     achievements = AchievementManager()
@@ -329,7 +302,7 @@ init -10 python:
     time_manager = TimeManager()
     pc = RPGCharacter("Player")
     rpg_world.add_character(pc)
-    MarkdownParser.load_all()
+    load_all()
 
 default persistent.achievements = set()
 default persistent.unlocked_scenes = set()
