@@ -64,8 +64,8 @@ python early:
                 
                 obj_id = props.get('id', props.get('name', 'unknown')).lower()
                 obj_type = props.get('type', 'location')
-                prefix = "char_" if obj_type == "character" else "scene_" if obj_type == "scene" else "loc_"
-                if obj_type == "quest": prefix = "quest_"
+                prefix = "CHAR" if obj_type == "character" else "SCENE" if obj_type == "scene" else "LOC"
+                if obj_type == "quest": prefix = "QUEST"
 
                 # 1. Script Generation (Flow blocks)
                 detected_label = None
@@ -80,8 +80,8 @@ python early:
                     flow_match = re.search(r'```flow\s*\r?\n(.*?)\r?\n```', section_body, re.DOTALL)
                     if flow_match:
                         flow_content = flow_match.group(1)
-                        label_name = f"{prefix}{obj_id}_{heading_slug}"
-                        if obj_type == "scene" and heading_slug == "start": label_name = f"scene_{obj_id}_start"
+                        label_name = f"{prefix}_{obj_id}_{heading_slug}"
+                        if obj_type == "scene" and heading_slug == "start": label_name = f"SCENE_{obj_id}__start"
                         if not detected_label: detected_label = label_name
                         
                         script_parts.append(f"label {label_name}:\n")
@@ -141,7 +141,7 @@ python early:
                                         tick.trigger_data[tk.strip().lower()] = tv.strip()
                             
                             if re.search(r'```flow', goal_body):
-                                tick.flow_label = f"quest_{obj_id}_{goal_name.lower().replace(' ', '_')}"
+                                tick.flow_label = f"QUEST_{obj_id}__{goal_name.lower().replace(' ', '_')}"
                             quest.add_tick(tick)
                         
                         # Handle quest-level triggers

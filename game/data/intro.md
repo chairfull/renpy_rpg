@@ -3,7 +3,7 @@ type: scene
 id: intro
 name: Arrival in Town
 ---
-# Intro
+# Start
 ```flow
 Welcome to the town of AI.
 A small place with big potential.
