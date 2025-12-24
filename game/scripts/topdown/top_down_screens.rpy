@@ -48,8 +48,7 @@ screen top_down_map(location):
                         idle Transform(entity.sprite, zoom=0.3)
                         hover Transform(entity.sprite, zoom=0.33)
                 
-                if entity.tooltip:
-                    hovered Notify(entity.tooltip)
+                tooltip entity.tooltip
 
         # Player Sprite (with rotation)
         $ player_screen_pos = td_manager.world_to_screen(td_manager.player_pos[0], td_manager.player_pos[1])
@@ -104,6 +103,31 @@ screen top_down_map(location):
             text f"Player: ({int(td_manager.player_pos[0])}, {int(td_manager.player_pos[1])})" size 16 color "#aaa"
             text f"CamOffset: ({int(td_manager.camera_offset[0])}, {int(td_manager.camera_offset[1])})" size 16 color "#aaa"
 
+    # Mouse Tooltip
+    use mouse_tooltip
+
+# Tooltip Screen
+screen mouse_tooltip():
+    $ tt = GetTooltip()
+    if tt:
+        frame:
+            at follow_mouse_transform
+            padding (12, 8)
+            background "#000000cc"
+            text "[tt]" size 20 color "#ffffff" outlines [(1, "#000", 0, 0)]
+
+transform follow_mouse_transform:
+    alpha 0.0 zoom 0.9
+    on show:
+        parallel:
+            easein 0.15 alpha 1.0
+        parallel:
+            easein 0.2 zoom 1.0
+    on hide:
+        easeout 0.15 alpha 0.0
+    
+    # Update position every frame
+    function update_tooltip_pos
 
 # Idle breathing animation for characters (NPCs)
 transform char_idle_anim:
@@ -120,6 +144,11 @@ transform char_idle_anim:
 
 
 init python:
+    def update_tooltip_pos(trans, st, at):
+        mx, my = renpy.get_mouse_pos()
+        trans.pos = (mx + 20, my + 20)
+        return 0
+
     def _td_click_to_move():
         """Handle click-to-move, converting screen coords to world coords"""
         mx, my = renpy.get_mouse_pos()
