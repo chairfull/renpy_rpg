@@ -97,7 +97,7 @@ screen top_down_map(location):
         vbox:
             text "DEBUG INFO" size 20 color "#f00"
             text f"Entities: {len(td_manager.entities)}" size 18 color "#fff"
-            text f"Loc Links: {str(location.links).replace('[', '[[').replace(']', ']]')}" size 14 color "#aaa"
+
             for i, e in enumerate(td_manager.entities[:5]):
                 $ sx, sy = td_manager.world_to_screen(e.x, e.y)
                 text f"[{i}] {e.tooltip}: ({e.x},{e.y})" size 16 color "#aaa"

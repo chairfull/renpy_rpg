@@ -190,11 +190,10 @@ init -10 python:
         def mark_as_met(self): wiki_manager.unlock(self.name, self.description)
 
     class Location:
-        def __init__(self, id, name, description, map_image=None, obstacles=None, links=None, entities=None):
+        def __init__(self, id, name, description, map_image=None, obstacles=None, entities=None):
             self.id, self.name, self.description = id, name, description
             self.map_image = map_image
             self.obstacles = obstacles or set()
-            self.links = links or []
             self.entities = entities or []
             self.visited = False
         @property
@@ -258,7 +257,7 @@ init -10 python:
         # Locations
         for oid, p in data.get("locations", {}).items():
             obstacles = set(tuple(obs) for obs in p.get("obstacles", []))
-            loc = Location(oid, p['name'], p['description'], p.get('map_image'), obstacles, p.get('links'), p.get('entities'))
+            loc = Location(oid, p['name'], p['description'], p.get('map_image'), obstacles, p.get('entities'))
             rpg_world.add_location(loc)
             
         # Characters

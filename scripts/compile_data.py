@@ -42,6 +42,46 @@ def parse_markdown(filepath):
     
     return props, parts[2].strip()
 
+def parse_yaml_list(lines):
+    items = []
+    current_item = None
+    for line in lines:
+        stripped = line.strip()
+        if not stripped: continue
+        
+        # New item start
+        if line.lstrip().startswith('- '):
+            if current_item: items.append(current_item)
+            current_item = {}
+            # Check for inline content after "- "
+            content = line.lstrip()[2:].strip() # remove "- "
+            if ':' in content:
+                k, v = content.split(':', 1)
+                val = v.strip()
+                # Simple integer conversion
+                if val.isdigit(): val = int(val)
+                # Simple list conversion [x, y]
+                elif val.startswith('[') and val.endswith(']'):
+                     val = [int(x.strip()) if x.strip().isdigit() else x.strip() for x in val[1:-1].split(',')]
+                else:
+                     val = val.strip('"\'')
+                current_item[k.strip()] = val
+        
+        # Property
+        elif ':' in stripped:
+            if current_item is not None:
+                k, v = stripped.split(':', 1)
+                val = v.strip()
+                if val.isdigit(): val = int(val)
+                elif val.startswith('[') and val.endswith(']'):
+                     val = [int(x.strip()) if x.strip().isdigit() else x.strip() for x in val[1:-1].split(',')]
+                else:
+                     val = val.strip('"\'')
+                current_item[k.strip()] = val
+    
+    if current_item: items.append(current_item)
+    return items
+
 def compile():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     game_dir = os.path.join(base_dir, "game")
@@ -88,35 +128,18 @@ def compile():
                     "outfit_part": props.get('outfit_part')
                 }
             elif otype == 'location':
-                # Parse Links (was connections)
-                links = []
-                raw_links = props.get('links', [])
-                if isinstance(raw_links, list):
-                    for l in raw_links:
-                        # Normalize keys if needed, assuming YAML parser result
-                        if isinstance(l, dict):
-                            links.append({
-                                'id': l.get('id'),
-                                'x': int(l.get('x', 0)),
-                                'y': int(l.get('y', 0)),
-                                'spawn': l.get('spawn', None) # [x, y]
-                            })
-                
-                # Parse Entities (merged characters, containers, interactives)
-                entities = []
+                # Parse list of entities/links
                 raw_ents = props.get('entities', [])
                 if isinstance(raw_ents, list):
-                    for e in raw_ents:
-                        if isinstance(e, dict):
-                            # Default entity structure
-                            entities.append(e)
+                    entities = parse_yaml_list(raw_ents)
+                else:
+                    entities = []
 
                 data_consolidated["locations"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
                     "map_image": props.get('map_image'),
                     "obstacles": props.get('obstacles', []),
-                    "links": links,
                     "entities": entities
                 }
             elif otype == 'character':

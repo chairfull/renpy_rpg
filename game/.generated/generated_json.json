@@ -44,24 +44,107 @@
             "description": "A cozy little house.",
             "map_image": "#1a1a2a",
             "obstacles": [],
-            "links": [],
-            "entities": []
+            "entities": [
+                {
+                    "id": "square",
+                    "type": "link",
+                    "x": 200,
+                    "y": 540,
+                    "spawn": [
+                        200,
+                        540
+                    ]
+                },
+                {
+                    "id": "bed",
+                    "type": "object",
+                    "name": "Bed",
+                    "description": "A comfortable-looking bed.",
+                    "label": "sleep_interaction",
+                    "x": 300,
+                    "y": 500,
+                    "sprite": "images_topdown/chars/theo.png"
+                },
+                {
+                    "id": "mirror",
+                    "type": "object",
+                    "name": "Mirror",
+                    "description": "You look great today!",
+                    "label": "mirror_interaction",
+                    "x": 1400,
+                    "y": 300,
+                    "sprite": "images_topdown/chars/theo.png"
+                },
+                {
+                    "id": "closet",
+                    "type": "container",
+                    "name": "Bedroom Closet",
+                    "description": "A sturdy wooden closet for your belongings.",
+                    "x": 0,
+                    "y": 0,
+                    "items": [
+                        "sword",
+                        "potion"
+                    ],
+                    "sprite": "images_topdown/chars/theo.png"
+                }
+            ]
         },
         "square": {
             "name": "Town Square",
             "description": "The heart of the town.",
             "map_image": "#333",
             "obstacles": "10,10|10,11|11,10|11,11",
-            "links": [],
-            "entities": []
+            "entities": [
+                {
+                    "id": "home",
+                    "type": "link",
+                    "x": 200,
+                    "y": 540,
+                    "spawn": [
+                        200,
+                        540
+                    ]
+                },
+                {
+                    "id": "shop",
+                    "type": "link",
+                    "x": 1600,
+                    "y": 540,
+                    "spawn": [
+                        960,
+                        800
+                    ]
+                },
+                {
+                    "id": "dummy",
+                    "type": "object",
+                    "name": "Training Dummy",
+                    "description": "Looks tough.",
+                    "label": "test_minigame",
+                    "x": 400,
+                    "y": 300,
+                    "sprite": "images_topdown/chars/theo.png"
+                }
+            ]
         },
         "shop": {
             "name": "General Store",
             "description": "A place to buy supplies.",
             "map_image": null,
             "obstacles": [],
-            "links": [],
-            "entities": []
+            "entities": [
+                {
+                    "id": "square",
+                    "type": "link",
+                    "x": 960,
+                    "y": 800,
+                    "spawn": [
+                        1600,
+                        540
+                    ]
+                }
+            ]
         }
     },
     "quests": {

@@ -4,12 +4,12 @@ id: home
 name: Your Home
 description: A cozy little house.
 map_image: "#1a1a2a"
-links:
+entities:
   - id: square
+    type: link
     x: 200
     y: 540
-    spawn: [100, 500]
-entities:
+    spawn: [200, 540]
   - id: bed
     type: object
     name: Bed

@@ -46,28 +46,53 @@ init -5 python:
             # Snap camera to player immediately
             self.center_player()
             self.snap_camera()
-            
-            # 1. Add Exits (Links)
-            if location.links:
-                for link in location.links:
-                    dest_id = link['id']
-                    cx, cy = link['x'], link['y']
-                    
+
+            # Unified Entity Loading
+            # Iterate through location.entities which now contains EVERYTHING (links, objects, containers)
+            for item in location.entities:
+                itype = item.get('type', 'object')
+                ix, iy = item.get('x', 0), item.get('y', 0)
+                iid = item.get('id', 'unknown')
+                
+                if itype == 'link':
+                    # It's an exit
+                    dest_id = iid
                     # Fetch destination name
                     dest_loc = rpg_world.locations.get(dest_id)
                     dest_name = dest_loc.name if dest_loc else dest_id.capitalize()
-                    
                     tooltip_text = f"Go to {dest_name}"
                     
-                    ent = TopDownEntity(cx, cy, 
+                    ent = TopDownEntity(ix, iy, 
                                         sprite="images_topdown/chars/theo.png",
                                         action=Function(self.walk_to_exit, dest_id),
                                         tooltip=tooltip_text,
                                         sprite_tint=TintMatrix("#00ff00"))
-                    print(f"DEBUG: Created Link Entity to {dest_id} at {cx},{cy}")
+                    print(f"DEBUG: Created Link Entity to {dest_id} at {ix},{iy}")
+                    self.entities.append(ent)
+                
+                else:
+                    # It's an object/container/NPC placeholder (loaded from YAML)
+                    iname = item.get('name', 'Unknown')
+                    
+                    def _obj_action(obj_data=item):
+                        # For containers, showing a notify for now or handle logic
+                        # If it has a label, call it
+                        if 'label' in obj_data and renpy.has_label(obj_data['label']):
+                             renpy.call_in_new_context(obj_data['label'])
+                        elif obj_data.get('type') == 'container':
+                             # In future, open container screen
+                             renpy.notify(f"Interacted with container: {obj_data.get('name')}")
+                        else:
+                             renpy.notify(f"Interacted with {obj_data.get('name')}")
+
+                    ent = TopDownEntity(ix, iy,
+                                        sprite=item.get('sprite', "images_topdown/chars/theo.png"),
+                                        action=Function(self.set_target, ix, iy, _obj_action), # Walk there then interact
+                                        tooltip=iname,
+                                        idle_anim=False)
                     self.entities.append(ent)
 
-            # 2. Add Characters (NPCs)
+            # 2. Add Characters (NPCs) - These are runtime objects from rpg_world
             for char in location.characters:
                 def _char_action(c=char):
                     renpy.show_screen("td_char_popup", char=c)
@@ -77,29 +102,6 @@ init -5 python:
                                     action=Function(_char_action),
                                     tooltip=char.name,
                                     idle_anim=True)
-                self.entities.append(ent)
-            
-            # 3. Add Interactives (Entities from YAML)
-            for item in location.entities:
-                ix, iy = item.get('x', 0), item.get('y', 0)
-                iname = item.get('name', 'Unknown')
-                itype = item.get('type', 'object')
-                
-                def _obj_action(obj_data=item):
-                    # For containers, showing a notify for now or handle logic
-                    # If it has a label, call it
-                    if 'label' in obj_data and renpy.has_label(obj_data['label']):
-                        renpy.call_in_new_context(obj_data['label'])
-                    elif itype == 'container':
-                        renpy.notify(f"Interacted with container: {iname}")
-                    else:
-                        renpy.notify(f"Interacted with {iname}")
-
-                ent = TopDownEntity(ix, iy,
-                                    sprite=item.get('sprite', "images_topdown/chars/theo.png"),
-                                    action=Function(self.set_target, ix, iy, _obj_action), # Walk there then interact
-                                    tooltip=iname,
-                                    idle_anim=False)
                 self.entities.append(ent)
 
             self.current_location = location
@@ -202,11 +204,12 @@ init -5 python:
             return start + (end - start) * t
 
         def walk_to_exit(self, dest_id):
-            # Find the link data to get coordinates
+            # Find the link data to get coordinates from entity list
             link_data = None
             current_loc = rpg_world.current_location
-            for l in current_loc.links:
-                if l['id'] == dest_id:
+            # Search entities for the link
+            for l in current_loc.entities:
+                if l.get('type') == 'link' and l.get('id') == dest_id:
                     link_data = l
                     break
             
@@ -226,8 +229,8 @@ init -5 python:
                 # Check for spawn point in the link we just used
                 current_loc = rpg_world.current_location
                 spawn_pos = None
-                for l in current_loc.links:
-                    if l['id'] == dest:
+                for l in current_loc.entities:
+                     if l.get('type') == 'link' and l.get('id') == dest:
                          spawn_pos = l.get('spawn')
                          break
                 
