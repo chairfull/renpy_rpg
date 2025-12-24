@@ -309,6 +309,11 @@ screen navigation():
 
         textbutton _("Load") action ShowMenu("load")
 
+        textbutton _("Wiki") action ShowMenu("gallery_screen")
+
+        if not main_menu:
+            textbutton _("DEV MODE") action ShowMenu("dev_mode_screen") text_color "#ff3333"
+
         textbutton _("Preferences") action ShowMenu("preferences")
 
         if _in_replay:

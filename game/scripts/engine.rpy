@@ -1,89 +1,7 @@
-python early:
-    import os
-    import re
-
-    try:
-        gamedir = renpy.config.gamedir
-    except:
-        gamedir = os.path.join(os.getcwd(), "game")
-        if not os.path.exists(gamedir): gamedir = os.getcwd()
-
-    class MarkdownParser:
-        @staticmethod
-        def parse(filepath):
-            full_path = os.path.join(gamedir, filepath)
-            try:
-                with open(full_path, "r", encoding="utf-8") as f:
-                    content = f.read()
-            except: return None, None
-            
-            if "---" not in content: return None, None
-            parts = content.split("---", 2)
-            if len(parts) < 3: return None, None
-            
-            props = {}
-            for line in parts[1].split('\n'):
-                if ':' in line:
-                    k, v = line.split(':', 1)
-                    props[k.strip()] = v.strip()
-            return props, parts[2].strip()
-
-        @staticmethod
-        def load_all():
-            output_file = os.path.join(gamedir, "generated", "generated_labels.rpy")
-            if not os.path.exists(os.path.dirname(output_file)): os.makedirs(os.path.dirname(output_file))
-            
-            script_parts = ["# AUTOMATICALLY GENERATED LABELS - DO NOT EDIT\n"]
-            data_path = os.path.join(gamedir, "data")
-            if not os.path.exists(data_path): return
-            
-            for root, dirs, files in os.walk(data_path):
-                for f in files:
-                    if not f.endswith(".md"): continue
-                    path = os.path.relpath(os.path.join(root, f), gamedir)
-                    props, body = MarkdownParser.parse(path)
-                    if not props: continue
-                    
-                    obj_id = props.get('id', props.get('name', 'unknown')).lower()
-                    otype = props.get('type', 'location')
-                    prefix = {"character":"CHAR", "scene":"SCENE", "quest":"QUEST", "container":"CONT", "item":"ITEM"}.get(otype, "LOC")
-                    
-                    sections = re.split(r'(?m)^#+\s*', body)
-                    for sec in sections:
-                        if not sec.strip(): continue
-                        lines = sec.split('\n', 1)
-                        heading = lines[0].strip().lower().replace(' ', '_')
-                        content = lines[1] if len(lines) > 1 else ""
-                        
-                        flows = re.findall(r'```flow.*?\s*\n(.*?)\n```', content, re.DOTALL)
-                        if not flows:
-                            flows = re.findall(r'```flow.*?\n(.*?)\n```', content, re.DOTALL)
-
-                        if flows:
-                            for flow_body in flows:
-                                label_name = f"{prefix}__{obj_id}__{heading}"
-                                script_parts.append(f"label {label_name}:\n")
-                                for line in flow_body.split('\n'):
-                                    line = line.strip()
-                                    if not line: continue
-                                    if line.startswith('$'): script_parts.append(f"    {line}\n")
-                                    elif ':' in line:
-                                        cid, txt = line.split(':', 1)
-                                        txt = txt.strip().replace('"', '\\"')
-                                        script_parts.append(f"    {cid.strip().lower()} \"{txt}\"\n")
-                                    else:
-                                        txt = line.strip().replace('"', '\\"')
-                                        script_parts.append(f"    \"{txt}\"\n")
-                                
-                                if prefix == "ITEM": script_parts.append("    return\n\n")
-                                else: script_parts.append("    jump world_loop\n\n")
-
-            with open(output_file, "w", encoding="utf-8") as out:
-                out.write("".join(script_parts))
-
-    MarkdownParser.load_all()
+# Data system migrated to compile_data.py
 
 init -10 python:
+    import json
     import random
     import copy
 
@@ -109,6 +27,19 @@ init -10 python:
         def dispatch(self, etype, **kwargs): quest_manager.handle_event(etype, **kwargs)
 
     event_manager = EventManager()
+
+    class TimeManager(object):
+        def __init__(self, hour=8, minute=0):
+            self.hour, self.minute = hour, minute
+        @property
+        def time_string(self): return "{:02d}:{:02d}".format(self.hour, self.minute)
+        def advance(self, mins):
+            self.minute += mins
+            while self.minute >= 60:
+                self.minute -= 60
+                self.hour = (self.hour + 1) % 24
+
+    time_manager = TimeManager()
 
     class QuestTick:
         def __init__(self, id, name):
@@ -178,16 +109,44 @@ init -10 python:
 
     quest_manager = QuestManager()
 
+    # --- DEBUG HELPERS ---
+    def q_force_tick(qid, tick_idx):
+        q = quest_manager.quests.get(qid)
+        if q and tick_idx < len(q.ticks):
+            t = q.ticks[tick_idx]
+            t.state = "complete"
+            t.current_value = t.required_value
+            # Check for next tick or quest completion
+            all_c = True
+            for i, tick in enumerate(q.ticks):
+                if tick.state != "complete":
+                    all_c = False
+                    if tick.state in ["hidden", "shown"]:
+                        tick.state = "active"
+                    break
+            if all_c:
+                q.complete()
+            renpy.notify(f"Forced tick: {t.name}")
+
+    def q_complete(qid):
+        q = quest_manager.quests.get(qid)
+        if q:
+            for t in q.ticks:
+                t.state = "complete"
+                t.current_value = t.required_value
+            q.complete()
+            renpy.notify(f"Forced quest complete: {q.name}")
+
     class Entity(object):
-        def __init__(self, name, description="", label=None):
-            self.name, self.description, self.label = name, description, label
+        def __init__(self, name, description="", label=None, x=0, y=0, **kwargs):
+            self.name, self.description, self.label, self.x, self.y = name, description, label, x, y
         def interact(self):
             if self.label: renpy.jump(self.label)
             else: renpy.say(None, f"You see {self.name}. {self.description}")
 
     class Inventory(Entity):
-        def __init__(self, name, description="", label=None):
-            super(Inventory, self).__init__(name, description, label)
+        def __init__(self, name, **kwargs):
+            super(Inventory, self).__init__(name, **kwargs)
             self.items, self.gold = [], 0
         def add_item(self, i):
             self.items.append(i)
@@ -204,14 +163,14 @@ init -10 python:
             return False
 
     class Container(Inventory):
-        def __init__(self, name, description="", id=None):
-            super(Container, self).__init__(name, description)
+        def __init__(self, name, id=None, **kwargs):
+            super(Container, self).__init__(name, **kwargs)
             self.id = id
         def interact(self): renpy.show_screen("container_screen", container=self)
 
     class Shop(Inventory):
-        def __init__(self, name, description="", buy_mult=1.2, sell_mult=0.6):
-            super(Shop, self).__init__(name, description)
+        def __init__(self, name, buy_mult=1.2, sell_mult=0.6, **kwargs):
+            super(Shop, self).__init__(name, **kwargs)
             self.buy_mult, self.sell_mult = buy_mult, sell_mult
         def get_buy_price(self, i): return int(i.value * self.buy_mult)
         def get_sell_price(self, i): return int(i.value * self.sell_mult)
@@ -223,16 +182,18 @@ init -10 python:
             self.hp = self.max_hp = 100
 
     class RPGCharacter(Inventory):
-        def __init__(self, name, stats=None, description="", label=None, location_id=None):
-            super(RPGCharacter, self).__init__(name, description, label)
+        def __init__(self, name, stats=None, location_id=None, **kwargs):
+            super(RPGCharacter, self).__init__(name, **kwargs)
             self.stats, self.equipped_items, self.location_id, self.pchar, self.gold = stats or RPGStats(), {}, location_id, Character(name), 100
         def __call__(self, what, *args, **kwargs): return self.pchar(what, *args, **kwargs)
         def interact(self): renpy.show_screen("char_interact_screen", char=self)
         def mark_as_met(self): wiki_manager.unlock(self.name, self.description)
 
     class Location:
-        def __init__(self, id, name, description):
+        def __init__(self, id, name, description, map_image=None, obstacles=None):
             self.id, self.name, self.description, self.entities, self.connections, self.visited = id, name, description, [], {}, False
+            self.map_image = map_image
+            self.obstacles = obstacles or set()
         def add_connection(self, dest, desc): self.connections[dest] = desc
         def add_entity(self, e): self.entities.append(e)
         @property
@@ -240,6 +201,10 @@ init -10 python:
 
     class GameWorld:
         def __init__(self): self.locations, self.characters, self.current_location_id = {}, {}, None
+        @property
+        def actor(self): return pc
+        @property
+        def current_location(self): return self.locations.get(self.current_location_id)
         def add_location(self, l):
             self.locations[l.id] = l
             if not self.current_location_id: self.current_location_id = l.id
@@ -255,26 +220,64 @@ init -10 python:
     rpg_world = GameWorld()
     pc = RPGCharacter("Player")
     rpg_world.add_character(pc)
+    class AchievementManager:
+        def unlock(self, ach_id):
+            if ach_id not in persistent.achievements:
+                persistent.achievements.add(ach_id)
+                renpy.notify(f"Achievement Unlocked: {ach_id}")
+
+    ach_mgr = AchievementManager() # Internal name
+    achievements = ach_mgr # Global alias for Markdown/Labels
+
+    class WikiManager:
+        def __init__(self): self.entries = {}
+        def register(self, n, d): self.entries[n] = d
+        def unlock(self, n, d=None):
+            if n not in persistent.met_characters:
+                persistent.met_characters.add(n)
+                if d: self.register(n, d)
+                renpy.notify(f"Wiki Unlock: {n}")
+        @property
+        def met_list(self): return [(n, self.entries.get(n, "No data.")) for n in sorted(persistent.met_characters)]
+
     wiki_manager = WikiManager()
 
     def instantiate_all():
-        data_path = os.path.join(gamedir, "data")
-        for root, dirs, files in os.walk(data_path):
-            for f in files:
-                if not f.endswith(".md"): continue
-                props, body = MarkdownParser.parse(os.path.relpath(os.path.join(root, f), gamedir))
-                if not props: continue
-                oid, otype = props.get('id', props.get('name', 'unknown')).lower(), props.get('type')
-                if otype == 'item': item_manager.register(oid, Item(props.get('name', oid), props.get('description', ''), float(props.get('weight', 0)), int(props.get('value', 0)), props.get('outfit_part')))
-                elif otype == 'location': rpg_world.add_location(Location(oid, props.get('name', oid), props.get('description', '')))
-                elif otype == 'character': rpg_world.add_character(RPGCharacter(props.get('name'), description=props.get('description', ''), location_id=props.get('location')))
-                elif otype == 'container':
-                    cont = Container(props.get('name', oid), props.get('description', ''), id=oid)
-                    for iid in props.get('items', '').split(','):
-                        itm = item_manager.get(iid.strip())
-                        if itm: cont.add_item(itm)
-                    if props.get('location') in rpg_world.locations: rpg_world.locations[props.get('location')].add_entity(cont)
-                elif otype == 'quest': quest_manager.add_quest(Quest(oid, props.get('name', oid), props.get('description', '')))
+        try:
+            with renpy.file(".generated/generated_json.json") as f:
+                data = json.load(f)
+        except Exception as e:
+            # If JSON is missing, we can't load metadata objects
+            return
+
+        # Items
+        for oid, p in data.get("items", {}).items():
+            item_manager.register(oid, Item(p['name'], p['description'], p['weight'], p['value'], p['outfit_part']))
+        
+        # Locations
+        for oid, p in data.get("locations", {}).items():
+            obstacles = set(tuple(obs) for obs in p.get("obstacles", []))
+            loc = Location(oid, p['name'], p['description'], p.get('map_image'), obstacles)
+            for dest_id, dest_desc in p.get("connections", {}).items():
+                loc.add_connection(dest_id, dest_desc)
+            rpg_world.add_location(loc)
+            
+        # Characters
+        for oid, p in data.get("characters", {}).items():
+            rpg_world.add_character(RPGCharacter(p['name'], description=p.get('description', ''), location_id=p.get('location'), x=p.get('x', 0), y=p.get('y', 0)))
+            
+        # Containers
+        for oid, p in data.get("containers", {}).items():
+            cont = Container(p['name'], id=oid, description=p.get('description', ''), x=p.get('x', 0), y=p.get('y', 0))
+            for iid in p.get('items', []):
+                itm = item_manager.get(iid)
+                if itm: cont.add_item(itm)
+            if p.get('location') in rpg_world.locations:
+                rpg_world.locations[p.get('location')].add_entity(cont)
+                
+        # Quests
+        for oid, p in data.get("quests", {}).items():
+            quest_manager.add_quest(Quest(oid, p['name'], p['description']))
 
     instantiate_all()
 

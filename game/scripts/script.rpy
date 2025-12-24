@@ -11,7 +11,8 @@ define e = Character("Eileen")
 label start:
     "Welcome to the AI RPG."
     # Initialize Player location
-    $ rpg_world.actor.location_id = "square"
+    $ rpg_world.actor.location_id = "home"
+    $ td_manager.setup(rpg_world.current_location)
     
     # SAFE JUMP: Check if the generated label exists before jumping
     python:
@@ -25,5 +26,6 @@ label start:
 
 label world_loop:
     window hide
-    call screen navigation_screen
+    $ loc = rpg_world.current_location
+    call screen top_down_map(loc)
     jump world_loop

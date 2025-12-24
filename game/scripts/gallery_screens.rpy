@@ -29,15 +29,12 @@ screen gallery_screen():
                     textbutton "Achievements":
                         action SetScreenVariable("gallery_tab", "achievements")
                         selected (gallery_tab == "achievements")
-                        text_size 24
                     textbutton "Scenes":
                         action SetScreenVariable("gallery_tab", "scenes")
                         selected (gallery_tab == "scenes")
-                        text_size 24
                     textbutton "Characters":
                         action SetScreenVariable("gallery_tab", "wiki")
                         selected (gallery_tab == "wiki")
-                        text_size 24
 
                 # Content Area
                 frame:
@@ -57,7 +54,7 @@ screen gallery_screen():
 screen achievement_view():
     vbox:
         spacing 10
-        label "Tracked Achievements"
+        text "Tracked Achievements" size 24 color "#ffffff"
         viewport:
             mousewheel True
             draggable True
@@ -75,7 +72,7 @@ screen achievement_view():
 screen scene_view():
     vbox:
         spacing 10
-        label "Story Gallery"
+        text "Story Gallery" size 24 color "#ffffff"
         viewport:
             mousewheel True
             draggable True
@@ -94,7 +91,7 @@ screen scene_view():
 screen wiki_view():
     vbox:
         spacing 10
-        label "Characters & Entities"
+        text "Characters & Entities" size 24 color "#ffffff"
         viewport:
             mousewheel True
             draggable True

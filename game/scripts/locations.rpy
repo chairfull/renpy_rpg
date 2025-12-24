@@ -25,7 +25,7 @@ init python:
         itm = item_manager.get(i_id)
         if itm:
             # Add a few of each
-            for _ in range(3):
+            for i in range(3):
                 general_store.add_item(item_manager.get(i_id))
 
     # Characters (already registered via MarkdownParser, but we link them here for interaction if needed)

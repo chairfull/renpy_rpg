@@ -3,6 +3,7 @@ type: character
 name: Mayor
 description: The leader of our fine town.
 location: square
+pos: 800,600
 ---
 # Talk
 ```flow

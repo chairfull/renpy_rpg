@@ -1,0 +1,107 @@
+{
+    "items": {
+        "apple": {
+            "name": "Apple",
+            "description": "A juicy red apple. Restoration - 5 HP.",
+            "weight": 0.1,
+            "value": 5,
+            "outfit_part": null
+        },
+        "potion": {
+            "name": "Health Potion",
+            "description": "A bubbling red liquid. Restores 30 HP.",
+            "weight": 0.5,
+            "value": 20,
+            "outfit_part": null
+        },
+        "sword": {
+            "name": "Iron Sword",
+            "description": "A standard iron sword. Sharp and reliable.",
+            "weight": 2.0,
+            "value": 50,
+            "outfit_part": "weapon"
+        }
+    },
+    "characters": {
+        "shopkeeper": {
+            "name": "Shopkeeper",
+            "description": "A friendly old man.",
+            "location": "shop",
+            "x": 0,
+            "y": 0
+        },
+        "mayor": {
+            "name": "Mayor",
+            "description": "The leader of our fine town.",
+            "location": "square",
+            "x": 800,
+            "y": 600
+        }
+    },
+    "locations": {
+        "home": {
+            "name": "Your Home",
+            "description": "A cozy little house.",
+            "map_image": "#1a1a2a",
+            "obstacles": [],
+            "connections": {
+                "square": "Go to Town Square"
+            }
+        },
+        "square": {
+            "name": "Town Square",
+            "description": "The heart of the town.",
+            "map_image": "#333",
+            "obstacles": [
+                [
+                    10,
+                    10
+                ],
+                [
+                    10,
+                    11
+                ],
+                [
+                    11,
+                    10
+                ],
+                [
+                    11,
+                    11
+                ]
+            ],
+            "connections": {
+                "home": "Go Home",
+                "shop": "Go to Shop"
+            }
+        },
+        "shop": {
+            "name": "General Store",
+            "description": "A place to buy supplies.",
+            "map_image": null,
+            "obstacles": [],
+            "connections": {
+                "square": "Leave Shop"
+            }
+        }
+    },
+    "quests": {
+        "apple_hunt": {
+            "name": "The Great Apple Hunt",
+            "description": "Gathering supplies for the journey."
+        }
+    },
+    "containers": {
+        "closet": {
+            "name": "Bedroom Closet",
+            "description": "A sturdy wooden closet for your belongings.",
+            "location": "home",
+            "items": [
+                "sword",
+                "potion"
+            ],
+            "x": 0,
+            "y": 0
+        }
+    }
+}
