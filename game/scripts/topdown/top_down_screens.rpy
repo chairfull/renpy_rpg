@@ -18,37 +18,16 @@ screen top_down_map(location):
             add Solid("#222"):
                 pos (-cam_x, -cam_y)
         
-        # Click to Move (convert screen coords to world coords)
+        
+        # Click to Move (Now as first child, so other elements on top)
         button:
             area (0, 0, 1920, 1080)
             action Function(_td_click_to_move)
             background None
         
-        # Unified Entities Rendering
-        for entity in td_manager.entities:
-            $ ent_screen_pos = td_manager.world_to_screen(entity.x, entity.y)
-            
-            imagebutton:
-                anchor (0.5, 0.5)
-                pos (int(ent_screen_pos[0]), int(ent_screen_pos[1]))
-                action entity.action
-                mouse "gamemenu"
-                
-                # Sprite Logic
-                if entity.sprite_tint:
-                    # Tinte sprites (e.g. Exits)
-                    idle Transform(entity.sprite, zoom=0.3, matrixcolor=entity.sprite_tint)
-                    hover Transform(entity.sprite, zoom=0.35, matrixcolor=entity.sprite_tint)
-                else:
-                    # Regular sprites (NPCs, Objects)
-                    if entity.idle_anim:
-                        idle At(Transform(entity.sprite, zoom=0.3), char_idle_anim)
-                        hover At(Transform(entity.sprite, zoom=0.33), char_idle_anim) # Slight zoom on hover
-                    else:
-                        idle Transform(entity.sprite, zoom=0.3)
-                        hover Transform(entity.sprite, zoom=0.33)
-                
-                tooltip entity.tooltip
+        # (Entities loop moved to screen level for better hit detection)
+
+
 
         # Player Sprite (with rotation)
         $ player_screen_pos = td_manager.world_to_screen(td_manager.player_pos[0], td_manager.player_pos[1])
@@ -96,38 +75,40 @@ screen top_down_map(location):
         vbox:
             text "DEBUG INFO" size 20 color "#f00"
             text f"Entities: {len(td_manager.entities)}" size 18 color "#fff"
+            
+            $ current_tt = GetTooltip()
+            text f"Current Tooltip: [current_tt]" size 18 color "#0f0"
+            
+            $ mx, my = renpy.get_mouse_pos()
+            text f"Mouse: ({mx}, {my})" size 16 color "#ffff00"
 
             for i, e in enumerate(td_manager.entities[:5]):
                 $ sx, sy = td_manager.world_to_screen(e.x, e.y)
-                text f"[{i}] {e.tooltip}: ({e.x},{e.y})" size 16 color "#aaa"
+                text f"[{i}] {e.tooltip}: ({e.x},{e.y}) -> Screen: ({int(sx)},{int(sy)})" size 16 color "#aaa"
             text f"Player: ({int(td_manager.player_pos[0])}, {int(td_manager.player_pos[1])})" size 16 color "#aaa"
             text f"CamOffset: ({int(td_manager.camera_offset[0])}, {int(td_manager.camera_offset[1])})" size 16 color "#aaa"
 
-    # Mouse Tooltip
+    # Mouse Tooltip (Layer 100)
     use mouse_tooltip
-
-# Tooltip Screen
-screen mouse_tooltip():
-    $ tt = GetTooltip()
-    if tt:
-        frame:
-            at follow_mouse_transform
-            padding (12, 8)
-            background "#000000cc"
-            text "[tt]" size 20 color "#ffffff" outlines [(1, "#000", 0, 0)]
-
-transform follow_mouse_transform:
-    alpha 0.0 zoom 0.9
-    on show:
-        parallel:
-            easein 0.15 alpha 1.0
-        parallel:
-            easein 0.2 zoom 1.0
-    on hide:
-        easeout 0.15 alpha 0.0
     
-    # Update position every frame
-    function update_tooltip_pos
+    # --------------------------------------------------------------------------
+    # ENTITIES LAYER (Front-most)
+    # --------------------------------------------------------------------------
+    # Rendered last to ensure absolute interaction priority
+    for entity in td_manager.entities:
+        $ ent_screen_pos = td_manager.world_to_screen(entity.x, entity.y)
+        
+        imagebutton:
+            anchor (0.5, 0.5)
+            pos (int(ent_screen_pos[0]), int(ent_screen_pos[1]))
+            action entity.action
+            tooltip entity.tooltip
+            focus_mask None
+            
+            # Debug Visuals
+            # RED8 = Idle, GREEN8 = Hovered
+            idle Solid("#f008", xsize=100, ysize=100)
+            hover Solid("#0f08", xsize=100, ysize=100)
 
 # Idle breathing animation for characters (NPCs)
 transform char_idle_anim:
@@ -144,11 +125,6 @@ transform char_idle_anim:
 
 
 init python:
-    def update_tooltip_pos(trans, st, at):
-        mx, my = renpy.get_mouse_pos()
-        trans.pos = (mx + 20, my + 20)
-        return 0
-
     def _td_click_to_move():
         """Handle click-to-move, converting screen coords to world coords"""
         mx, my = renpy.get_mouse_pos()
