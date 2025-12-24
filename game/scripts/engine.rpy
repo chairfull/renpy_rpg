@@ -190,12 +190,13 @@ init -10 python:
         def mark_as_met(self): wiki_manager.unlock(self.name, self.description)
 
     class Location:
-        def __init__(self, id, name, description, map_image=None, obstacles=None):
-            self.id, self.name, self.description, self.entities, self.connections, self.visited = id, name, description, [], {}, False
+        def __init__(self, id, name, description, map_image=None, obstacles=None, links=None, entities=None):
+            self.id, self.name, self.description = id, name, description
             self.map_image = map_image
             self.obstacles = obstacles or set()
-        def add_connection(self, dest, desc): self.connections[dest] = desc
-        def add_entity(self, e): self.entities.append(e)
+            self.links = links or []
+            self.entities = entities or []
+            self.visited = False
         @property
         def characters(self): return [c for c in rpg_world.characters.values() if c.location_id == self.id and c.name != pc.name]
 
@@ -257,23 +258,12 @@ init -10 python:
         # Locations
         for oid, p in data.get("locations", {}).items():
             obstacles = set(tuple(obs) for obs in p.get("obstacles", []))
-            loc = Location(oid, p['name'], p['description'], p.get('map_image'), obstacles)
-            for dest_id, dest_desc in p.get("connections", {}).items():
-                loc.add_connection(dest_id, dest_desc)
+            loc = Location(oid, p['name'], p['description'], p.get('map_image'), obstacles, p.get('links'), p.get('entities'))
             rpg_world.add_location(loc)
             
         # Characters
         for oid, p in data.get("characters", {}).items():
             rpg_world.add_character(RPGCharacter(p['name'], description=p.get('description', ''), location_id=p.get('location'), x=p.get('x', 0), y=p.get('y', 0)))
-            
-        # Containers
-        for oid, p in data.get("containers", {}).items():
-            cont = Container(p['name'], id=oid, description=p.get('description', ''), x=p.get('x', 0), y=p.get('y', 0))
-            for iid in p.get('items', []):
-                itm = item_manager.get(iid)
-                if itm: cont.add_item(itm)
-            if p.get('location') in rpg_world.locations:
-                rpg_world.locations[p.get('location')].add_entity(cont)
                 
         # Quests
         for oid, p in data.get("quests", {}).items():

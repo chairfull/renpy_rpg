@@ -88,25 +88,36 @@ def compile():
                     "outfit_part": props.get('outfit_part')
                 }
             elif otype == 'location':
-                conns = {}
-                raw_conns = props.get('connections', [])
-                if isinstance(raw_conns, list):
-                    curr = {}
-                    for l in raw_conns:
-                        l = l.strip()
-                        if l.startswith('- id:'):
-                            if curr and 'id' in curr: conns[curr['id']] = curr.get('desc', '')
-                            curr = {'id': l.split(':', 1)[1].strip().strip('"').strip("'").lower()}
-                        elif l.startswith('desc:'):
-                            curr['desc'] = l.split(':', 1)[1].strip().strip('"').strip("'")
-                    if curr and 'id' in curr: conns[curr['id']] = curr.get('desc', '')
+                # Parse Links (was connections)
+                links = []
+                raw_links = props.get('links', [])
+                if isinstance(raw_links, list):
+                    for l in raw_links:
+                        # Normalize keys if needed, assuming YAML parser result
+                        if isinstance(l, dict):
+                            links.append({
+                                'id': l.get('id'),
+                                'x': int(l.get('x', 0)),
+                                'y': int(l.get('y', 0)),
+                                'spawn': l.get('spawn', None) # [x, y]
+                            })
+                
+                # Parse Entities (merged characters, containers, interactives)
+                entities = []
+                raw_ents = props.get('entities', [])
+                if isinstance(raw_ents, list):
+                    for e in raw_ents:
+                        if isinstance(e, dict):
+                            # Default entity structure
+                            entities.append(e)
 
                 data_consolidated["locations"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
                     "map_image": props.get('map_image'),
-                    "obstacles": [list(map(int, p.split(','))) for p in props.get('obstacles', '').split('|') if ',' in p],
-                    "connections": conns
+                    "obstacles": props.get('obstacles', []),
+                    "links": links,
+                    "entities": entities
                 }
             elif otype == 'character':
                 pos = props.get('pos', '0,0').split(',')

@@ -10,6 +10,8 @@ define e = Character("Eileen")
 
 label start:
     "Welcome to the AI RPG."
+    # Reload data to ensure latest changes are picked up
+    $ instantiate_all()
     # Initialize Player location
     $ rpg_world.actor.location_id = "home"
     $ td_manager.setup(rpg_world.current_location)

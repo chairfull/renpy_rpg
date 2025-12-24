@@ -1,195 +1,257 @@
-init -20 python:
-    import heapq
+init -5 python:
+    import math
 
-    class AStarNode:
-        def __init__(self, x, y, parent=None, g=0, h=0):
-            self.x, self.y = x, y
-            self.parent = parent
-            self.g = g  # Cost from start
-            self.h = h  # Heuristic cost to end
-            self.f = g + h  # Total cost
+    class TopDownEntity:
+        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None):
+            self.x = x
+            self.y = y
+            self.sprite = sprite
+            self.action = action
+            self.tooltip = tooltip
+            self.idle_anim = idle_anim
+            self.sprite_tint = sprite_tint
 
-        def __lt__(self, other):
-            return self.f < other.f
-
-    class Pathfinder:
-        @staticmethod
-        def get_path(start, end, obstacles, grid_size=(1920, 1080), cell_size=40):
-            # start/end are (x, y) pixel coords
-            # obstacles is a set of (cx, cy) grid coords
-            
-            start_grid = (start[0] // cell_size, start[1] // cell_size)
-            end_grid = (end[0] // cell_size, end[1] // cell_size)
-            
-            if end_grid in obstacles:
-                return []
-
-            open_set = []
-            heapq.heappush(open_set, AStarNode(start_grid[0], start_grid[1], None, 0, Pathfinder.heuristic(start_grid, end_grid)))
-            closed_set = set()
-            
-            while open_set:
-                current = heapq.heappop(open_set)
-                
-                if (current.x, current.y) == end_grid:
-                    path = []
-                    while current:
-                        path.append((current.x * cell_size + cell_size//2, current.y * cell_size + cell_size//2))
-                        current = current.parent
-                    return path[::-1]
-                
-                closed_set.add((current.x, current.y))
-                
-                # 8-way movement
-                for dx, dy in [(0,1), (0,-1), (1,0), (-1,0), (1,1), (1,-1), (-1,1), (-1,-1)]:
-                    nx, ny = current.x + dx, current.y + dy
-                    
-                    if nx < 0 or ny < 0 or nx >= grid_size[0]//cell_size or ny >= grid_size[1]//cell_size:
-                        continue
-                        
-                    if (nx, ny) in obstacles or (nx, ny) in closed_set:
-                        continue
-                    
-                    # Cost: 10 for straight, 14 for diagonal
-                    move_cost = 10 if dx == 0 or dy == 0 else 14
-                    g = current.g + move_cost
-                    h = Pathfinder.heuristic((nx, ny), end_grid)
-                    
-                    neighbor = AStarNode(nx, ny, current, g, h)
-                    
-                    # Optimization: Check if neighbor is already in open_set with a lower G
-                    in_open = False
-                    for node in open_set:
-                        if node.x == nx and node.y == ny and node.g <= g:
-                            in_open = True
-                            break
-                    
-                    if not in_open:
-                        heapq.heappush(open_set, neighbor)
-            
-            return []
-
-        @staticmethod
-        def heuristic(a, b):
-            # Diagonal distance
-            dx = abs(a[0] - b[0])
-            dy = abs(a[1] - b[1])
-            return 10 * (dx + dy) + (14 - 2 * 10) * min(dx, dy)
-
-    class TopDownManager(NoRollback):
+    class TopDownManager:
         def __init__(self):
-            self.player_pos = (960, 540)
+            self.player_pos = [960, 540] # Default center
             self.target_pos = None
             self.path = []
-            self.speed = 350.0 # Slightly faster
+            self.speed = 300 # Pixels per second
             self.moving = False
-            self.current_waypoint_idx = 0
+            self.last_update = 0
+            self.cell_size = 40 # Grid size for pathfinding
+            self.obstacles = set()
             self.current_location = None
             
-            # Interactive objects (id -> (x, y))
-            self.interactives = {}
-            self.obstacles = set()
-            self.cell_size = 40
+            # Camera
+            self.camera_offset = [0, 0]
+            self.screen_center = (1920//2, 1080//2)
+            self.camera_lerp_speed = 5.0
+            
+            # Interaction
+            self.interaction_callback = None
+            self.entities = [] # Updated list of TopDownEntity objects (includes exits, chars, objects)
+            
+            # Character Rotation
+            self.player_rotation = 0
+            self.target_rotation = 0
+            self.rotation_lerp_speed = 10.0
+            
+            # Exit Logic
+            self.pending_exit = None
 
         def setup(self, location):
-            if self.current_location != location:
-                self.current_location = location
-                # Only reset position if we are actually at a new location
-                # (to avoid snapping during interactions)
-                if not self.moving:
-                    self.center_player()
-
-            self.obstacles = location.obstacles
-            self.interactives = {}
-            for char in location.characters:
-                self.interactives[char.name.lower()] = (char.x, char.y)
-            for ent in location.entities:
-                oid = getattr(ent, 'id', ent.name.lower())
-                self.interactives[oid] = (ent.x, ent.y)
+            self.entities = []
             
+            # Snap camera to player immediately
+            self.center_player()
+            self.snap_camera()
+            
+            # 1. Add Exits (Links)
+            if location.links:
+                for link in location.links:
+                    dest_id = link['id']
+                    cx, cy = link['x'], link['y']
+                    
+                    # Fetch destination name
+                    dest_loc = rpg_world.locations.get(dest_id)
+                    dest_name = dest_loc.name if dest_loc else dest_id.capitalize()
+                    
+                    tooltip_text = f"Go to {dest_name}"
+                    
+                    ent = TopDownEntity(cx, cy, 
+                                        sprite="images_topdown/chars/theo.png",
+                                        action=Function(self.walk_to_exit, dest_id),
+                                        tooltip=tooltip_text,
+                                        sprite_tint=TintMatrix("#00ff00"))
+                    print(f"DEBUG: Created Link Entity to {dest_id} at {cx},{cy}")
+                    self.entities.append(ent)
+
+            # 2. Add Characters (NPCs)
+            for char in location.characters:
+                def _char_action(c=char):
+                    renpy.show_screen("td_char_popup", char=c)
+                
+                ent = TopDownEntity(char.x, char.y,
+                                    sprite="images_topdown/chars/theo.png",
+                                    action=Function(_char_action),
+                                    tooltip=char.name,
+                                    idle_anim=True)
+                self.entities.append(ent)
+            
+            # 3. Add Interactives (Entities from YAML)
+            for item in location.entities:
+                ix, iy = item.get('x', 0), item.get('y', 0)
+                iname = item.get('name', 'Unknown')
+                itype = item.get('type', 'object')
+                
+                def _obj_action(obj_data=item):
+                    # For containers, showing a notify for now or handle logic
+                    # If it has a label, call it
+                    if 'label' in obj_data and renpy.has_label(obj_data['label']):
+                        renpy.call_in_new_context(obj_data['label'])
+                    elif itype == 'container':
+                        renpy.notify(f"Interacted with container: {iname}")
+                    else:
+                        renpy.notify(f"Interacted with {iname}")
+
+                ent = TopDownEntity(ix, iy,
+                                    sprite=item.get('sprite', "images_topdown/chars/theo.png"),
+                                    action=Function(self.set_target, ix, iy, _obj_action), # Walk there then interact
+                                    tooltip=iname,
+                                    idle_anim=False)
+                self.entities.append(ent)
+
+            self.current_location = location
+            self.obstacles = location.obstacles
             self.moving = False
             self.path = []
 
         def center_player(self):
-            # Move player to center of screen or safe spot
-            self.player_pos = (960, 540)
-            # Find closest non-obstacle cell if current is blocked
-            gx, gy = int(960//self.cell_size), int(540//self.cell_size)
-            if (gx, gy) in self.obstacles:
-                # Simple spiral search for free cell
-                for r in range(1, 10):
-                    for dx, dy in [(r,0), (-r,0), (0,r), (0,-r)]:
-                        nx, ny = gx+dx, gy+dy
-                        if (nx, ny) not in self.obstacles:
-                            self.player_pos = (nx*self.cell_size + self.cell_size//2, ny*self.cell_size + self.cell_size//2)
-                            return
+            # Move player to center of screen or safe spot if invalid
+            # We assume rpg_world.actor has the correct coordinates from previous room spawn
+            px, py = rpg_world.actor.x, rpg_world.actor.y
+            self.player_pos = [px, py]
 
-        def set_target(self, tx, ty):
-            self.target_pos = (tx, ty)
-            self.path = Pathfinder.get_path(self.player_pos, self.target_pos, self.obstacles, cell_size=self.cell_size)
-            if self.path:
-                self.moving = True
-                self.current_waypoint_idx = 0
-                renpy.restart_interaction()
+        def snap_camera(self):
+            """Instantly center camera on player (no lerp)"""
+            self.camera_offset = [
+                self.player_pos[0] - self.screen_center[0],
+                self.player_pos[1] - self.screen_center[1]
+            ]
+            
+        def world_to_screen(self, wx, wy):
+            """Convert world coordinates to screen coordinates based on camera"""
+            return (wx - self.camera_offset[0], wy - self.camera_offset[1])
+
+        def screen_to_world(self, sx, sy):
+            """Convert screen coordinates to world coordinates"""
+            return (sx + self.camera_offset[0], sy + self.camera_offset[1])
 
         def update(self, dt):
-            if not self.moving or not self.path:
-                return
+            # Camera Follow
+            target_cam_x = self.player_pos[0] - self.screen_center[0]
+            target_cam_y = self.player_pos[1] - self.screen_center[1]
+            
+            self.camera_offset[0] = self.lerp(self.camera_offset[0], target_cam_x, dt * self.camera_lerp_speed)
+            self.camera_offset[1] = self.lerp(self.camera_offset[1], target_cam_y, dt * self.camera_lerp_speed)
 
-            dest = self.path[self.current_waypoint_idx]
-            dx = dest[0] - self.player_pos[0]
-            dy = dest[1] - self.player_pos[1]
-            dist = (dx**2 + dy**2)**0.5
+            # Character Rotation
+            target_rot = self.target_rotation
             
-            move_dist = self.speed * dt
-            
-            if move_dist >= dist:
-                self.player_pos = dest
-                self.current_waypoint_idx += 1
-                if self.current_waypoint_idx >= len(self.path):
-                    self.moving = False
-                    self.path = []
-                    # Check for interaction proximity
-                    self.check_interaction()
-            else:
-                unit_x = dx / dist
-                unit_y = dy / dist
-                self.player_pos = (self.player_pos[0] + unit_x * move_dist, self.player_pos[1] + unit_y * move_dist)
-            
-            renpy.restart_interaction()
+            # Normalize angles
+            diff = (target_rot - self.player_rotation + 180) % 360 - 180
+            if abs(diff) > 0.1:
+                 self.player_rotation = (self.player_rotation + diff * dt * self.rotation_lerp_speed) % 360
+
+            if self.moving and self.path:
+                target = self.path[0]
+                dx = target[0] - self.player_pos[0]
+                dy = target[1] - self.player_pos[1]
+                dist = math.hypot(dx, dy)
+                
+                if dist < self.speed * dt:
+                    self.player_pos = list(target)
+                    self.path.pop(0)
+                    if not self.path:
+                        self.moving = False
+                        self.check_interaction()
+                        self.check_pending_exit()
+                else:
+                    move_dist = self.speed * dt
+                    self.player_pos[0] += (dx / dist) * move_dist
+                    self.player_pos[1] += (dy / dist) * move_dist
+                    
+                    # Update Rotation
+                    angle = math.degrees(math.atan2(dy, dx))
+                    self.target_rotation = angle + 90 + 180 # +90 for up-facing sprite, +180 for correction
+
+            # Update Main Character Object position constantly
+            rpg_world.actor.x = int(self.player_pos[0])
+            rpg_world.actor.y = int(self.player_pos[1])
 
         def check_interaction(self):
-            # Check if player is near any interactive object after reaching target
-            loc = rpg_world.current_location
-            for obj_id, (ox, oy) in self.interactives.items():
-                d = ((self.player_pos[0] - ox)**2 + (self.player_pos[1] - oy)**2)**0.5
-                if d < 100: # Interaction radius
-                    # Find the object in characters or current location entities
-                    target_obj = None
-                    for c in loc.characters:
-                        if c.name.lower() == obj_id:
-                            target_obj = c
-                            break
-                    if not target_obj:
-                        for e in loc.entities:
-                            if (hasattr(e,'id') and e.id == obj_id) or e.name.lower() == obj_id:
-                                target_obj = e
-                                break
-                    
-                    if target_obj:
-                        renpy.call_in_new_context("_topdown_interact_helper", target_obj)
-                        break
+             if self.interaction_callback:
+                 self.interaction_callback()
+                 self.interaction_callback = None
 
-    def _topdown_interact_helper(obj):
-        obj.interact()
+        def set_target(self, x, y, callback=None):
+            self.interaction_callback = None # interact only if successfully set new target
+            start = (int(self.player_pos[0]), int(self.player_pos[1]))
+            end = (int(x), int(y))
+            
+            # Simple direct path for now, bypassing A* for debugging unless needed
+            # self.path = self.find_path(start, end)
+            self.path = [end] 
+            self.moving = True
+            self.target_pos = end
+            self.interaction_callback = callback
+            
+            # Update rotation target immediately
+            dx = end[0] - start[0]
+            dy = end[1] - start[1]
+            if dx != 0 or dy != 0:
+                 angle = math.degrees(math.atan2(dy, dx))
+                 self.target_rotation = angle + 90 + 180
+
+        def find_path(self, start, end):
+            # Placeholder for A*
+            return [end]
+
+        def lerp(self, start, end, t):
+            return start + (end - start) * t
+
+        def walk_to_exit(self, dest_id):
+            # Find the link data to get coordinates
+            link_data = None
+            current_loc = rpg_world.current_location
+            for l in current_loc.links:
+                if l['id'] == dest_id:
+                    link_data = l
+                    break
+            
+            if link_data:
+                ex, ey = link_data['x'], link_data['y']
+                self.pending_exit = dest_id
+                self.set_target(ex, ey)
+            else:
+                renpy.notify("Exit not found!")
+
+        def check_pending_exit(self):
+            if self.pending_exit and not self.path:
+                # We have arrived at the exit
+                dest = self.pending_exit
+                self.pending_exit = None
+                
+                # Check for spawn point in the link we just used
+                current_loc = rpg_world.current_location
+                spawn_pos = None
+                for l in current_loc.links:
+                    if l['id'] == dest:
+                         spawn_pos = l.get('spawn')
+                         break
+                
+                if rpg_world.move_to(dest):
+                    # If spawn point defined, move player there
+                    if spawn_pos:
+                        self.player_pos = [spawn_pos[0], spawn_pos[1]]
+                        # Also update the character object for persistence
+                        rpg_world.actor.x = spawn_pos[0]
+                        rpg_world.actor.y = spawn_pos[1]
+                    
+                    self.setup(rpg_world.current_location)
+                    renpy.transition(Dissolve(0.5))
+                else:
+                    renpy.notify("Cannot move there.")
+
 
     # Instance
     td_manager = TopDownManager()
 
-    def td_update_func(st, at):
-        td_manager.update(0.016) # Approx 60fps
-        return 0.016
-
     def show_map(location):
         td_manager.setup(location)
         renpy.show_screen("top_down_map", location=location)
+
+label _topdown_interact_helper(obj):
+    $ obj.interact()
+    return

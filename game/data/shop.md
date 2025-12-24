@@ -3,8 +3,10 @@ type: location
 id: shop
 name: General Store
 description: A place to buy supplies.
-connections:
+links:
   - id: square
-    desc: Leave Shop
+    x: 960
+    y: 800
+    spawn: [1600, 540]
+entities: []
 ---
-# Entities

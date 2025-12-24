@@ -44,45 +44,24 @@
             "description": "A cozy little house.",
             "map_image": "#1a1a2a",
             "obstacles": [],
-            "connections": {
-                "square": "Go to Town Square"
-            }
+            "links": [],
+            "entities": []
         },
         "square": {
             "name": "Town Square",
             "description": "The heart of the town.",
             "map_image": "#333",
-            "obstacles": [
-                [
-                    10,
-                    10
-                ],
-                [
-                    10,
-                    11
-                ],
-                [
-                    11,
-                    10
-                ],
-                [
-                    11,
-                    11
-                ]
-            ],
-            "connections": {
-                "home": "Go Home",
-                "shop": "Go to Shop"
-            }
+            "obstacles": "10,10|10,11|11,10|11,11",
+            "links": [],
+            "entities": []
         },
         "shop": {
             "name": "General Store",
             "description": "A place to buy supplies.",
             "map_image": null,
             "obstacles": [],
-            "connections": {
-                "square": "Leave Shop"
-            }
+            "links": [],
+            "entities": []
         }
     },
     "quests": {
@@ -91,17 +70,5 @@
             "description": "Gathering supplies for the journey."
         }
     },
-    "containers": {
-        "closet": {
-            "name": "Bedroom Closet",
-            "description": "A sturdy wooden closet for your belongings.",
-            "location": "home",
-            "items": [
-                "sword",
-                "potion"
-            ],
-            "x": 0,
-            "y": 0
-        }
-    }
+    "containers": {}
 }

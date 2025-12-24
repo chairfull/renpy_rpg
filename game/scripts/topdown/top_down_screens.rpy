@@ -2,34 +2,69 @@ screen top_down_map(location):
     # No longer modal as it's the primary screen
     tag world_view
     
-    # Background Map
-    if location.map_image:
-        add location.map_image
-    else:
-        add Solid("#222")
-    
     # Update Loop
     timer 0.016 repeat True action Function(td_manager.update, 0.016)
-
-    # Click to Move
-    button:
-        area (0, 0, 1920, 1080)
-        action Function(td_manager.set_target, renpy.get_mouse_pos()[0], renpy.get_mouse_pos()[1])
-        background None
-
-    # Entities/Interactives
-    for obj_id, (ox, oy) in td_manager.interactives.items():
-        imagebutton:
-            idle Solid("#f00", xsize=20, ysize=20) # Placeholder for entity sprite
-            pos (ox - 10, oy - 10)
-            action Function(td_manager.set_target, ox, oy)
-            hovered Notify(f"Interact with {obj_id}")
-
-    # Player Sprite
-    add Solid("#00f", xsize=30, ysize=30):
-        pos (int(td_manager.player_pos[0]) - 15, int(td_manager.player_pos[1]) - 15)
     
-    # UI Overlays
+    # Camera container - all world elements are offset by camera
+    fixed:
+        # Background Map (offset by camera)
+        $ cam_x = int(td_manager.camera_offset[0])
+        $ cam_y = int(td_manager.camera_offset[1])
+        
+        if location.map_image:
+            add location.map_image:
+                pos (-cam_x, -cam_y)
+        else:
+            add Solid("#222"):
+                pos (-cam_x, -cam_y)
+        
+        # Click to Move (convert screen coords to world coords)
+        button:
+            area (0, 0, 1920, 1080)
+            action Function(_td_click_to_move)
+            background None
+        
+        # Unified Entities Rendering
+        for entity in td_manager.entities:
+            $ ent_screen_pos = td_manager.world_to_screen(entity.x, entity.y)
+            
+            imagebutton:
+                anchor (0.5, 0.5)
+                pos (int(ent_screen_pos[0]), int(ent_screen_pos[1]))
+                action entity.action
+                mouse "gamemenu"
+                
+                # Sprite Logic
+                if entity.sprite_tint:
+                    # Tinte sprites (e.g. Exits)
+                    idle Transform(entity.sprite, zoom=0.3, matrixcolor=entity.sprite_tint)
+                    hover Transform(entity.sprite, zoom=0.35, matrixcolor=entity.sprite_tint)
+                else:
+                    # Regular sprites (NPCs, Objects)
+                    if entity.idle_anim:
+                        idle At(Transform(entity.sprite, zoom=0.3), char_idle_anim)
+                        hover At(Transform(entity.sprite, zoom=0.33), char_idle_anim) # Slight zoom on hover
+                    else:
+                        idle Transform(entity.sprite, zoom=0.3)
+                        hover Transform(entity.sprite, zoom=0.33)
+                
+                if entity.tooltip:
+                    hovered Notify(entity.tooltip)
+
+        # Player Sprite (with rotation)
+        $ player_screen_pos = td_manager.world_to_screen(td_manager.player_pos[0], td_manager.player_pos[1])
+        add Transform("images_topdown/chars/theo.png", zoom=0.35, rotate=td_manager.player_rotation, subpixel=True):
+            anchor (0.5, 0.5)
+            pos (int(player_screen_pos[0]), int(player_screen_pos[1]))
+    
+    # UI Overlays (fixed position, not affected by camera)
+    
+    # Location name (top center)
+    frame:
+        align (0.5, 0.02)
+        background "#00000088"
+        padding (20, 8)
+        text "[location.name]" size 28 color "#ffffff"
     
     # Bottom Left: Dashboard
     frame:
@@ -48,32 +83,45 @@ screen top_down_map(location):
                 text_size 16
                 text_color "#ff3333"
 
-    # Right Side: Navigation
-    frame:
-        align (0.98, 0.5)
-        background "#000a"
-        padding (15, 15)
-        xsize 250
-        vbox:
-            spacing 10
-            text "Navigation" size 24 color "#ffffff" bold True
-            null height 10
-            
-            for dest_id, desc in location.connections.items():
-                $ dest_loc = rpg_world.locations.get(dest_id)
-                button:
-                    action [Function(rpg_world.move_to, dest_id), Function(td_manager.setup, rpg_world.locations[dest_id]), Return()]
-                    xfill True
-                    background "#1a1a2a"
-                    padding (10, 5)
-                    hover_background "#33334a"
-                    if dest_loc:
-                        text "[dest_loc.name]" size 18 color "#eee" xalign 0.5
-                    else:
-                        text "[desc]" size 18 color "#eee" xalign 0.5
-
-    # Path Debugging
+    # Path Debugging (in screen space)
     if td_manager.path:
         for wx, wy in td_manager.path:
+            $ path_screen_pos = td_manager.world_to_screen(wx, wy)
             add Solid("#ffff00", xsize=4, ysize=4):
-                pos (wx-2, wy-2)
+                pos (int(path_screen_pos[0])-2, int(path_screen_pos[1])-2)
+
+    # DEBUG OVERLAY
+    frame:
+        align (0.95, 0.05)
+        background "#000000aa"
+        vbox:
+            text "DEBUG INFO" size 20 color "#f00"
+            text f"Entities: {len(td_manager.entities)}" size 18 color "#fff"
+            text f"Loc Conns: {str(location.connections).replace('{', '{{').replace('}', '}}')}" size 14 color "#aaa"
+            for i, e in enumerate(td_manager.entities[:5]):
+                $ sx, sy = td_manager.world_to_screen(e.x, e.y)
+                text f"[{i}] {e.tooltip}: ({e.x},{e.y})" size 16 color "#aaa"
+            text f"Player: ({int(td_manager.player_pos[0])}, {int(td_manager.player_pos[1])})" size 16 color "#aaa"
+            text f"CamOffset: ({int(td_manager.camera_offset[0])}, {int(td_manager.camera_offset[1])})" size 16 color "#aaa"
+
+
+# Idle breathing animation for characters (NPCs)
+transform char_idle_anim:
+    subpixel True
+    anchor (0.5, 0.5)
+    parallel:
+        ease 1.5 rotate -1.5
+        ease 1.5 rotate 1.5
+        repeat
+    parallel:
+        ease 2.0 zoom 1.02
+        ease 2.0 zoom 0.98
+        repeat
+
+
+init python:
+    def _td_click_to_move():
+        """Handle click-to-move, converting screen coords to world coords"""
+        mx, my = renpy.get_mouse_pos()
+        wx, wy = td_manager.screen_to_world(mx, my)
+        td_manager.set_target(wx, wy)

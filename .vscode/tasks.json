@@ -1,0 +1,22 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile Game Data",
+            "type": "shell",
+            "command": "python3 scripts/compile_data.py",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Run Ren'Py Game",
+            "type": "shell",
+            "command": "/path/to/renpy.sh /home/sh/Documents/renpy_stories/ai_rpg",
+            "dependsOn": "Compile Game Data",
+            "problemMatcher": []
+        }
+    ]
+}
