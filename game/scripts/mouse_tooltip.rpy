@@ -3,44 +3,60 @@ init python:
     def clamp_val(val, minv, maxv):
         return max(min(val, maxv), minv)
 
+    # State for the tooltip fade
+    tooltip_alpha = 0.0
+    last_tt = ""
+
     def update_mouse_pos(tf, st, at):
         mx, my = renpy.get_mouse_pos()
-        # Constrain to screen options, assuming 1920x1080 default
-        mx = clamp_val(mx, 0, 1920) 
-        my = clamp_val(my, 0, 1080)
+        tf.pos = (mx + 30, my + 30)
+        return 0
+
+    def tooltip_alpha_manager(tf, st, at):
+        global tooltip_alpha, last_tt
+        tt = GetTooltip()
         
-        # Offset slightly so it doesn't obstruct cursor interaction
-        tf.pos = (mx + 20, my + 20)
+        # Target alpha
+        target_a = 1.0 if tt else 0.0
         
-        # Aggressively restart interaction to keep tooltip movement smooth
-        # during heavy top-down processing
-        renpy.restart_interaction()
+        # Smooth lerp for alpha
+        # 0.1s fade (10.0 multiplier)
+        if tooltip_alpha < target_a:
+            tooltip_alpha = min(target_a, tooltip_alpha + 10.0 * 0.016)
+        elif tooltip_alpha > target_a:
+            tooltip_alpha = max(target_a, tooltip_alpha - 10.0 * 0.016)
+            
+        # Keep the text while fading out
+        if tt:
+            last_tt = tt
+            
+        tf.alpha = tooltip_alpha
+        # Return 0 to keep updating as fast as possible
         return 0
 
 transform mouse_pos:
     function update_mouse_pos
 
-transform tooltip_fade:
-    alpha 0.0 zoom 0.95
-    on show:
-        easein 0.15 alpha 1.0 zoom 1.0
-    on hide:
-        easeout 0.15 alpha 0.0 zoom 0.95
+transform tooltip_master_fade:
+    function tooltip_alpha_manager
+
+screen mouse_tooltip():
+    zorder 101
     
-screen mouse_tooltip:
     $ tt = GetTooltip()
-    if tt:
-        frame at mouse_pos, tooltip_fade:
-            # PURE VISUAL: Do not intercept mouse events
-            mouse_transparent True
-            unfocusable True
-            
-            padding (10, 5)
-            background "#000000aa" # Semi-transparent black
-            
-            # Simple text rendering
-            text "[tt!t]": # !t for Title Case if desired, or just [tt]
-                size 18
-                color "#fff"
-                outlines [(1, "#000", 0, 0)]
-                align (0.5, 0.5)
+    # We always render the frame, but control visibility via the transform
+    # This prevents 'showif' from instantly destroying the child
+    fixed at mouse_pos, tooltip_master_fade:
+        # Only show the box if alpha > 0
+        if tooltip_alpha > 0.01:
+            frame:
+                background Solid("#000a")
+                padding (12, 8)
+                xsize 200
+                
+                text "[last_tt]":
+                    size 20
+                    color "#fff"
+                    outlines [(1, "#000", 0, 0)]
+                    align (0.5, 0.5)
+                    text_align 0.5

@@ -35,3 +35,13 @@ entities:
     items: [sword, potion]
     sprite: "images_topdown/chars/theo.png"
 ---
+
+# Bed
+```flow
+I'm not tired right now.
+```
+
+# Mirror
+```flow
+You look great today!
+```

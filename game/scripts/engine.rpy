@@ -138,15 +138,15 @@ init -10 python:
             renpy.notify(f"Forced quest complete: {q.name}")
 
     class Entity(object):
-        def __init__(self, name, description="", label=None, x=0, y=0, **kwargs):
-            self.name, self.description, self.label, self.x, self.y = name, description, label, x, y
+        def __init__(self, id, name, description="", label=None, x=0, y=0, **kwargs):
+            self.id, self.name, self.description, self.label, self.x, self.y = id, name, description, label, x, y
         def interact(self):
             if self.label: renpy.jump(self.label)
             else: renpy.say(None, f"You see {self.name}. {self.description}")
 
     class Inventory(Entity):
-        def __init__(self, name, **kwargs):
-            super(Inventory, self).__init__(name, **kwargs)
+        def __init__(self, id, name, **kwargs):
+            super(Inventory, self).__init__(id, name, **kwargs)
             self.items, self.gold = [], 0
         def add_item(self, i):
             self.items.append(i)
@@ -163,14 +163,13 @@ init -10 python:
             return False
 
     class Container(Inventory):
-        def __init__(self, name, id=None, **kwargs):
-            super(Container, self).__init__(name, **kwargs)
-            self.id = id
+        def __init__(self, id, name, **kwargs):
+            super(Container, self).__init__(id, name, **kwargs)
         def interact(self): renpy.show_screen("container_screen", container=self)
 
     class Shop(Inventory):
-        def __init__(self, name, buy_mult=1.2, sell_mult=0.6, **kwargs):
-            super(Shop, self).__init__(name, **kwargs)
+        def __init__(self, id, name, buy_mult=1.2, sell_mult=0.6, **kwargs):
+            super(Shop, self).__init__(id, name, **kwargs)
             self.buy_mult, self.sell_mult = buy_mult, sell_mult
         def get_buy_price(self, i): return int(i.value * self.buy_mult)
         def get_sell_price(self, i): return int(i.value * self.sell_mult)
@@ -182,8 +181,8 @@ init -10 python:
             self.hp = self.max_hp = 100
 
     class RPGCharacter(Inventory):
-        def __init__(self, name, stats=None, location_id=None, **kwargs):
-            super(RPGCharacter, self).__init__(name, **kwargs)
+        def __init__(self, id, name, stats=None, location_id=None, **kwargs):
+            super(RPGCharacter, self).__init__(id, name, **kwargs)
             self.stats, self.equipped_items, self.location_id, self.pchar, self.gold = stats or RPGStats(), {}, location_id, Character(name), 100
         def __call__(self, what, *args, **kwargs): return self.pchar(what, *args, **kwargs)
         def interact(self): renpy.show_screen("char_interact_screen", char=self)
@@ -218,7 +217,7 @@ init -10 python:
             return False
 
     rpg_world = GameWorld()
-    pc = RPGCharacter("Player")
+    pc = RPGCharacter("player", "Player")
     rpg_world.add_character(pc)
     class AchievementManager:
         def unlock(self, ach_id):
@@ -262,7 +261,7 @@ init -10 python:
             
         # Characters
         for oid, p in data.get("characters", {}).items():
-            rpg_world.add_character(RPGCharacter(p['name'], description=p.get('description', ''), location_id=p.get('location'), x=p.get('x', 0), y=p.get('y', 0)))
+            rpg_world.add_character(RPGCharacter(oid, p['name'], description=p.get('description', ''), location_id=p.get('location'), x=p.get('x', 0), y=p.get('y', 0)))
                 
         # Quests
         for oid, p in data.get("quests", {}).items():

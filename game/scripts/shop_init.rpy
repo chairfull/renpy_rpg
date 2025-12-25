@@ -4,7 +4,7 @@ init 10 python:
     
     shop_loc = rpg_world.locations.get("shop")
     if shop_loc:
-        general_store = Shop(name="AI General Store", description="The best place for supply.")
+        general_store = Shop(id="general_store", name="AI General Store", description="The best place for supply.")
         
         # Add to shop location entities if not already there
         # (Though with new system, we might want to register it as an entity in YAML eventually)
@@ -30,9 +30,9 @@ init 10 python:
         renpy.say(None, "Welcome to my shop! Take a look at my wares.")
         # Ensure general_store is accessible
         if 'general_store' in globals():
-             general_store.interact()
+            general_store.interact()
         else:
-             renpy.notify("Shop is closed (Error: general_store not found)")
+            renpy.notify("Shop is closed (Error: general_store not found)")
 
     # Hook this up to the Shopkeeper character
     # We need to ensure this runs AFTER characters are loaded

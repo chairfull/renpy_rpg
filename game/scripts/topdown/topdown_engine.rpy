@@ -1,8 +1,50 @@
 init -5 python:
     import math
 
-    class TopDownEntity:
-        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None):
+    class FlowQueueManager(object):
+        def __init__(self):
+            self.queue = []
+            self.active_label = None
+
+        def queue_label(self, label_name):
+            if label_name and renpy.has_label(label_name):
+                self.queue.append(label_name)
+                # If nothing else is happening, we might want to start it soon
+                # but we'll let the process() loop handle it for synchronization.
+
+        def process(self):
+            # If we are already running a label in a new context, wait
+            if self.active_label:
+                # Ren'Py doesn't give a perfect 'is_label_finished' for new contexts
+                # but we can check if we're back in the main menu/map
+                # However, for this simple implementation, we'll assume 
+                # call_in_new_context is blocking.
+                pass
+
+            if not self.active_label and self.queue:
+                self.active_label = self.queue.pop(0)
+                renpy.call_in_new_context(self.active_label)
+                self.active_label = None # Reset after call finishes (blocking)
+
+    flow_queue = FlowQueueManager()
+
+    def _td_interact(obj):
+        # Determine if it's an NPC or a raw dict object
+        is_npc = hasattr(obj, 'id') and not isinstance(obj, dict)
+        
+        if is_npc:
+            # Show the character interaction screen
+            flow_queue.queue_label("_char_interaction_wrapper")
+            store._interact_target_char = obj
+        elif 'label' in obj:
+            flow_queue.queue_label(obj['label'])
+        elif obj.get('type') == 'container':
+            renpy.notify(f"Interacted with container: {obj.get('name')}")
+        else:
+            renpy.notify(f"Interacted with {obj.get('name')}")
+
+    class TopDownEntity(object):
+        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None):
             self.x = x
             self.y = y
             self.sprite = sprite
@@ -10,8 +52,9 @@ init -5 python:
             self.tooltip = tooltip
             self.idle_anim = idle_anim
             self.sprite_tint = sprite_tint
+            self.label = label
 
-    class TopDownManager:
+    class TopDownManager(object):
         def __init__(self):
             self.player_pos = [960, 540] # Default center
             self.target_pos = None
@@ -71,25 +114,12 @@ init -5 python:
                     self.entities.append(ent)
                 
                 else:
-                    # It's an object/container/NPC placeholder (loaded from YAML)
-                    iname = item.get('name', 'Unknown')
-                    
-                    def _obj_action(obj_data=item):
-                        # For containers, showing a notify for now or handle logic
-                        # If it has a label, call it
-                        if 'label' in obj_data and renpy.has_label(obj_data['label']):
-                             renpy.call_in_new_context(obj_data['label'])
-                        elif obj_data.get('type') == 'container':
-                             # In future, open container screen
-                             renpy.notify(f"Interacted with container: {obj_data.get('name')}")
-                        else:
-                             renpy.notify(f"Interacted with {obj_data.get('name')}")
-
                     ent = TopDownEntity(ix, iy,
                                         sprite=item.get('sprite', "images_topdown/chars/theo.png"),
-                                        action=Function(self.set_target, ix, iy, _obj_action), # Walk there then interact
-                                        tooltip=iname,
-                                        idle_anim=False)
+                                        action=Function(self.walk_to_entity, ix, iy, renpy.curry(_td_interact)(item)),
+                                        tooltip=item.get('name', "Entity"),
+                                        idle_anim=item.get('idle_anim', True),
+                                        label=item.get('label'))
                     self.entities.append(ent)
 
             # 2. Add Characters (NPCs) - These are runtime objects from rpg_world
@@ -99,9 +129,10 @@ init -5 python:
                 
                 ent = TopDownEntity(char.x, char.y,
                                     sprite="images_topdown/chars/theo.png",
-                                    action=Function(_char_action),
+                                    action=Function(self.walk_to_entity, char.x, char.y, renpy.curry(_td_interact)(char)),
                                     tooltip=char.name,
-                                    idle_anim=True)
+                                    idle_anim=True,
+                                    label=f"char_{char.id}_interact")
                 self.entities.append(ent)
 
             self.current_location = location
@@ -131,6 +162,9 @@ init -5 python:
             return (sx + self.camera_offset[0], sy + self.camera_offset[1])
 
         def update(self, dt):
+            # Process any queued flows (interactions, events)
+            flow_queue.process()
+
             # Camera Follow
             target_cam_x = self.player_pos[0] - self.screen_center[0]
             target_cam_y = self.player_pos[1] - self.screen_center[1]
@@ -144,7 +178,7 @@ init -5 python:
             # Normalize angles
             diff = (target_rot - self.player_rotation + 180) % 360 - 180
             if abs(diff) > 0.1:
-                 self.player_rotation = (self.player_rotation + diff * dt * self.rotation_lerp_speed) % 360
+                self.player_rotation = (self.player_rotation + diff * dt * self.rotation_lerp_speed) % 360
 
             if self.moving and self.path:
                 target = self.path[0]
@@ -173,9 +207,9 @@ init -5 python:
             rpg_world.actor.y = int(self.player_pos[1])
 
         def check_interaction(self):
-             if self.interaction_callback:
-                 self.interaction_callback()
-                 self.interaction_callback = None
+            if self.interaction_callback:
+                self.interaction_callback()
+                self.interaction_callback = None
 
         def set_target(self, x, y, callback=None):
             self.interaction_callback = None # interact only if successfully set new target
@@ -193,8 +227,25 @@ init -5 python:
             dx = end[0] - start[0]
             dy = end[1] - start[1]
             if dx != 0 or dy != 0:
-                 angle = math.degrees(math.atan2(dy, dx))
-                 self.target_rotation = angle + 90 + 180
+                angle = math.degrees(math.atan2(dy, dx))
+                self.target_rotation = angle + 90 + 180
+
+        def walk_to_entity(self, x, y, callback):
+            """Walk near an entity then trigger callback"""
+            # Offset slightly so we don't stand ON the character
+            dist = 80
+            dx = self.player_pos[0] - x
+            dy = self.player_pos[1] - y
+            mag = math.hypot(dx, dy)
+            
+            if mag > dist:
+                tx = x + (dx/mag) * dist
+                ty = y + (dy/mag) * dist
+                self.set_target(tx, ty, callback)
+            else:
+                # Already close enough
+                if callback:
+                    callback()
 
         def find_path(self, start, end):
             # Placeholder for A*
@@ -230,9 +281,9 @@ init -5 python:
                 current_loc = rpg_world.current_location
                 spawn_pos = None
                 for l in current_loc.entities:
-                     if l.get('type') == 'link' and l.get('id') == dest:
-                         spawn_pos = l.get('spawn')
-                         break
+                    if l.get('type') == 'link' and l.get('id') == dest:
+                        spawn_pos = l.get('spawn')
+                        break
                 
                 if rpg_world.move_to(dest):
                     # If spawn point defined, move player there
@@ -255,6 +306,14 @@ init -5 python:
         td_manager.setup(location)
         renpy.show_screen("top_down_map", location=location)
 
-label _topdown_interact_helper(obj):
-    $ obj.interact()
+label _char_interaction_wrapper:
+    # This label is called via the FlowQueue to show character screens
+    $ char = getattr(store, '_interact_target_char', None)
+    if char:
+        # Check if they have a specific conversation label first
+        if char.label and renpy.has_label(char.label):
+            call expression char.label from _call_npc_label
+        else:
+            # Otherwise show the generic interact screen (Talk/Give)
+            call screen char_interact_screen(char)
     return
