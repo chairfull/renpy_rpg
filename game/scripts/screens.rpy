@@ -299,43 +299,43 @@ screen navigation():
 
         if main_menu:
 
-            textbutton _("Start") action Start()
+            textbutton _("Start") action Start() at phone_visual_hover
 
         else:
 
-            textbutton _("History") action ShowMenu("history")
+            textbutton _("History") action ShowMenu("history") at phone_visual_hover
 
-            textbutton _("Save") action ShowMenu("save")
+            textbutton _("Save") action ShowMenu("save") at phone_visual_hover
 
-        textbutton _("Load") action ShowMenu("load")
+        textbutton _("Load") action ShowMenu("load") at phone_visual_hover
 
-        textbutton _("Wiki") action ShowMenu("gallery_screen")
+        textbutton _("Wiki") action ShowMenu("gallery_screen") at phone_visual_hover
 
         if not main_menu:
-            textbutton _("DEV MODE") action ShowMenu("dev_mode_screen") text_color "#ff3333"
+            textbutton _("DEV MODE") action ShowMenu("dev_mode_screen") text_color "#ff3333" at phone_visual_hover
 
-        textbutton _("Preferences") action ShowMenu("preferences")
+        textbutton _("Preferences") action ShowMenu("preferences") at phone_visual_hover
 
         if _in_replay:
 
-            textbutton _("End Replay") action EndReplay(confirm=True)
+            textbutton _("End Replay") action EndReplay(confirm=True) at phone_visual_hover
 
         elif not main_menu:
 
-            textbutton _("Main Menu") action MainMenu()
+            textbutton _("Main Menu") action MainMenu() at phone_visual_hover
 
-        textbutton _("About") action ShowMenu("about")
+        textbutton _("About") action ShowMenu("about") at phone_visual_hover
 
         if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
 
             ## Help isn't necessary or relevant to mobile devices.
-            textbutton _("Help") action ShowMenu("help")
+            textbutton _("Help") action ShowMenu("help") at phone_visual_hover
 
         if renpy.variant("pc"):
 
             ## The quit button is banned on iOS and unnecessary on Android and
             ## Web.
-            textbutton _("Quit") action Quit(confirm=not main_menu)
+            textbutton _("Quit") action Quit(confirm=not main_menu) at phone_visual_hover
 
 
 style navigation_button is gui_button
@@ -482,6 +482,7 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
 
     textbutton _("Return"):
         style "return_button"
+        at phone_visual_hover
 
         action Return()
 

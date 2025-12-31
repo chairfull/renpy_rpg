@@ -5,7 +5,8 @@ name: Iron Sword
 description: A standard iron sword. Sharp and reliable.
 weight: 2.0
 value: 50
-outfit_part: weapon
+tags: weapon, metal, melee
+equip_slots: right_hand, left_hand
 ---
 
 # Inspect

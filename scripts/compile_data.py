@@ -82,6 +82,21 @@ def parse_yaml_list(lines):
     if current_item: items.append(current_item)
     return items
 
+def parse_csv(value):
+    """Safely parse a comma-separated value that might be a string, list, or empty."""
+    if not value:
+        return []
+    if isinstance(value, list):
+        # Already a list - flatten and clean
+        result = []
+        for item in value:
+            if isinstance(item, str):
+                result.extend([x.strip() for x in item.split(',') if x.strip()])
+        return result
+    if isinstance(value, str):
+        return [x.strip() for x in value.split(',') if x.strip()]
+    return []
+
 def compile():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     game_dir = os.path.join(base_dir, "game")
@@ -100,7 +115,13 @@ def compile():
         "characters": {},
         "locations": {},
         "quests": {},
-        "containers": {}
+        "containers": {},
+        "stats": {},
+        "factions": {},
+        "slots": {},
+        "body_types": {},
+        "dialogue": {},
+        "archetypes": {}
     }
     
     for root, dirs, files in os.walk(data_dir):
@@ -125,6 +146,8 @@ def compile():
                     "description": props.get('description', ''),
                     "weight": float(props.get('weight', 0)),
                     "value": int(props.get('value', 0)),
+                    "tags": parse_csv(props.get('tags', '')),
+                    "equip_slots": parse_csv(props.get('equip_slots', '')),
                     "outfit_part": props.get('outfit_part')
                 }
             elif otype == 'location':
@@ -140,16 +163,41 @@ def compile():
                     "description": props.get('description', ''),
                     "map_image": props.get('map_image'),
                     "obstacles": props.get('obstacles', []),
-                    "entities": entities
+                    "entities": entities,
+                    "body": body, # Store body for second pass
+                    # Map Fields
+                    "parent": props.get('parent'),
+                    "map_type": props.get('map_type', 'world'),
+                    "map_x": int(props.get('map_x', 0)),
+                    "map_y": int(props.get('map_y', 0)),
+                    "zoom_range": parse_csv(props.get('zoom_range', '0.0, 99.0')),
+                    "floor_idx": int(props.get('floor_idx', 0))
                 }
             elif otype == 'character':
                 pos = props.get('pos', '0,0').split(',')
+                # Parse stats block if present
+                stats_raw = props.get('stats', {})
+                stats_dict = {}
+                if isinstance(stats_raw, list):
+                    for line in stats_raw:
+                        line = line.strip()
+                        if ':' in line:
+                            k, v = line.split(':', 1)
+                            try:
+                                stats_dict[k.strip().replace('- ', '')] = int(v.strip())
+                            except ValueError:
+                                stats_dict[k.strip().replace('- ', '')] = v.strip()
                 data_consolidated["characters"][obj_id] = {
                     "name": props.get('name'),
                     "description": props.get('description', ''),
                     "location": props.get('location'),
                     "x": int(pos[0]) if len(pos) > 1 else 0,
-                    "y": int(pos[1]) if len(pos) > 1 else 0
+                    "y": int(pos[1]) if len(pos) > 1 else 0,
+                    "tags": parse_csv(props.get('tags', '')),
+                    "factions": parse_csv(props.get('factions', '')),
+                    "body_type": props.get('body_type', 'humanoid'),
+                    "stats": stats_dict,
+                    "body": body
                 }
             elif otype == 'quest':
                 data_consolidated["quests"][obj_id] = {
@@ -162,20 +210,86 @@ def compile():
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
                     "location": props.get('location'),
-                    "items": [i.strip() for i in props.get('items', '').split(',') if i.strip()],
+                    "items": parse_csv(props.get('items', '')),
                     "x": int(pos[0]) if len(pos) > 1 else 0,
-                    "y": int(pos[1]) if len(pos) > 1 else 0
+                    "y": int(pos[1]) if len(pos) > 1 else 0,
+                    "blocked_tags": parse_csv(props.get('blocked_tags', '')),
+                    "allowed_tags": parse_csv(props.get('allowed_tags', '')),
+                    "body": body
+                }
+            elif otype == 'stat':
+                data_consolidated["stats"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "description": props.get('description', ''),
+                    "default": int(props.get('default', 10)),
+                    "min": int(props.get('min', 0)),
+                    "max": int(props.get('max', 100))
+                }
+            elif otype == 'faction':
+                data_consolidated["factions"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "description": props.get('description', ''),
+                    "allies": parse_csv(props.get('allies', '')),
+                    "enemies": parse_csv(props.get('enemies', ''))
+                }
+            elif otype == 'slot':
+                data_consolidated["slots"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "unequips": parse_csv(props.get('unequips', ''))
+                }
+            elif otype == 'body_type':
+                data_consolidated["body_types"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "slots": parse_csv(props.get('slots', ''))
+                }
+            elif otype == 'dialogue':
+                data_consolidated["dialogue"][obj_id] = {
+                    "short": props.get('short', '...'),
+                    "long": props.get('long', '...'),
+                    "emoji": props.get('emoji', '💬'),
+                    "chars": parse_csv(props.get('chars', '')),
+                    "tags": parse_csv(props.get('tags', '')),
+                    "memory": str(props.get('memory', 'False')).lower() == 'true',
+                    "label": props.get('label'),
+                    "cond": props.get('cond', 'True')
+                }
+            elif otype == 'archetype':
+                # Parse stats block if present
+                stats_raw = props.get('stats', {})
+                stats_dict = {}
+                if isinstance(stats_raw, list):
+                    for line in stats_raw:
+                        line = line.strip()
+                        if ':' in line:
+                            k, v = line.split(':', 1)
+                            try: stats_dict[k.strip().replace('- ', '')] = int(v.strip())
+                            except: stats_dict[k.strip().replace('- ', '')] = v.strip()
+                elif isinstance(stats_raw, dict):
+                    stats_dict = stats_raw
+
+                data_consolidated["archetypes"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "description": props.get('description', ''),
+                    "location": props.get('location'),
+                    "intro_label": props.get('intro_label'),
+                    "stats": stats_dict,
+                    "factions": parse_csv(props.get('factions', '')),
+                    "items": parse_csv(props.get('items', ''))
                 }
             
-            # Generate Labels
+    # Second pass: Process bodies to link labels and generate RPY
+    for otype, collection in [("location", "locations"), ("character", "characters"), ("item", "items"), ("quest", "quests"), ("container", "containers")]:
+        for oid, data in data_consolidated[collection].items():
+            if 'body' not in data: continue
+            body = data.pop('body')
             prefix = {"character":"CHAR", "scene":"SCENE", "quest":"QUEST", "container":"CONT", "item":"ITEM"}.get(otype, "LOC")
             
             sections = re.split(r'(?m)^#+\s*', body)
             for sec in sections:
-                if not sec.strip():
-                    continue
+                if not sec.strip(): continue
                 lines = sec.split('\n', 1)
-                heading = lines[0].strip().lower().replace(' ', '_')
+                heading_raw = lines[0].strip()
+                heading = heading_raw.lower().replace(' ', '_')
                 content = lines[1] if len(lines) > 1 else ""
                 
                 flows = re.findall(r'```flow.*?\s*\n(.*?)\n```', content, re.DOTALL)
@@ -184,12 +298,21 @@ def compile():
 
                 if flows:
                     for flow_body in flows:
-                        label_name = f"{prefix}__{obj_id}__{heading}"
+                        label_name = f"{prefix}__{oid}__{heading}"
                         script_parts.append(f"label {label_name}:\n")
+                        
+                        # Link label to character/entity
+                        if otype == "character" and heading == "talk":
+                            data['label'] = label_name
+                        elif otype == "location":
+                            # Check if heading matches an entity ID
+                            for ent in data.get('entities', []):
+                                if ent.get('id', '').lower() == heading:
+                                    ent['label'] = label_name
+
                         for line in flow_body.split('\n'):
                             line = line.strip()
-                            if not line:
-                                continue
+                            if not line: continue
                             if line.startswith('$'):
                                 script_parts.append(f"    {line}\n")
                             elif ':' in line:
@@ -200,10 +323,7 @@ def compile():
                                 txt = line.strip().replace('"', '\\"')
                                 script_parts.append(f"    \"{txt}\"\n")
                         
-                        if prefix == "ITEM":
-                            script_parts.append("    return\n\n")
-                        else:
-                            script_parts.append("    jump world_loop\n\n")
+                        script_parts.append("    return\n\n")
 
     # Write RPY
     with open(labels_file, "w", encoding="utf-8") as out:

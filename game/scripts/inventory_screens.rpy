@@ -278,10 +278,10 @@ screen char_interact_screen(char):
             xalign 0.5
             
             # Talk Button
-            if char.label and renpy.has_label(char.label):
-                textbutton "Talk":
-                    action [Hide("char_interact_screen"), Jump(char.label)]
-                    style "interact_button"
+            textbutton "Talk":
+                action Show("dialogue_choice_screen", char=char)
+                style "interact_button"
+                at phone_visual_hover
             
             # Give Button
             textbutton "Give":

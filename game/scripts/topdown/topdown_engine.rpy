@@ -310,10 +310,8 @@ label _char_interaction_wrapper:
     # This label is called via the FlowQueue to show character screens
     $ char = getattr(store, '_interact_target_char', None)
     if char:
-        # Check if they have a specific conversation label first
-        if char.label and renpy.has_label(char.label):
-            call expression char.label from _call_npc_label
-        else:
-            # Otherwise show the generic interact screen (Talk/Give)
-            call screen char_interact_screen(char)
+        # Show screen and capture return value (the label to call)
+        $ res = renpy.call_screen("char_interact_screen", char)
+        if res and renpy.has_label(res):
+            call expression res from _call_npc_label_wrapper
     return

@@ -5,6 +5,8 @@
             "description": "A juicy red apple. Restoration - 5 HP.",
             "weight": 0.1,
             "value": 5,
+            "tags": [],
+            "equip_slots": [],
             "outfit_part": null
         },
         "potion": {
@@ -12,6 +14,8 @@
             "description": "A bubbling red liquid. Restores 30 HP.",
             "weight": 0.5,
             "value": 20,
+            "tags": [],
+            "equip_slots": [],
             "outfit_part": null
         },
         "sword": {
@@ -19,7 +23,16 @@
             "description": "A standard iron sword. Sharp and reliable.",
             "weight": 2.0,
             "value": 50,
-            "outfit_part": "weapon"
+            "tags": [
+                "weapon",
+                "metal",
+                "melee"
+            ],
+            "equip_slots": [
+                "right_hand",
+                "left_hand"
+            ],
+            "outfit_part": null
         }
     },
     "characters": {
@@ -28,14 +41,30 @@
             "description": "A friendly old man.",
             "location": "shop",
             "x": 0,
-            "y": 0
+            "y": 0,
+            "tags": [],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {},
+            "label": "CHAR__shopkeeper__talk"
         },
         "mayor": {
             "name": "Mayor",
             "description": "The leader of our fine town.",
             "location": "square",
             "x": 800,
-            "y": 600
+            "y": 600,
+            "tags": [
+                "important",
+                "noble"
+            ],
+            "factions": [
+                "town_guard",
+                "merchants"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "label": "CHAR__mayor__talk"
         }
     },
     "locations": {
@@ -60,7 +89,7 @@
                     "type": "object",
                     "name": "Bed",
                     "description": "A comfortable-looking bed.",
-                    "label": "sleep_interaction",
+                    "label": "LOC__home__bed",
                     "x": 300,
                     "y": 500,
                     "sprite": "images_topdown/chars/theo.png"
@@ -70,7 +99,7 @@
                     "type": "object",
                     "name": "Mirror",
                     "description": "You look great today!",
-                    "label": "mirror_interaction",
+                    "label": "LOC__home__mirror",
                     "x": 1400,
                     "y": 300,
                     "sprite": "images_topdown/chars/theo.png"
@@ -88,7 +117,16 @@
                     ],
                     "sprite": "images_topdown/chars/theo.png"
                 }
-            ]
+            ],
+            "parent": null,
+            "map_type": "structure",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 0
         },
         "square": {
             "name": "Town Square",
@@ -126,7 +164,16 @@
                     "y": 300,
                     "sprite": "images_topdown/chars/theo.png"
                 }
-            ]
+            ],
+            "parent": null,
+            "map_type": "world",
+            "map_x": 0,
+            "map_y": 0,
+            "zoom_range": [
+                "0.0",
+                "99.0"
+            ],
+            "floor_idx": 0
         },
         "shop": {
             "name": "General Store",
@@ -144,7 +191,64 @@
                         540
                     ]
                 }
-            ]
+            ],
+            "parent": null,
+            "map_type": "world",
+            "map_x": 0,
+            "map_y": 0,
+            "zoom_range": [
+                "0.0",
+                "99.0"
+            ],
+            "floor_idx": 0
+        },
+        "city_center": {
+            "name": "City Center",
+            "description": "The bustling heart of the city.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "parent": null,
+            "map_type": "city",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "0.5",
+                "3.0"
+            ],
+            "floor_idx": 0
+        },
+        "mage_tower_f1": {
+            "name": "Mage Tower (Floor 1)",
+            "description": "The lobby of the tower.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "parent": "mage_tower",
+            "map_type": "floor",
+            "map_x": 1200,
+            "map_y": 800,
+            "zoom_range": [
+                "3.0",
+                "5.0"
+            ],
+            "floor_idx": 1
+        },
+        "mage_tower": {
+            "name": "Mage Tower",
+            "description": "A tall spire piercing the sky.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "parent": null,
+            "map_type": "structure",
+            "map_x": 1200,
+            "map_y": 800,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 0
         }
     },
     "quests": {
@@ -153,5 +257,189 @@
             "description": "Gathering supplies for the journey."
         }
     },
-    "containers": {}
+    "containers": {},
+    "stats": {
+        "dexterity": {
+            "name": "Dexterity",
+            "description": "Agility, reflexes, and precision.",
+            "default": 10,
+            "min": 1,
+            "max": 100
+        },
+        "intelligence": {
+            "name": "Intelligence",
+            "description": "Mental acuity and magical aptitude.",
+            "default": 10,
+            "min": 1,
+            "max": 100
+        },
+        "charisma": {
+            "name": "Charisma",
+            "description": "Social influence and persuasion.",
+            "default": 10,
+            "min": 1,
+            "max": 100
+        },
+        "strength": {
+            "name": "Strength",
+            "description": "Physical power and carrying capacity.",
+            "default": 10,
+            "min": 1,
+            "max": 100
+        }
+    },
+    "factions": {
+        "merchants": {
+            "name": "Merchants Guild",
+            "description": "A guild of traders and shopkeepers.",
+            "allies": [
+                "town_guard",
+                "nobles"
+            ],
+            "enemies": []
+        },
+        "town_guard": {
+            "name": "Town Guard",
+            "description": "Protectors of the city.",
+            "allies": [
+                "merchants",
+                "nobles"
+            ],
+            "enemies": [
+                "thieves"
+            ]
+        }
+    },
+    "slots": {
+        "saddle": {
+            "name": "Saddle",
+            "unequips": []
+        },
+        "torso": {
+            "name": "Torso",
+            "unequips": []
+        },
+        "two_piece": {
+            "name": "Full Body Outfit",
+            "unequips": [
+                "torso",
+                "pants"
+            ]
+        },
+        "right_hand": {
+            "name": "Right Hand",
+            "unequips": []
+        },
+        "feet": {
+            "name": "Feet",
+            "unequips": []
+        },
+        "left_hand": {
+            "name": "Left Hand",
+            "unequips": []
+        },
+        "body": {
+            "name": "Body",
+            "unequips": []
+        },
+        "pants": {
+            "name": "Pants",
+            "unequips": []
+        },
+        "head": {
+            "name": "Head",
+            "unequips": []
+        }
+    },
+    "body_types": {
+        "humanoid": {
+            "name": "Humanoid",
+            "slots": [
+                "head",
+                "torso",
+                "pants",
+                "left_hand",
+                "right_hand",
+                "two_piece",
+                "feet"
+            ]
+        },
+        "quadruped": {
+            "name": "Quadruped",
+            "slots": [
+                "head",
+                "body",
+                "saddle"
+            ]
+        }
+    },
+    "dialogue": {
+        "mayor_history": {
+            "short": "Ask about history",
+            "long": "This town has been here for a long time. I'd like to know how it all started.",
+            "emoji": "\ud83d\udcd6",
+            "chars": [
+                "mayor"
+            ],
+            "tags": [
+                "History",
+                "Lore"
+            ],
+            "memory": true,
+            "label": "CHAR__mayor__history",
+            "cond": "True"
+        },
+        "mayor_charisma_test": {
+            "short": "Compliment his outfit",
+            "long": "You look very professional today, Mayor. (Requires Charisma 12)",
+            "emoji": "\u2728",
+            "chars": [
+                "mayor"
+            ],
+            "tags": [
+                "Charisma"
+            ],
+            "memory": false,
+            "label": "CHAR__mayor__compliment",
+            "cond": "pc.stats.charisma >= 12"
+        }
+    },
+    "archetypes": {
+        "warrior": {
+            "name": "The Mercenary",
+            "description": "A battle-hardened veteran seeking coin and glory. High physical stats but less silver-tongued.",
+            "location": "market",
+            "intro_label": "SCENE__intro__mercenary",
+            "stats": {
+                "strength": 15,
+                "dexterity": 12,
+                "intelligence": 8,
+                "charisma": 8
+            },
+            "factions": [
+                "[]"
+            ],
+            "items": [
+                "sword"
+            ]
+        },
+        "scholar": {
+            "name": "The Scholar",
+            "description": "A seeker of truth and ancient knowledge. Weaker in combat but highly intelligent and charismatic.",
+            "location": "home",
+            "intro_label": "SCENE__intro__scholar",
+            "stats": {
+                "strength": 8,
+                "dexterity": 10,
+                "intelligence": 16,
+                "charisma": 14
+            },
+            "factions": [
+                "[]"
+            ],
+            "items": [
+                "[]"
+            ]
+        }
+    }
 }

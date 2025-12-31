@@ -4,6 +4,8 @@ name: Mayor
 description: The leader of our fine town.
 location: square
 pos: 800,600
+factions: town_guard, merchants
+tags: important, noble
 ---
 
 # Talk

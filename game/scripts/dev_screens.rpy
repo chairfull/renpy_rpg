@@ -4,6 +4,7 @@ default dev_tab = "items"
 screen dev_mode_screen():
     tag menu
     modal True
+    zorder 200
     
     # Dark high-contrast theme
     add Solid("#050510")
@@ -45,10 +46,9 @@ screen dev_mode_screen():
         
         textbutton "EXIT CONSOLE":
             xalign 0.5
-            action Return()
+            action Hide("dev_mode_screen")
             text_size 24
             text_color "#ff6666"
-            # hover_text_color "#ffffff"
 
 screen dev_items_view():
     viewport:

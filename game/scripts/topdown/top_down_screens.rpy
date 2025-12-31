@@ -2,8 +2,10 @@ screen top_down_map(location):
     tag world_view
     zorder 10
     
-    # Update Loop - Stable 30fps for smooth movement and tooltips
-    timer 0.033 repeat True action [Function(td_manager.update, 0.033), renpy.restart_interaction]
+    # Update Loop - Paused when phone is open
+    timer 0.033 repeat True action [
+        If(not renpy.get_screen("phone_router"), [Function(td_manager.update, 0.033), renpy.restart_interaction])
+    ]
     
     fixed:
         $ cam_x = int(td_manager.camera_offset[0])
@@ -37,7 +39,7 @@ screen top_down_map(location):
                 background None
                 
                 # Visuals
-                fixed:
+                fixed at phone_visual_hover:
                     if entity.sprite_tint:
                         # For colored markers (like exits)
                         add Transform(entity.sprite, zoom=0.3, matrixcolor=entity.sprite_tint) align (0.5, 0.5)
@@ -74,8 +76,8 @@ screen top_down_map(location):
         padding (10, 10)
         hbox:
             spacing 10
-            textbutton "DASHBOARD" action ShowMenu("inventory_screen") text_size 24 text_color "#ffd700"
-            textbutton "DEV CONSOLE" action Show("dev_mode_screen") text_size 16 text_color "#ff3333"
+            textbutton "📱 PHONE" action Show("phone_router") text_size 24 text_color "#00bfff"
+            textbutton "DEV" action Show("dev_mode_screen") text_size 14 text_color "#ff3333"
 
     # 6. Tooltip Layer
     use mouse_tooltip
