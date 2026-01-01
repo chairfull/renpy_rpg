@@ -1,13 +1,17 @@
 default td_zoom = 1.0
 
 transform td_cinematic_enter:
+    subpixel True
     zoom 2.0 alpha 0.0
+    align (0.5, 0.5)
+    anchor (0.5, 0.5)
     parallel:
         easein 0.5 alpha 1.0
     parallel:
         easein 2.0 zoom 1.0
 
 transform td_interactive_zoom(z):
+    subpixel True
     zoom z
     align (0.5, 0.5)
     anchor (0.5, 0.5)
@@ -31,6 +35,7 @@ screen top_down_map(location):
     # Main Map Container with Zoom/Cinematic
     frame:
         background None
+        padding (0, 0)
         xfill True
         yfill True
         
@@ -102,7 +107,7 @@ screen top_down_map(location):
                 tooltip pc.name
                 background None
                 
-                add Transform("images_topdown/chars/theo.png", zoom=0.35, rotate=td_manager.player_rotation, subpixel=True) align (0.5, 0.5)
+                add Transform("images/topdown/chars/theo.png", zoom=0.35, rotate=td_manager.player_rotation, subpixel=True) align (0.5, 0.5)
     
     # 5. UI Layers (Location Name, Dashboard)
     frame:

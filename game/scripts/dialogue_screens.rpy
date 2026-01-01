@@ -6,8 +6,10 @@ screen dialogue_choice_screen(char):
     modal True
     zorder 160
     
-    # Backdrop
-    add Solid("#000000cc")
+    # Background dismissal
+    button:
+        action Return(None)
+        background Solid("#000000cc")
     
     # Description Box (Tooltip)
     if hovered_dialogue_option:
@@ -74,23 +76,20 @@ screen dialogue_choice_screen(char):
                                         text "[opt.emoji]" size 24 yalign 0.5
                                         text "[tag_prefix][opt.short_text]" size 22 color ("#fff" if not is_seen or not opt.memory else "#777") yalign 0.5
 
-        hbox:
-            xalign 0.5
+        vbox:
             spacing 20
-            
-            textbutton "🔚 END CONVERSATION":
-                action Return(None)
-                background "#444"
-                padding (25, 15)
-                text_size 24
-                at phone_visual_hover
+            # Removed END CONVERSATION button, clicking outside now works.
+            null height 20
 
 # Give Item Screen (Restored)
 screen give_item_screen(target_char):
     modal True
     zorder 170
     
-    add Solid("#00000099")
+    # Background dismissal
+    button:
+        action Return()
+        background Solid("#00000099")
     
     frame:
         align (0.5, 0.5)
@@ -124,7 +123,7 @@ screen give_item_screen(target_char):
                                 padding (15, 10)
                                 action [
                                     Function(pc.transfer_to, item, target_char),
-                                    Hide("give_item_screen"),
+                                    Return(),
                                     Notify(f"Gave {item.name} to {target_char.name}")
                                 ]
                                 
@@ -137,10 +136,7 @@ screen give_item_screen(target_char):
             
             null height 10
             
-            textbutton "Cancel":
-                xalign 0.5
-                text_size 20
-                text_color "#ff8888"
-                action Hide("give_item_screen")
+            # Removed Cancel button as background clicking is now the dismissal method.
+            null height 10
     
-    key "game_menu" action Hide("give_item_screen")
+    key "game_menu" action Return()

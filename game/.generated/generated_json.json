@@ -47,6 +47,24 @@
         }
     },
     "characters": {
+        "lady": {
+            "name": "Lady Elara",
+            "description": "A noblewoman browsing the market wares.",
+            "location": "market",
+            "items": [],
+            "base_image": "characters/female_fit.png",
+            "x": 900,
+            "y": 600,
+            "tags": [
+                "important"
+            ],
+            "factions": [
+                "nobles"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "label": "CHAR__lady__talk"
+        },
         "warrior": {
             "name": "Mercenary Kael",
             "description": "A battle-hardened veteran seeking coin and glory.",
@@ -54,6 +72,7 @@
             "items": [
                 "sword"
             ],
+            "base_image": "characters/male_fit.png",
             "x": 0,
             "y": 0,
             "tags": [],
@@ -72,6 +91,7 @@
             "description": "A friendly old man.",
             "location": "shop",
             "items": [],
+            "base_image": "characters/male_average.png",
             "x": 0,
             "y": 0,
             "tags": [],
@@ -85,6 +105,7 @@
             "description": "A seeker of truth and ancient knowledge.",
             "location": "home",
             "items": [],
+            "base_image": "characters/male_thin.png",
             "x": 0,
             "y": 0,
             "tags": [],
@@ -103,6 +124,7 @@
             "description": "The leader of our fine town.",
             "location": "market",
             "items": [],
+            "base_image": "characters/male_fit.png",
             "x": 800,
             "y": 600,
             "tags": [
@@ -143,7 +165,7 @@
                     "label": "LOC__home__bed",
                     "x": 300,
                     "y": 500,
-                    "sprite": "images_topdown/chars/theo.png"
+                    "sprite": "images/topdown/chars/theo.png"
                 },
                 {
                     "id": "mirror",
@@ -153,7 +175,7 @@
                     "label": "LOC__home__mirror",
                     "x": 1400,
                     "y": 300,
-                    "sprite": "images_topdown/chars/theo.png"
+                    "sprite": "images/topdown/chars/theo.png"
                 },
                 {
                     "id": "closet",
@@ -220,7 +242,7 @@
                     "label": "test_minigame",
                     "x": 400,
                     "y": 300,
-                    "sprite": "images_topdown/chars/theo.png"
+                    "sprite": "images/topdown/chars/theo.png"
                 }
             ],
             "parent": null,
@@ -477,13 +499,15 @@
             "name": "The Mercenary",
             "description": "A battle-hardened veteran seeking coin and glory. High physical stats but less silver-tongued.",
             "pc_id": "warrior",
-            "intro_label": "SCENE__warrior__intro"
+            "intro_label": "SCENE__warrior__intro",
+            "image": "characters/male_fit.png"
         },
         "scholar": {
             "name": "The Scholar",
             "description": "A seeker of truth and ancient knowledge. Weaker in combat but highly intelligent and charismatic.",
             "pc_id": "scholar",
-            "intro_label": "SCENE__scholar__intro"
+            "intro_label": "SCENE__scholar__intro",
+            "image": "characters/male_thin.png"
         }
     },
     "shops": {

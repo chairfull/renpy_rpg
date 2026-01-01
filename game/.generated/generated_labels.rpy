@@ -12,6 +12,16 @@ label LOC__home__mirror:
     "You look great today!"
     return
 
+label CHAR__lady:
+    lady "Oh, hello there. Are you also looking for rare spices?"
+    lady "The market here is surprisingly well-stocked today."
+    return
+
+label CHAR__lady__talk:
+    lady "Oh, hello there. Are you also looking for rare spices?"
+    lady "The market here is surprisingly well-stocked today."
+    return
+
 label CHAR__warrior:
     "You sharpen your blade, contemplating your next contract."
     return

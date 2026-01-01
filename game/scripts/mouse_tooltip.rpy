@@ -9,7 +9,11 @@ init python:
 
     def update_mouse_pos(tf, st, at):
         mx, my = renpy.get_mouse_pos()
-        tf.pos = (mx + 30, my + 30)
+        # Offset and Clamp
+        # Tooltip size is approx 200x100
+        new_x = clamp_val(mx + 30, 0, 1920 - 220)
+        new_y = clamp_val(my + 30, 0, 1080 - 120)
+        tf.pos = (new_x, new_y)
         return 0
 
     def tooltip_alpha_manager(tf, st, at):

@@ -23,5 +23,5 @@ entities:
     label: test_minigame
     x: 400
     y: 300
-    sprite: "images_topdown/chars/theo.png"
+    sprite: "images/topdown/chars/theo.png"
 ---

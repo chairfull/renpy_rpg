@@ -20,8 +20,10 @@ init python:
 screen story_select_screen():
     modal True
     zorder 150
-    
-    add Solid("#000000")
+    # Background dismissal
+    button:
+        action Return(None)
+        background Solid("#000000cc")
     
     vbox:
         align (0.5, 0.5)
@@ -37,31 +39,35 @@ screen story_select_screen():
             
             for origin in origins:
                 button:
-                    background Frame("#3a3a5a", 8, 8)
-                    xsize 400
-                    ysize 600
-                    padding (30, 30)
+                    background Frame("#1b1b2f", 8, 8)
+                    xsize 420
+                    ysize 720 # Made slightly taller
+                    padding (0, 0)
                     at phone_visual_hover
                     action Function(finish_story_selection, origin)
                     
-                    vbox:
-                        spacing 20
+                    fixed:
+                        # 1. Full-size character sprite at absolute bottom
+                        if origin.image:
+                            add origin.image:
+                                fit "contain"
+                                align (0.5, 1.0)
                         
-                        # Placeholder Preview Image
+                        # 2. Description Overlay at the bottom
                         frame:
-                            background "#222"
-                            xsize 340
-                            ysize 200
-                            xalign 0.5
-                            text "🖼️" size 80 align (0.5, 0.5)
-                        
-                        text "[origin.name]" size 36 color "#fff" xalign 0.5
-                        
-                        null height 10
-                        
-                        text "[origin.description]" size 20 color "#ccc" xalign 0.5 text_align 0.5
-                        
-                        null height 20
-                        
-                        # Stats removed from StoryOrigin object
+                            align (0.5, 0.95) # Anchored towards bottom
+                            background Frame(Solid("#00000088"), 4, 4)
+                            padding (20, 15)
+                            xsize 380
+                            
+                            vbox:
+                                spacing 10
+                                text "[origin.description]" size 22 color "#ffffff" xalign 0.5 text_align 0.5 outlines [(1, "#000", 0, 0)]
+
+                        # 3. Title at the Top (Drawn LAST to be on TOP)
+                        frame:
+                            background None
+                            padding (20, 30)
+                            xfill True
+                            text "[origin.name!u]" size 40 color "#ffd700" xalign 0.5 outlines [(3, "#000", 0, 0)]
                         # Just show description

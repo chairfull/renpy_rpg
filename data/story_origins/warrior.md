@@ -4,6 +4,8 @@ id: warrior
 name: The Mercenary
 description: A battle-hardened veteran seeking coin and glory. High physical stats but less silver-tongued.
 pc_id: warrior
+image: characters/male_fit.png
+intro_label: SCENE__warrior__intro
 ---
 
 ```flow

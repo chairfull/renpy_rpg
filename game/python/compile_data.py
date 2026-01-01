@@ -205,6 +205,7 @@ def compile():
                     "description": props.get('description', ''),
                     "location": props.get('location'),
                     "items": parse_csv(props.get('items', '')),
+                    "base_image": props.get('base_image'),
                     "x": int(pos[0]) if len(pos) > 1 else 0,
                     "y": int(pos[1]) if len(pos) > 1 else 0,
                     "tags": parse_csv(props.get('tags', '')),
@@ -307,6 +308,7 @@ def compile():
                     "description": props.get('description', ''),
                     "pc_id": props.get('pc_id'),
                     "intro_label": props.get('intro_label', f"SCENE__{obj_id}__intro"),
+                    "image": props.get('image'),
                     "body": body
                 }
             elif otype == 'shop':

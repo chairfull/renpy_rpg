@@ -1,5 +1,3 @@
-# Data system migrated to compile_data.py
-
 init -10 python:
     import json
     import random
@@ -134,12 +132,13 @@ init -10 python:
     dialogue_manager = DialogueManager()
 
     class StoryOrigin(object):
-        def __init__(self, id, name, description, pc_id, intro_label):
+        def __init__(self, id, name, description, pc_id, intro_label, image=None):
             self.id = id
             self.name = name
             self.description = description
             self.pc_id = pc_id
             self.intro_label = intro_label
+            self.image = image
 
     class StoryOriginManager:
         def __init__(self):
@@ -374,11 +373,12 @@ init -10 python:
 
     # --- CHARACTER ---
     class RPGCharacter(Inventory):
-        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", **kwargs):
+        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, **kwargs):
             super(RPGCharacter, self).__init__(id, name, **kwargs)
             self.stats = stats if isinstance(stats, StatBlock) else StatBlock(stats) if stats else StatBlock()
             self.factions = set(factions or [])
             self.body_type = body_type
+            self.base_image = base_image
             self.equipped_slots = {}  # slot_id -> Item
             self.location_id = location_id
             self.pchar = Character(name)
@@ -582,7 +582,7 @@ init -10 python:
             return False
 
     rpg_world = GameWorld()
-    pc = RPGCharacter("player", "Player")
+    pc = RPGCharacter("player", "Player", base_image="characters/male_fit.png")
     rpg_world.add_character(pc)
     class AchievementManager:
         def unlock(self, ach_id):
@@ -672,6 +672,7 @@ init -10 python:
                 stats=stats,
                 description=p.get('description', ''),
                 location_id=p.get('location'),
+                base_image=p.get('base_image'),
                 x=p.get('x', 0),
                 y=p.get('y', 0),
                 label=p.get('label'),
@@ -703,7 +704,8 @@ init -10 python:
                 name=p.get('name', oid),
                 description=p.get('description', ''),
                 pc_id=p.get('pc_id'),
-                intro_label=p.get('intro_label')
+                intro_label=p.get('intro_label'),
+                image=p.get('image')
             ))
 
         # Shops

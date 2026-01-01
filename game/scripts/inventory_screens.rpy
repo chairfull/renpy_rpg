@@ -240,67 +240,216 @@ style quest_list_text:
     insensitive_color "#666"
     selected_color "#ffd700"
 
+# --- TRANSFORMATIONS ---
+transform glide_up:
+    on show:
+        alpha 0.0 yoffset 300 zoom 0.8
+        parallel:
+            easein 0.6 alpha 1.0
+        parallel:
+            easein 0.7 yoffset 0
+        parallel:
+            easein 0.8 zoom 1.0
+    on hide:
+        parallel:
+            easeout 0.4 alpha 0.0
+        parallel:
+            easeout 0.5 yoffset 100
+
 # --- CHARACTER INTERACTION SCREEN ---
 screen char_interaction_menu(char):
     modal True
     zorder 150
     tag menu
-    add "#0c0c0c"
     
+    # Everything wrapped in a fixed block (Transition handled by label)
+    fixed:
+        # Background dismissal
+        button:
+            action Return(None)
+            background Solid("#0c0c0ccc")
+            at phone_visual_hover
+        
+        # Side Panel: Stats and Info (Left Aligned)
+        frame:
+            align (0.05, 0.5)
+            background Frame("#151520cc", 8, 8)
+            padding (40, 40)
+            xsize 450
+            
+            vbox:
+                spacing 30
+                
+                # Character Name (Moved from Main Content)
+                text "[char.name!u]" size 60 color "#ffd700" outlines [(2, "#000", 0, 0)]
+                
+                vbox:
+                    spacing 10
+                    text "ORIENTATION" size 24 color "#ffd700"
+                    text "[char.description]" size 22 italic True color "#bbbbbb"
+                
+                # Stats and Attributes
+                vbox:
+                    spacing 25
+                    $ stats = char.stats
+                    # Social Context
+                    vbox:
+                        spacing 8
+                        label "SOCIAL" text_color "#ffd700" text_size 26
+                        text "Relation: Friendly" size 24 color "#50fa7b"
+                        text "Status: Relaxed" size 24 color "#f8f8f2"
+                    
+                    # Dynamic Attributes
+                    if any(stat not in ['hp', 'max_hp'] for stat in char.stats.keys()):
+                        vbox:
+                            spacing 8
+                            label "ATTRIBUTES" text_color "#ffd700" text_size 26
+                            for stat_name, stat_val in char.stats.items():
+                                if stat_name not in ['hp', 'max_hp']:
+                                    text "[stat_name!c]: [stat_val]" size 24 color "#f8f8f2"
+
+        # MAIN CONTENT: Full-Screen Sprite Presence (Absolute Bottom)
+        fixed:
+            xfill True
+            yfill True
+            
+            # Sprite is anchored to the bottom of the monitor
+            if char.base_image:
+                add char.base_image:
+                    fit "contain"
+                    align (0.6, 1.0)
+                    xzoom -1 # Flip to look left towards info
+                    at glide_up
+            else:
+                add Solid("#1a1a2a"):
+                    align (0.5, 0.5)
+                    xsize 400
+                    ysize 650
+                    at glide_up
+        
+        # Actions Layer (Raised further)
+        vbox:
+            align (0.6, 0.95)
+            yoffset -100
+            xsize 1000
+            
+            hbox:
+                spacing 50
+                xalign 0.5
+                
+                textbutton "🗣️ TALK":
+                    action Return("talk")
+                    padding (50, 25)
+                    background Frame("#2c3e50", 4, 4)
+                    hover_background Frame("#34495e", 4, 4)
+                    text_size 40
+                    text_bold True
+                    at phone_visual_hover
+                
+                textbutton "🎁 GIVE":
+                    action Return("give")
+                    padding (50, 25)
+                    background Frame("#8e44ad", 4, 4)
+                    hover_background Frame("#9b59b6", 4, 4)
+                    text_size 40
+                    text_bold True
+                    at phone_visual_hover
+        
+# --- CONTAINER TRANSFER SCREEN ---
+init python:
+    def transfer_item(item, source_inv, target_inv):
+        if item in source_inv.items:
+            source_inv.items.remove(item)
+            target_inv.items.append(item)
+            renpy.restart_interaction()
+
+screen container_transfer_screen(container_inv):
+    modal True
+    zorder 200
+    tag menu
+    
+    # Backdrop
+    add "#0c0c0cdd"
+    
+    # Context Reset
+    on "show" action SetVariable("selected_inventory_item", None)
+
     vbox:
-        align (0.5, 0.5)
+        align (0.5, 0.4)
         spacing 30
-        xsize 800
+        
+        hbox:
+            spacing 80
+            xalign 0.5
+            
+            # Left Column: Player Inventory
+            use inventory_column("YOUR INVENTORY", pc, container_inv)
+            
+            # Right Column: Container Inventory
+            use inventory_column(container_inv.name.upper(), container_inv, pc)
+
+        # Bottom Close Button
+        textbutton "FINISH & CLOSE":
+            action Return()
+            xalign 0.5
+            padding (40, 20)
+            background Frame("#2c3e50", 4, 4)
+            hover_background Frame("#34495e", 4, 4)
+            text_size 30
+            text_bold True
+            at phone_visual_hover
+
+screen inventory_column(title, source_inv, target_inv):
+    vbox:
+        spacing 15
+        xsize 500
+        
+        label title text_size 28 text_color "#ffd700" xalign 0.5
         
         frame:
-            background "#1a1a1a"
-            padding (40, 40)
+            background "#1a1a1acc"
+            padding (10, 10)
             xfill True
-            vbox:
-                spacing 10
-                text "[char.name]" size 40 color "#ffd700" xalign 0.5
-                text "[char.description]" size 20 italic True xalign 0.5 color "#cccccc"
+            ysize 650
+            
+            viewport:
+                scrollbars "vertical"
+                mousewheel True
+                draggable True
                 
-                null height 20
-                hbox:
-                    xalign 0.5
-                    spacing 40
-                    $ stats = char.stats
-                    vbox:
-                        label "Stats" text_color "#ffffff"
-                        text "Relation: Friendly" size 18 color "#00ff00"
-                        text "Status: Relaxed" size 18 color "#ffffff"
-                    vbox:
-                        label "Attributes" text_color "#ffffff"
-                        text "Knowledge: [stats.intelligence]" size 18 color "#ffffff"
-                        text "Presence: [stats.charisma]" size 18 color "#ffffff"
-
-        hbox:
-            spacing 20
-            xalign 0.5
-            
-            # Talk Button
-            textbutton "Talk":
-                action Return("talk")
-                style "interact_button"
-                at phone_visual_hover
-            
-            # Give Button
-            textbutton "Give":
-                action Return("give")
-                style "interact_button"
-            
-            # Outfit Button (Placeholder)
-            textbutton "Outfit":
-                action Notify("Outfit system coming soon!")
-                style "interact_button"
-
-        textbutton "Back":
-            xalign 0.5
-            action Return(None)
-            background "#444"
-            padding (20, 10)
-            text_style "back_button_text"
+                vbox:
+                    spacing 8
+                    xfill True
+                    
+                    python:
+                        # Group items for cleaner display
+                        grouped = {}
+                        for itm in source_inv.items:
+                            if itm.name not in grouped: grouped[itm.name] = []
+                            grouped[itm.name].append(itm)
+                    
+                    if not source_inv.items:
+                        text "Empty" italic True color "#666" align (0.5, 0.2)
+                    
+                    for name, item_list in grouped.items():
+                        $ first_item = item_list[0]
+                        $ count = len(item_list)
+                        
+                        button:
+                            action Function(transfer_item, first_item, source_inv, target_inv)
+                            xfill True
+                            padding (15, 12)
+                            background Frame("#222", 4, 4)
+                            hover_background Frame("#333", 4, 4)
+                            
+                            hbox:
+                                spacing 10
+                                text "[name]" size 22 color "#eee"
+                                if count > 1:
+                                    text "x[count]" size 18 color "#ffd700" yalign 0.5
+                                
+                                # Visual indicator of action
+                                text ("➡" if source_inv == pc else "⬅") size 22 color "#ffd700" xalign 1.0
 
 style back_button_text:
     size 25
