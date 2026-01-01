@@ -1,67 +1,108 @@
+default td_zoom = 1.0
+
+transform td_cinematic_enter:
+    zoom 2.0 alpha 0.0
+    parallel:
+        easein 0.5 alpha 1.0
+    parallel:
+        easein 2.0 zoom 1.0
+
+transform td_interactive_zoom(z):
+    zoom z
+    align (0.5, 0.5)
+    anchor (0.5, 0.5)
+
 screen top_down_map(location):
     tag world_view
     zorder 10
+    
+    # Zoom Controls
+    key "K_PLUS" action SetVariable("td_zoom", min(2.5, td_zoom + 0.1))
+    key "K_EQUALS" action SetVariable("td_zoom", min(2.5, td_zoom + 0.1))
+    key "K_MINUS" action SetVariable("td_zoom", max(0.5, td_zoom - 0.1))
+    key "mousedown_4" action SetVariable("td_zoom", min(2.5, td_zoom + 0.1))
+    key "mousedown_5" action SetVariable("td_zoom", max(0.5, td_zoom - 0.1))
     
     # Update Loop - Paused when phone is open
     timer 0.033 repeat True action [
         If(not renpy.get_screen("phone_router"), [Function(td_manager.update, 0.033), renpy.restart_interaction])
     ]
     
-    fixed:
-        $ cam_x = int(td_manager.camera_offset[0])
-        $ cam_y = int(td_manager.camera_offset[1])
+    # Main Map Container with Zoom/Cinematic
+    frame:
+        background None
+        xfill True
+        yfill True
         
-        # 1. Background Map
-        if location.map_image:
-            add location.map_image pos (-cam_x, -cam_y)
+        # Apply transforms based on state
+        if not intro_cinematic_done:
+            at td_cinematic_enter
+            timer 2.0 action SetVariable("intro_cinematic_done", True)
         else:
-            add Solid("#222") pos (-cam_x, -cam_y)
+            at td_interactive_zoom(td_zoom)
         
-        # 2. Click-to-Move Ground Layer
-        button:
-            area (0, 0, 1920, 1080)
-            action Function(_td_click_to_move)
-            background None
+        fixed:
+            xsize 1920
+            ysize 1080
+            
+            $ cam_x = int(td_manager.camera_offset[0])
+            $ cam_y = int(td_manager.camera_offset[1])
+            
+            # 1. Background Map
+            if location.map_image:
+                add location.map_image pos (-cam_x, -cam_y)
+            else:
+                add Solid("#222") pos (-cam_x, -cam_y)
+            
+            # 2. Click-to-Move Ground Layer
+            button:
+                area (0, 0, 1920, 1080)
+                action Function(_td_click_to_move)
+                background None
 
-        # 3. Interactive Entities (NPCs, Exits, Objects)
-        for entity in td_manager.entities:
-            $ sx = int(entity.x - cam_x)
-            $ sy = int(entity.y - cam_y)
+            # 3. Interactive Entities (NPCs, Exits, Objects)
+            for entity in td_manager.entities:
+                $ sx = int(entity.x - cam_x)
+                $ sy = int(entity.y - cam_y)
+                
+                button:
+                    anchor (0.5, 0.5)
+                    pos (sx, sy)
+                    xsize 120 ysize 120 # Uniform hit area
+                    action entity.action
+                    tooltip entity.tooltip
+                    focus_mask None
+                    
+                    background None
+                    
+                    # Visuals
+                    fixed at phone_visual_hover:
+                        if entity.sprite_tint:
+                            # For colored markers (like exits)
+                            # NO SCALE CHANGE ON HOVER
+                            add Transform(entity.sprite, zoom=0.3, matrixcolor=entity.sprite_tint) align (0.5, 0.5)
+                        else:
+                            # For characters/objects
+                            if entity.idle_anim:
+                                # NO SCALE CHANGE ON HOVER
+                                add At(Transform(entity.sprite, zoom=0.35), char_idle_anim) align (0.5, 0.5)
+                            else:
+                                # NO SCALE CHANGE ON HOVER
+                                add Transform(entity.sprite, zoom=0.35) align (0.5, 0.5)
+
+            # 4. Player Sprite
+            $ psx = int(td_manager.player_pos[0] - cam_x)
+            $ psy = int(td_manager.player_pos[1] - cam_y)
             
             button:
                 anchor (0.5, 0.5)
-                pos (sx, sy)
-                xsize 120 ysize 120 # Uniform hit area
-                action entity.action
-                tooltip entity.tooltip
-                focus_mask None
-                
+                pos (psx, psy)
+                xsize 120 ysize 120
+                action NullAction()
+                tooltip pc.name
                 background None
                 
-                # Visuals
-                fixed at phone_visual_hover:
-                    if entity.sprite_tint:
-                        # For colored markers (like exits)
-                        add Transform(entity.sprite, zoom=0.3, matrixcolor=entity.sprite_tint) align (0.5, 0.5)
-                        if GetTooltip() == entity.tooltip:
-                            add Transform(entity.sprite, zoom=0.35, matrixcolor=entity.sprite_tint) align (0.5, 0.5)
-                    else:
-                        # For characters/objects
-                        if entity.idle_anim:
-                            add At(Transform(entity.sprite, zoom=0.35), char_idle_anim) align (0.5, 0.5)
-                            if GetTooltip() == entity.tooltip:
-                                add At(Transform(entity.sprite, zoom=0.38), char_idle_anim) align (0.5, 0.5)
-                        else:
-                            add Transform(entity.sprite, zoom=0.35) align (0.5, 0.5)
-                            if GetTooltip() == entity.tooltip:
-                                add Transform(entity.sprite, zoom=0.38) align (0.5, 0.5)
-
-        # 4. Player Sprite
-        $ psx = int(td_manager.player_pos[0] - cam_x)
-        $ psy = int(td_manager.player_pos[1] - cam_y)
-        add Transform("images_topdown/chars/theo.png", zoom=0.35, rotate=td_manager.player_rotation, subpixel=True):
-            anchor (0.5, 0.5)
-            pos (psx, psy)
+                add Transform("images_topdown/chars/theo.png", zoom=0.35, rotate=td_manager.player_rotation, subpixel=True) align (0.5, 0.5)
     
     # 5. UI Layers (Location Name, Dashboard)
     frame:
@@ -82,7 +123,7 @@ screen top_down_map(location):
     # 6. Tooltip Layer
     use mouse_tooltip
 
-# Idle breathing animation
+# Idle breathing animation (Removed zoom pulse as per user request)
 transform char_idle_anim:
     subpixel True
     anchor (0.5, 0.5)
@@ -90,13 +131,10 @@ transform char_idle_anim:
         ease 1.5 rotate -1.5
         ease 1.5 rotate 1.5
         repeat
-    parallel:
-        ease 2.0 zoom 1.02
-        ease 2.0 zoom 0.98
-        repeat
 
 init python:
     def _td_click_to_move():
+        zoom = getattr(store, "td_zoom", 1.0)
         mx, my = renpy.get_mouse_pos()
-        wx, wy = td_manager.screen_to_world(mx, my)
+        wx, wy = td_manager.screen_to_world(mx, my, zoom)
         td_manager.set_target(wx, wy)

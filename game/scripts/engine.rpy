@@ -39,8 +39,9 @@ init -10 python:
 
     # --- ITEM SYSTEM ---
     class Item(TaggedObject):
-        def __init__(self, name, description, weight=0, value=0, tags=None, equip_slots=None, outfit_part=None):
+        def __init__(self, name, description, weight=0, value=0, tags=None, factions=None, equip_slots=None, outfit_part=None):
             TaggedObject.__init__(self, tags)
+            self.factions = set(factions or [])
             self.name, self.description, self.weight, self.value = name, description, weight, value
             self.equip_slots = equip_slots or []
             # Legacy compatibility - map outfit_part to equip_slots if provided
@@ -132,28 +133,25 @@ init -10 python:
 
     dialogue_manager = DialogueManager()
 
-    class Archetype(object):
-        def __init__(self, id, name, description, location_id, intro_label, stats=None, factions=None, items=None):
+    class StoryOrigin(object):
+        def __init__(self, id, name, description, pc_id, intro_label):
             self.id = id
             self.name = name
             self.description = description
-            self.location_id = location_id
+            self.pc_id = pc_id
             self.intro_label = intro_label
-            self.stats = stats or {}
-            self.factions = factions or []
-            self.items = items or []
 
-    class ArchetypeManager:
+    class StoryOriginManager:
         def __init__(self):
-            self.archetypes = {}
-        def register(self, arch):
-            self.archetypes[arch.id] = arch
+            self.origins = {}
+        def register(self, origin):
+            self.origins[origin.id] = origin
         def get_all(self):
-            return sorted(self.archetypes.values(), key=lambda x: x.name)
-        def get(self, arch_id):
-            return self.archetypes.get(arch_id)
+            return sorted(self.origins.values(), key=lambda x: x.name)
+        def get(self, origin_id):
+            return self.origins.get(origin_id)
 
-    archetype_manager = ArchetypeManager()
+    story_origin_manager = StoryOriginManager()
 
     class Quest:
         def __init__(self, id, name, description=""):
@@ -234,18 +232,23 @@ init -10 python:
 
     # --- CORE ENTITY ---
     class Entity(SpatialObject, TaggedObject):
-        def __init__(self, id, name, description="", label=None, x=0, y=0, tags=None, **kwargs):
+        def __init__(self, id, name, description="", label=None, x=0, y=0, tags=None, factions=None, **kwargs):
             SpatialObject.__init__(self, x, y)
             TaggedObject.__init__(self, tags)
+            self.factions = set(factions or [])
             self.id, self.name, self.description, self.label = id, name, description, label
         def interact(self):
             if self.label: renpy.jump(self.label)
             else: renpy.say(None, f"You see {self.name}. {self.description}")
 
     class Inventory(Entity):
-        def __init__(self, id, name, blocked_tags=None, allowed_tags=None, **kwargs):
+        def __init__(self, id, name, items=None, blocked_tags=None, allowed_tags=None, **kwargs):
             super(Inventory, self).__init__(id, name, **kwargs)
             self.items, self.gold = [], 0
+            if items:
+                for item_id in items:
+                    it = item_manager.get(item_id)
+                    if it: self.items.append(it)
             self.blocked_tags = set(blocked_tags or [])
             self.allowed_tags = set(allowed_tags or [])  # empty = allow all
         
@@ -388,7 +391,10 @@ init -10 python:
             return self.pchar(what, *args, **kwargs)
         
         def interact(self):
-            renpy.show_screen("char_interact_screen", char=self)
+            # Show the character hub menu via the flow queue for context safety
+            renpy.store._interact_target_char = self
+            import store
+            store.flow_queue.queue_label("_char_interaction_wrapper")
         
         def mark_as_met(self):
             wiki_manager.unlock(self.name, self.description)
@@ -442,35 +448,43 @@ init -10 python:
             self.items.append(item)
             return True
         
-        def apply_archetype(self, archetype):
-            """Initialize character stats, location, and items from an archetype"""
-            # Set Stats
-            for stat_name, value in archetype.stats.items():
-                self.stats.set(stat_name, value)
-            
-            # Set Location
-            self.location_id = archetype.location_id
-            
-            # Join Factions
-            for faction_id in archetype.factions:
-                self.join_faction(faction_id)
-            
-            # Add Items
-            for item_id in archetype.items:
-                item = item_manager.get(item_id)
-                if item:
-                    self.add_item(item, force=True)
-            
-            renpy.store.td_manager.setup(rpg_world.current_location)
+        def apply_story_origin(self, origin):
+            """Deprecated: logic moved to intro flow"""
+            pass
         
         def get_equipped_in_slot(self, slot_id):
             return self.equipped_slots.get(slot_id)
 
+    class Lock(object):
+        def __init__(self, ltype="physical", difficulty=1, keys=None, locked=True):
+            self.type = ltype
+            self.difficulty = difficulty
+            self.keys = set(keys or [])
+            self.locked = locked
+        
+        def unlock(self, key_id):
+            if key_id in self.keys:
+                self.locked = False
+                return True
+            return False
+            
+        def pick(self, skill_level=0):
+            # Simple check for now (placeholder for minigame)
+            # Roll or stat check
+            if skill_level + renpy.random.randint(1, 20) >= self.difficulty + 10:
+                self.locked = False
+                return True
+            return False
+            
+        def lock(self):
+            self.locked = True
+
     class Location(SpatialObject, TaggedObject):
-        def __init__(self, id, name, description, map_image=None, obstacles=None, entities=None, x=0, y=0, tags=None,
+        def __init__(self, id, name, description, map_image=None, obstacles=None, entities=None, x=0, y=0, tags=None, factions=None,
                 parent_id=None, ltype="world", map_x=0, map_y=0, zoom_range=(0.0, 99.0), floor_idx=0):
             SpatialObject.__init__(self, x, y)
             TaggedObject.__init__(self, tags)
+            self.factions = set(factions or [])
             self.id, self.name, self.description = id, name, description
             self.map_image = map_image
             self.obstacles = obstacles or set()
@@ -487,7 +501,7 @@ init -10 python:
         
         @property
         def characters(self):
-            return [c for c in rpg_world.characters.values() if c.location_id == self.id and c.name != pc.name]
+            return [c for c in rpg_world.characters.values() if getattr(c, 'location_id', None) == self.id and c.id != pc.id]
         
         def get_entities_with_tag(self, tag):
             return [e for e in self.entities if hasattr(e, 'tags') and tag in e.get('tags', [])]
@@ -547,7 +561,7 @@ init -10 python:
     map_manager = MapManager()
 
     class GameWorld:
-        def __init__(self): self.locations, self.characters, self.current_location_id = {}, {}, None
+        def __init__(self): self.locations, self.characters, self.shops, self.current_location_id = {}, {}, {}, None
         @property
         def actor(self): return pc
         @property
@@ -616,9 +630,12 @@ init -10 python:
                 p.get('weight', 0), 
                 p.get('value', 0),
                 tags=p.get('tags', []),
+                factions=p.get('factions', []),
                 equip_slots=p.get('equip_slots', []),
                 outfit_part=p.get('outfit_part')
             ))
+            
+
         
         # Locations
         for oid, p in data.get("locations", {}).items():
@@ -636,6 +653,7 @@ init -10 python:
                 oid, p['name'], p['description'], 
                 p.get('map_image'), obstacles, p.get('entities'),
                 tags=p.get('tags', []),
+                factions=p.get('factions', []),
                 parent_id=p.get('parent'),
                 ltype=p.get('map_type', 'world'),
                 map_x=int(p.get('map_x', 0)),
@@ -659,6 +677,7 @@ init -10 python:
                 label=p.get('label'),
                 factions=p.get('factions', []),
                 body_type=p.get('body_type', 'humanoid'),
+                items=p.get('items', []),
                 tags=p.get('tags', [])
             )
             rpg_world.add_character(char)
@@ -677,18 +696,30 @@ init -10 python:
                 memory=(str(p.get('memory', 'False')).lower() == 'true')
             ))
 
-        # Archetypes
-        for oid, p in data.get("archetypes", {}).items():
-            archetype_manager.register(Archetype(
+        # Story Origins
+        for oid, p in data.get("story_origins", {}).items():
+            story_origin_manager.register(StoryOrigin(
                 oid,
                 name=p.get('name', oid),
                 description=p.get('description', ''),
-                location_id=p.get('location'),
-                intro_label=p.get('intro_label'),
-                stats=p.get('stats', {}),
-                factions=p.get('factions', []),
-                items=p.get('items', [])
+                pc_id=p.get('pc_id'),
+                intro_label=p.get('intro_label')
             ))
+
+        # Shops
+        for oid, p in data.get("shops", {}).items():
+            # Shops are inventories with multipliers
+            shop = Shop(
+                oid,
+                p.get('name', oid),
+                buy_mult=p.get('buy_mult', 1.2),
+                sell_mult=p.get('sell_mult', 0.6),
+                items=p.get('items', [])
+            )
+            # Register in world shops
+            # They are globals, but separated from characters to avoid map-spawn issues
+            rpg_world.shops[oid] = shop
+            renpy.store.__dict__[oid] = shop
 
         # Quests
         for oid, p in data.get("quests", {}).items():

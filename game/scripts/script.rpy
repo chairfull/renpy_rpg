@@ -13,8 +13,10 @@ label start:
     # Reload data to ensure latest changes are picked up
     $ instantiate_all()
     
-    # Character Selection
-    call screen character_select_screen
+    default intro_cinematic_done = False
+    
+    # Story Selection
+    call screen story_select_screen
     
     # After selection, the screen jumps to the intro label.
     # The world_loop will be called after the intro finishes.

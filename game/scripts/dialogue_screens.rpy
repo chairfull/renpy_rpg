@@ -1,7 +1,7 @@
 # Dialogue choice system with tags, emojis, and hover descriptions
 
 default hovered_dialogue_option = None
-
+ 
 screen dialogue_choice_screen(char):
     modal True
     zorder 160
@@ -57,8 +57,7 @@ screen dialogue_choice_screen(char):
                                 button:
                                     action [
                                         Function(pc.dialogue_history.add, opt.id),
-                                        Hide("dialogue_choice_screen"),
-                                        Jump(opt.label)
+                                        Return(opt.label)
                                     ]
                                     hovered SetVariable("hovered_dialogue_option", opt)
                                     unhovered SetVariable("hovered_dialogue_option", None)
@@ -75,10 +74,73 @@ screen dialogue_choice_screen(char):
                                         text "[opt.emoji]" size 24 yalign 0.5
                                         text "[tag_prefix][opt.short_text]" size 22 color ("#fff" if not is_seen or not opt.memory else "#777") yalign 0.5
 
-        textbutton "End Conversation":
+        hbox:
             xalign 0.5
-            action Hide("dialogue_choice_screen")
-            background "#444"
-            padding (25, 15)
-            text_size 24
-            at phone_visual_hover
+            spacing 20
+            
+            textbutton "🔚 END CONVERSATION":
+                action Return(None)
+                background "#444"
+                padding (25, 15)
+                text_size 24
+                at phone_visual_hover
+
+# Give Item Screen (Restored)
+screen give_item_screen(target_char):
+    modal True
+    zorder 170
+    
+    add Solid("#00000099")
+    
+    frame:
+        align (0.5, 0.5)
+        background "#1a2e1a"
+        padding (30, 25)
+        xsize 600
+        ysize 500
+        
+        vbox:
+            spacing 15
+            
+            text "Give item to [target_char.name]" size 30 color "#aaffaa" bold True xalign 0.5
+            
+            null height 10
+            
+            viewport:
+                xfill True
+                ysize 320
+                scrollbars "vertical"
+                mousewheel True
+                
+                vbox:
+                    spacing 8
+                    
+                    if pc.items:
+                        for item in pc.items:
+                            button:
+                                xfill True
+                                background "#2a3a2a"
+                                hover_background "#3a4a3a"
+                                padding (15, 10)
+                                action [
+                                    Function(pc.transfer_to, item, target_char),
+                                    Hide("give_item_screen"),
+                                    Notify(f"Gave {item.name} to {target_char.name}")
+                                ]
+                                
+                                hbox:
+                                    spacing 20
+                                    text "[item.name]" size 20 color "#ffffff"
+                                    text "[item.description]" size 16 color "#888888" yalign 0.5
+                    else:
+                        text "No items in inventory" size 20 color "#666666" xalign 0.5 yalign 0.5
+            
+            null height 10
+            
+            textbutton "Cancel":
+                xalign 0.5
+                text_size 20
+                text_color "#ff8888"
+                action Hide("give_item_screen")
+    
+    key "game_menu" action Hide("give_item_screen")

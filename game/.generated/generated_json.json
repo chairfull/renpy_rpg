@@ -5,7 +5,12 @@
             "description": "A juicy red apple. Restoration - 5 HP.",
             "weight": 0.1,
             "value": 5,
-            "tags": [],
+            "tags": [
+                "food",
+                "consumable",
+                "health"
+            ],
+            "factions": [],
             "equip_slots": [],
             "outfit_part": null
         },
@@ -14,7 +19,12 @@
             "description": "A bubbling red liquid. Restores 30 HP.",
             "weight": 0.5,
             "value": 20,
-            "tags": [],
+            "tags": [
+                "potion",
+                "consumable",
+                "health"
+            ],
+            "factions": [],
             "equip_slots": [],
             "outfit_part": null
         },
@@ -28,6 +38,7 @@
                 "metal",
                 "melee"
             ],
+            "factions": [],
             "equip_slots": [
                 "right_hand",
                 "left_hand"
@@ -36,10 +47,31 @@
         }
     },
     "characters": {
+        "warrior": {
+            "name": "Mercenary Kael",
+            "description": "A battle-hardened veteran seeking coin and glory.",
+            "location": "market",
+            "items": [
+                "sword"
+            ],
+            "x": 0,
+            "y": 0,
+            "tags": [],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {
+                "strength": 15,
+                "dexterity": 12,
+                "intelligence": 8,
+                "charisma": 8
+            },
+            "label": "CHAR__warrior__talk"
+        },
         "shopkeeper": {
             "name": "Shopkeeper",
             "description": "A friendly old man.",
             "location": "shop",
+            "items": [],
             "x": 0,
             "y": 0,
             "tags": [],
@@ -48,10 +80,29 @@
             "stats": {},
             "label": "CHAR__shopkeeper__talk"
         },
+        "scholar": {
+            "name": "Scholar Theo",
+            "description": "A seeker of truth and ancient knowledge.",
+            "location": "home",
+            "items": [],
+            "x": 0,
+            "y": 0,
+            "tags": [],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {
+                "strength": 8,
+                "dexterity": 10,
+                "intelligence": 16,
+                "charisma": 14
+            },
+            "label": "CHAR__scholar__talk"
+        },
         "mayor": {
             "name": "Mayor",
             "description": "The leader of our fine town.",
-            "location": "square",
+            "location": "market",
+            "items": [],
             "x": 800,
             "y": 600,
             "tags": [
@@ -75,7 +126,7 @@
             "obstacles": [],
             "entities": [
                 {
-                    "id": "square",
+                    "id": "market",
                     "type": "link",
                     "x": 200,
                     "y": 540,
@@ -106,7 +157,7 @@
                 },
                 {
                     "id": "closet",
-                    "type": "container",
+                    "type": "physical",
                     "name": "Bedroom Closet",
                     "description": "A sturdy wooden closet for your belongings.",
                     "x": 0,
@@ -114,6 +165,11 @@
                     "items": [
                         "sword",
                         "potion"
+                    ],
+                    "lock": "",
+                    "difficulty": 3,
+                    "keys": [
+                        "closet_key"
                     ],
                     "sprite": "images_topdown/chars/theo.png"
                 }
@@ -126,11 +182,13 @@
                 "2.0",
                 "5.0"
             ],
-            "floor_idx": 0
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
         },
-        "square": {
-            "name": "Town Square",
-            "description": "The heart of the town.",
+        "market": {
+            "name": "Market Square",
+            "description": "The bustling heart of the town.",
             "map_image": "#333",
             "obstacles": "10,10|10,11|11,10|11,11",
             "entities": [
@@ -173,7 +231,9 @@
                 "0.0",
                 "99.0"
             ],
-            "floor_idx": 0
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
         },
         "shop": {
             "name": "General Store",
@@ -182,7 +242,7 @@
             "obstacles": [],
             "entities": [
                 {
-                    "id": "square",
+                    "id": "market",
                     "type": "link",
                     "x": 960,
                     "y": 800,
@@ -200,7 +260,9 @@
                 "0.0",
                 "99.0"
             ],
-            "floor_idx": 0
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
         },
         "city_center": {
             "name": "City Center",
@@ -216,7 +278,9 @@
                 "0.5",
                 "3.0"
             ],
-            "floor_idx": 0
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
         },
         "mage_tower_f1": {
             "name": "Mage Tower (Floor 1)",
@@ -232,7 +296,9 @@
                 "3.0",
                 "5.0"
             ],
-            "floor_idx": 1
+            "floor_idx": 1,
+            "tags": [],
+            "factions": []
         },
         "mage_tower": {
             "name": "Mage Tower",
@@ -248,7 +314,9 @@
                 "2.0",
                 "5.0"
             ],
-            "floor_idx": 0
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
         }
     },
     "quests": {
@@ -374,6 +442,20 @@
         }
     },
     "dialogue": {
+        "mayor_charisma_test": {
+            "short": "Compliment outfit",
+            "long": "You look very professional today, Mayor. (Requires Charisma 12)",
+            "emoji": "\u2728",
+            "chars": [
+                "mayor"
+            ],
+            "tags": [
+                "Charisma"
+            ],
+            "memory": false,
+            "cond": "pc.stats.charisma >= 12",
+            "label": "CHOICE__mayor_charisma_test"
+        },
         "mayor_history": {
             "short": "Ask about history",
             "long": "This town has been here for a long time. I'd like to know how it all started.",
@@ -386,59 +468,38 @@
                 "Lore"
             ],
             "memory": true,
-            "label": "CHAR__mayor__history",
-            "cond": "True"
-        },
-        "mayor_charisma_test": {
-            "short": "Compliment his outfit",
-            "long": "You look very professional today, Mayor. (Requires Charisma 12)",
-            "emoji": "\u2728",
-            "chars": [
-                "mayor"
-            ],
-            "tags": [
-                "Charisma"
-            ],
-            "memory": false,
-            "label": "CHAR__mayor__compliment",
-            "cond": "pc.stats.charisma >= 12"
+            "cond": "True",
+            "label": "CHOICE__mayor_history"
         }
     },
-    "archetypes": {
+    "story_origins": {
         "warrior": {
             "name": "The Mercenary",
             "description": "A battle-hardened veteran seeking coin and glory. High physical stats but less silver-tongued.",
-            "location": "market",
-            "intro_label": "SCENE__intro__mercenary",
-            "stats": {
-                "strength": 15,
-                "dexterity": 12,
-                "intelligence": 8,
-                "charisma": 8
-            },
-            "factions": [
-                "[]"
-            ],
-            "items": [
-                "sword"
-            ]
+            "pc_id": "warrior",
+            "intro_label": "SCENE__warrior__intro"
         },
         "scholar": {
             "name": "The Scholar",
             "description": "A seeker of truth and ancient knowledge. Weaker in combat but highly intelligent and charismatic.",
-            "location": "home",
-            "intro_label": "SCENE__intro__scholar",
-            "stats": {
-                "strength": 8,
-                "dexterity": 10,
-                "intelligence": 16,
-                "charisma": 14
-            },
-            "factions": [
-                "[]"
-            ],
+            "pc_id": "scholar",
+            "intro_label": "SCENE__scholar__intro"
+        }
+    },
+    "shops": {
+        "general_store": {
+            "name": "AI General Store",
+            "description": "The best place for supplies in the digital world.",
+            "buy_mult": 1.2,
+            "sell_mult": 0.6,
             "items": [
-                "[]"
+                "sword",
+                "sword",
+                "potion",
+                "potion",
+                "apple",
+                "apple",
+                "apple"
             ]
         }
     }

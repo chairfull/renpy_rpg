@@ -241,7 +241,9 @@ style quest_list_text:
     selected_color "#ffd700"
 
 # --- CHARACTER INTERACTION SCREEN ---
-screen char_interact_screen(char):
+screen char_interaction_menu(char):
+    modal True
+    zorder 150
     tag menu
     add "#0c0c0c"
     
@@ -279,13 +281,13 @@ screen char_interact_screen(char):
             
             # Talk Button
             textbutton "Talk":
-                action Show("dialogue_choice_screen", char=char)
+                action Return("talk")
                 style "interact_button"
                 at phone_visual_hover
             
             # Give Button
             textbutton "Give":
-                action Show("char_give_screen", char=char)
+                action Return("give")
                 style "interact_button"
             
             # Outfit Button (Placeholder)
@@ -295,7 +297,7 @@ screen char_interact_screen(char):
 
         textbutton "Back":
             xalign 0.5
-            action Return()
+            action Return(None)
             background "#444"
             padding (20, 10)
             text_style "back_button_text"
