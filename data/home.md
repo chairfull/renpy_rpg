@@ -22,7 +22,7 @@ entities:
     label: sleep_interaction
     x: 300
     y: 500
-    sprite: "images/topdown/chars/theo.png"
+    sprite: "images/topdown/chars/male_base.png"
   - id: mirror
     type: object
     name: Mirror
@@ -30,7 +30,7 @@ entities:
     label: mirror_interaction
     x: 1400
     y: 300
-    sprite: "images/topdown/chars/theo.png"
+    sprite: "images/topdown/chars/male_base.png"
   - id: closet
     type: container
     name: Bedroom Closet
@@ -42,7 +42,7 @@ entities:
       type: physical
       difficulty: 3
       keys: [closet_key]
-    sprite: "images_topdown/chars/theo.png"
+    sprite: "images/topdown/chars/male_base.png"
 ---
 
 # Bed

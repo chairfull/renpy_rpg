@@ -111,7 +111,7 @@ init -5 python:
                     tooltip_text = f"Go to {dest_name}"
                     
                     ent = TopDownEntity(ix, iy, 
-                                    sprite="images/topdown/chars/theo.png",
+                                    sprite="images/topdown/chars/male_base.png",
                                         action=Function(self.walk_to_exit, dest_id),
                                         tooltip=tooltip_text,
                                         sprite_tint=TintMatrix("#00ff00"))
@@ -130,7 +130,7 @@ init -5 python:
                         )
 
                     ent = TopDownEntity(ix, iy,
-                                        sprite=item.get('sprite', "images/topdown/chars/theo.png"),
+                                        sprite=item.get('sprite', "images/topdown/chars/male_base.png"),
                                         action=Function(_td_interact, item),
                                         tooltip=item.get('name', "Entity"),
                                         idle_anim=item.get('idle_anim', True),
@@ -139,7 +139,7 @@ init -5 python:
 
             for char in location.characters:
                 ent = TopDownEntity(char.x, char.y,
-                                    sprite="images/topdown/chars/theo.png",
+                                    sprite=char.td_sprite,
                                     action=Function(_td_interact, char),
                                     tooltip=char.name,
                                     idle_anim=True,

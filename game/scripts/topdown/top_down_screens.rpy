@@ -107,7 +107,7 @@ screen top_down_map(location):
                 tooltip pc.name
                 background None
                 
-                add Transform("images/topdown/chars/theo.png", zoom=0.35, rotate=td_manager.player_rotation, subpixel=True) align (0.5, 0.5)
+                add Transform(pc.td_sprite, zoom=0.35, rotate=td_manager.player_rotation, subpixel=True) align (0.5, 0.5)
     
     # 5. UI Layers (Location Name, Dashboard)
     frame:

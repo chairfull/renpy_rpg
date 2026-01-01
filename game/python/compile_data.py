@@ -206,6 +206,7 @@ def compile():
                     "location": props.get('location'),
                     "items": parse_csv(props.get('items', '')),
                     "base_image": props.get('base_image'),
+                    "td_sprite": props.get('sprite'), # Map to td_sprite for characters
                     "x": int(pos[0]) if len(pos) > 1 else 0,
                     "y": int(pos[1]) if len(pos) > 1 else 0,
                     "tags": parse_csv(props.get('tags', '')),

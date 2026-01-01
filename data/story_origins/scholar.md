@@ -4,7 +4,7 @@ id: scholar
 name: The Scholar
 description: A seeker of truth and ancient knowledge. Weaker in combat but highly intelligent and charismatic.
 pc_id: scholar
-image: characters/male_thin.png
+image: chars/male_thin.png
 intro_label: SCENE__scholar__intro
 ---
 

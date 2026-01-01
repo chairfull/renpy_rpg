@@ -53,6 +53,7 @@
             "location": "market",
             "items": [],
             "base_image": "characters/female_fit.png",
+            "td_sprite": null,
             "x": 900,
             "y": 600,
             "tags": [
@@ -73,6 +74,7 @@
                 "sword"
             ],
             "base_image": "characters/male_fit.png",
+            "td_sprite": null,
             "x": 0,
             "y": 0,
             "tags": [],
@@ -92,6 +94,7 @@
             "location": "shop",
             "items": [],
             "base_image": "characters/male_average.png",
+            "td_sprite": null,
             "x": 0,
             "y": 0,
             "tags": [],
@@ -106,6 +109,7 @@
             "location": "home",
             "items": [],
             "base_image": "characters/male_thin.png",
+            "td_sprite": null,
             "x": 0,
             "y": 0,
             "tags": [],
@@ -125,6 +129,7 @@
             "location": "market",
             "items": [],
             "base_image": "characters/male_fit.png",
+            "td_sprite": null,
             "x": 800,
             "y": 600,
             "tags": [
@@ -165,7 +170,7 @@
                     "label": "LOC__home__bed",
                     "x": 300,
                     "y": 500,
-                    "sprite": "images/topdown/chars/theo.png"
+                    "sprite": "images/topdown/chars/male_base.png"
                 },
                 {
                     "id": "mirror",
@@ -175,7 +180,7 @@
                     "label": "LOC__home__mirror",
                     "x": 1400,
                     "y": 300,
-                    "sprite": "images/topdown/chars/theo.png"
+                    "sprite": "images/topdown/chars/male_base.png"
                 },
                 {
                     "id": "closet",
@@ -193,7 +198,7 @@
                     "keys": [
                         "closet_key"
                     ],
-                    "sprite": "images_topdown/chars/theo.png"
+                    "sprite": "images/topdown/chars/male_base.png"
                 }
             ],
             "parent": null,
@@ -242,7 +247,7 @@
                     "label": "test_minigame",
                     "x": 400,
                     "y": 300,
-                    "sprite": "images/topdown/chars/theo.png"
+                    "sprite": "images/topdown/chars/male_base.png"
                 }
             ],
             "parent": null,

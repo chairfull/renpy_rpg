@@ -3,7 +3,7 @@ type: character
 id: scholar
 name: Scholar Theo
 description: A seeker of truth and ancient knowledge.
-base_image: characters/male_thin.png
+base_image: chars/male_thin.png
 location: home
 stats:
   - strength: 8

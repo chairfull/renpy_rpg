@@ -3,7 +3,7 @@ type: character
 id: warrior
 name: Mercenary Kael
 description: A battle-hardened veteran seeking coin and glory.
-base_image: characters/male_fit.png
+base_image: chars/male_fit.png
 location: market
 items:
   - sword

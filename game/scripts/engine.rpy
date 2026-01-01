@@ -231,11 +231,12 @@ init -10 python:
 
     # --- CORE ENTITY ---
     class Entity(SpatialObject, TaggedObject):
-        def __init__(self, id, name, description="", label=None, x=0, y=0, tags=None, factions=None, **kwargs):
+        def __init__(self, id, name, description="", label=None, x=0, y=0, tags=None, factions=None, sprite=None, **kwargs):
             SpatialObject.__init__(self, x, y)
             TaggedObject.__init__(self, tags)
             self.factions = set(factions or [])
             self.id, self.name, self.description, self.label = id, name, description, label
+            self.sprite = sprite
         def interact(self):
             if self.label: renpy.jump(self.label)
             else: renpy.say(None, f"You see {self.name}. {self.description}")
@@ -373,12 +374,22 @@ init -10 python:
 
     # --- CHARACTER ---
     class RPGCharacter(Inventory):
-        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, **kwargs):
+        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, **kwargs):
             super(RPGCharacter, self).__init__(id, name, **kwargs)
             self.stats = stats if isinstance(stats, StatBlock) else StatBlock(stats) if stats else StatBlock()
             self.factions = set(factions or [])
             self.body_type = body_type
             self.base_image = base_image
+            
+            # Determine TD Sprite
+            if td_sprite:
+                self.td_sprite = td_sprite
+            else:
+                # Default to gender-based sprite if base_image hints at it
+                if base_image and "female" in base_image.lower():
+                    self.td_sprite = "images/topdown/chars/female_base.png"
+                else:
+                    self.td_sprite = "images/topdown/chars/male_base.png"
             self.equipped_slots = {}  # slot_id -> Item
             self.location_id = location_id
             self.pchar = Character(name)
@@ -673,6 +684,7 @@ init -10 python:
                 description=p.get('description', ''),
                 location_id=p.get('location'),
                 base_image=p.get('base_image'),
+                td_sprite=p.get('td_sprite'),
                 x=p.get('x', 0),
                 y=p.get('y', 0),
                 label=p.get('label'),

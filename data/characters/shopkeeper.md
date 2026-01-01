@@ -2,7 +2,7 @@
 type: character
 name: Shopkeeper
 description: A friendly old man.
-base_image: characters/male_average.png
+base_image: chars/male_average.png
 location: shop
 ---
 # Talk

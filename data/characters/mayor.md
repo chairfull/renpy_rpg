@@ -2,7 +2,7 @@
 type: character
 name: Mayor
 description: The leader of our fine town.
-base_image: characters/male_fit.png
+base_image: chars/male_fit.png
 location: market
 pos: 800,600
 factions:

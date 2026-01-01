@@ -3,7 +3,7 @@ type: character
 id: lady
 name: Lady Elara
 description: A noblewoman browsing the market wares.
-base_image: characters/female_fit.png
+base_image: chars/female_fit.png
 location: market
 pos: 900,600
 factions:
