@@ -67,6 +67,12 @@ screen phone_screen():
                         xalign 0.5
                         use phone_app_icon("❤️", "Health", "health")
                         use phone_app_icon("👕", "Wardrobe", "wardrobe")
+                    
+                    # Row 3
+                    hbox:
+                        spacing 30
+                        xalign 0.5
+                        use phone_app_icon("🔍", "Search", "search")
             
             # Home button removed in favor of click-outside-to-close
             null height 20
@@ -226,13 +232,15 @@ screen phone_map_app():
                 spacing 8
                 for loc_id, loc in rpg_world.locations.items():
                     $ is_current = (rpg_world.current_location_id == loc_id)
+                    $ can_travel = allow_unvisited_travel or loc.visited or is_current
                     button:
-                        action [Function(rpg_world.move_to, loc_id), Hide("phone_router"), SetVariable("phone_current_app", None)]
+                        action [Function(map_manager.travel_to_location, loc), Hide("phone_router"), SetVariable("phone_current_app", None)]
                         xfill True
                         background ("#2a3a2a" if is_current else "#1a1a25")
                         hover_background "#252535"
                         padding (15, 15)
-                        sensitive (not is_current)
+                        sensitive (not is_current and can_travel)
+                        tooltip ("Travel" if can_travel else "Undiscovered")
                         
                         hbox:
                             xfill True
@@ -330,6 +338,63 @@ screen phone_health_app():
                     xfill True
                     text "💰 Gold" size 16 color "#ffd700"
                     text "[pc.gold]" size 16 color "#ffd700" xalign 1.0
+            
+            frame:
+                background "#1a1a25"
+                xfill True
+                padding (15, 15)
+                
+                hbox:
+                    spacing 10
+                    text "Rest" size 16 color "#ffd700"
+                    textbutton "1h":
+                        action Function(rest, 1)
+                        text_size 14
+                    textbutton "8h":
+                        action Function(rest, 8)
+                        text_size 14
+
+# --- SEARCH APP ---
+screen phone_scavenge_app():
+    use phone_app_container("Search"):
+        $ loc = rpg_world.current_location
+        $ key = f"{loc.id}:{time_manager.day}" if loc else None
+        vbox:
+            spacing 10
+            if not loc:
+                text "No location available." size 16 color "#888"
+            else:
+                text "Location: [loc.name]" size 18 color "#ffd700"
+                if not getattr(loc, "scavenge", None):
+                    text "Nothing useful to find here." size 14 color "#666"
+                else:
+                    if scavenge_history.get(key):
+                        text "Already searched here today." size 14 color "#888"
+                    else:
+                        textbutton "Search area":
+                            action Function(scavenge_location, loc)
+                            text_size 16
+                            text_color "#fff"
+                    viewport:
+                        mousewheel True
+                        scrollbars "vertical"
+                        ysize 400
+                        vbox:
+                            spacing 6
+                            for entry in loc.scavenge:
+                                if isinstance(entry, dict):
+                                    $ item_id = entry.get("item", "?")
+                                    $ item = item_manager.get(item_id)
+                                    $ name = item.name if item else item_id
+                                    $ chance = entry.get("chance", 1.0)
+                                    $ count = entry.get("count", None)
+                                    $ lo = entry.get("min", None)
+                                    $ hi = entry.get("max", None)
+                                    $ qty = f"{lo}-{hi}" if lo or hi else (str(count) if count else "1")
+                                    hbox:
+                                        xfill True
+                                        text name size 14 color "#ddd"
+                                        text f"x{qty}" size 14 color "#888" xalign 1.0
 
 # --- WARDROBE APP ---
 screen phone_wardrobe_app():
@@ -464,6 +529,8 @@ screen phone_router():
             use phone_health_app
         elif phone_current_app == "wardrobe":
             use phone_wardrobe_app
+        elif phone_current_app == "search":
+            use phone_scavenge_app
         else:
             use phone_screen
         

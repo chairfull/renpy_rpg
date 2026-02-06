@@ -5,6 +5,7 @@ default selected_recipe = None
 default journal_tab = "quests"
 default selected_note = None
 default selected_person = None
+default quick_loot_tags = ["consumable", "food", "health", "ammo", "credits", "component", "material"]
 
 init python:
     def _equip_item_quick(itm):
@@ -573,6 +574,28 @@ init python:
             target_inv.items.append(item)
             renpy.restart_interaction()
 
+    def transfer_all(source_inv, target_inv):
+        if not source_inv.items:
+            return
+        for itm in list(source_inv.items):
+            source_inv.items.remove(itm)
+            target_inv.items.append(itm)
+        renpy.restart_interaction()
+
+    def transfer_by_tags(source_inv, target_inv, tags):
+        if not source_inv.items:
+            return
+        tag_set = set(tags or [])
+        moved = False
+        for itm in list(source_inv.items):
+            it_tags = getattr(itm, 'tags', set())
+            if it_tags & tag_set:
+                source_inv.items.remove(itm)
+                target_inv.items.append(itm)
+                moved = True
+        if moved:
+            renpy.restart_interaction()
+
 screen container_transfer_screen(container_inv):
     modal True
     zorder 200
@@ -593,10 +616,10 @@ screen container_transfer_screen(container_inv):
             xalign 0.5
             
             # Left Column: Player Inventory
-            use inventory_column("YOUR INVENTORY", pc, container_inv)
+            use inventory_column("YOUR INVENTORY", pc, container_inv, bulk_label="Deposit All", bulk_action=Function(transfer_all, pc, container_inv))
             
             # Right Column: Container Inventory
-            use inventory_column(container_inv.name.upper(), container_inv, pc)
+            use inventory_column(container_inv.name.upper(), container_inv, pc, bulk_label="Take All", bulk_action=Function(transfer_all, container_inv, pc), quick_label="Quick Loot", quick_action=Function(transfer_by_tags, container_inv, pc, quick_loot_tags))
 
         # Bottom Close Button
         textbutton "FINISH & CLOSE":
@@ -609,12 +632,28 @@ screen container_transfer_screen(container_inv):
             text_bold True
             at phone_visual_hover
 
-screen inventory_column(title, source_inv, target_inv):
+screen inventory_column(title, source_inv, target_inv, bulk_label=None, bulk_action=None, quick_label=None, quick_action=None):
     vbox:
         spacing 15
         xsize 500
         
         label title text_size 28 text_color "#ffd700" xalign 0.5
+        
+        if bulk_label and bulk_action:
+            hbox:
+                spacing 10
+                xalign 0.5
+                textbutton "[bulk_label]":
+                    action bulk_action
+                    text_size 16
+                    background Frame("#2c3e50", 4, 4)
+                    hover_background Frame("#34495e", 4, 4)
+                if quick_label and quick_action:
+                    textbutton "[quick_label]":
+                        action quick_action
+                        text_size 16
+                        background Frame("#2c3e50", 4, 4)
+                        hover_background Frame("#34495e", 4, 4)
         
         frame:
             background "#1a1a1acc"
@@ -785,6 +824,21 @@ screen container_screen(container):
         xsize 1100
         ysize 850
         text "[container.name]" xalign 0.5 size 36 color "#ffffff"
+        hbox:
+            spacing 20
+            xalign 0.5
+            textbutton "Take All":
+                action Function(transfer_all, container, pc)
+                background "#333"
+                padding (10, 6)
+            textbutton "Quick Loot":
+                action Function(transfer_by_tags, container, pc, quick_loot_tags)
+                background "#333"
+                padding (10, 6)
+            textbutton "Deposit All":
+                action Function(transfer_all, pc, container)
+                background "#333"
+                padding (10, 6)
         hbox:
             spacing 20
             vbox:

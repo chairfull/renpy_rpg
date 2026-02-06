@@ -1,15 +1,45 @@
 # AUTOMATICALLY GENERATED LABELS - DO NOT EDIT
 label LOC__home__flow:
-    "I'm not tired right now."
+    $ rest(8)
+    "You wake up feeling refreshed."
     "You look great today!"
     return
 
 label LOC__home__bed:
-    "I'm not tired right now."
+    $ rest(8)
+    "You wake up feeling refreshed."
     return
 
 label LOC__home__mirror:
     "You look great today!"
+    return
+
+label LOC__market__flow:
+    "A sudden jostle. Someone bumps your shoulder and vanishes into the crowd."
+    "You check your belt pouch and find a bruised apple tucked inside."
+    $ pc.add_item(item_manager.get("apple"))
+    $ event_manager.dispatch('ITEM_GAINED', item='apple', total=1)
+    $ flag_set('market_pickpocket', True)
+    return
+
+label LOC__market__encounter_pickpocket:
+    "A sudden jostle. Someone bumps your shoulder and vanishes into the crowd."
+    "You check your belt pouch and find a bruised apple tucked inside."
+    $ pc.add_item(item_manager.get("apple"))
+    $ event_manager.dispatch('ITEM_GAINED', item='apple', total=1)
+    $ flag_set('market_pickpocket', True)
+    return
+
+label LOC__forest_edge__flow:
+    "The bushes tremble. You catch a glimpse of a shadow before it slips away."
+    $ event_manager.dispatch('LOCATION_EVENT', location='forest_edge', tag='rustle')
+    $ flag_set('forest_rustle', True)
+    return
+
+label LOC__forest_edge__encounter_rustle:
+    "The bushes tremble. You catch a glimpse of a shadow before it slips away."
+    $ event_manager.dispatch('LOCATION_EVENT', location='forest_edge', tag='rustle')
+    $ flag_set('forest_rustle', True)
     return
 
 label CHAR__lady:
@@ -225,6 +255,8 @@ label CHOICE__mayor_history:
 
 label SCENE__warrior__intro:
     $ renpy.store.td_manager.setup(rpg_world.current_location)
+    $ flag_set('origin', 'warrior')
+    $ event_manager.dispatch('GAME_STARTED', origin='warrior')
     "You arrive at the market square, your sword heavy at your side."
     "The air is thick with the smell of spices and the sound of bartering."
     "Your journey as a mercenary begins here."
@@ -233,6 +265,8 @@ label SCENE__warrior__intro:
 
 label SCENE__scholar__intro:
     $ renpy.store.td_manager.setup(rpg_world.current_location)
+    $ flag_set('origin', 'scholar')
+    $ event_manager.dispatch('GAME_STARTED', origin='scholar')
     "You wake up in your familiar study, surrounded by stacks of ancient parchment."
     "The sunlight filters through the window, illuminating dust motes in the air."
     "Today is the day you begin your grand research into the town's history."

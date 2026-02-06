@@ -81,7 +81,7 @@ screen top_down_map(location):
                     anchor (0.5, 0.5)
                     pos (sx, sy)
                     xsize 120 ysize 120 # Uniform hit area
-                    action entity.action
+                    action Function(_td_click_entity, entity)
                     tooltip entity.tooltip
                     focus_mask None
                     
@@ -150,6 +150,7 @@ screen top_down_map(location):
             textbutton "📱 PHONE" action Show("phone_router") text_size 24 text_color "#00bfff"
             textbutton "DEV" action Show("dev_mode_screen") text_size 14 text_color "#ff3333"
             textbutton "CENTER" action Function(td_manager.snap_camera) text_size 12 text_color "#ccc"
+            textbutton "SEARCH" action Function(scavenge_location, location) text_size 12 text_color "#ccc"
 
     # 6. Tooltip Layer
     use mouse_tooltip
@@ -168,4 +169,19 @@ init python:
         zoom = getattr(store, "td_zoom", 1.0)
         mx, my = renpy.get_mouse_pos()
         wx, wy = td_manager.screen_to_world(mx, my, zoom)
-        td_manager.set_target(wx, wy)
+        # If click is near an interactable, auto-approach and interact.
+        nearest = None
+        nearest_dist = 1e9
+        for ent in td_manager.entities:
+            if ent.is_player:
+                continue
+            dx = ent.x - wx
+            dy = ent.y - wy
+            dist = math.hypot(dx, dy)
+            if dist < nearest_dist:
+                nearest_dist = dist
+                nearest = ent
+        if nearest and nearest_dist <= 120:
+            _td_click_entity(nearest)
+        else:
+            td_manager.set_target(wx, wy)

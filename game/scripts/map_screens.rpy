@@ -8,6 +8,7 @@ init python:
             adj_y.value = result[1]
             renpy.restart_interaction()
 
+default quick_travel_on_click = True
 image map_grid_bg = Tile(Frame("gui/frame.png"), size=(3000, 3000))
 
 screen map_browser():
@@ -62,10 +63,16 @@ screen map_browser():
                 $ px = int((loc.map_x + PAD) * map_manager.zoom)
                 $ py = int((loc.map_y + PAD) * map_manager.zoom)
                 
+                $ can_travel = allow_unvisited_travel or loc.visited or (rpg_world.current_location_id == loc.id)
+                $ tooltip_text = (loc.name if can_travel else f"{loc.name} (Undiscovered)")
                 button:
                     pos (px, py)
                     anchor (0.5, 0.5)
-                    action Function(map_manager.select_location, loc)
+                    if quick_travel_on_click:
+                        action Function(map_manager.travel_to_location, loc)
+                    else:
+                        action Function(map_manager.select_location, loc)
+                    tooltip tooltip_text
                     
                     # Visual dependent on type
                     if loc.ltype == 'world':
@@ -164,12 +171,15 @@ screen map_browser():
                 vbox:
                     spacing 5
                     for loc in map_manager.get_visible_markers():
+                        $ can_travel = allow_unvisited_travel or loc.visited or (rpg_world.current_location_id == loc.id)
                         textbutton "[loc.name]":
                             action Function(map_manager.select_location, loc)
+                            sensitive can_travel
                             text_size 16
                             text_color "#aaa"
                             text_hover_color "#fff"
                             xfill True
+                            tooltip ("Click to select" if can_travel else "Undiscovered")
             
             null height 20
             
@@ -296,4 +306,3 @@ label map_search_input_label:
     $ q = renpy.input("Search map:", default=map_manager.search_query, length=20)
     $ map_manager.search(q)
     return
-

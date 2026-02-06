@@ -10,6 +10,8 @@ intro_label: SCENE__warrior__intro
 
 ```flow
 $ renpy.store.td_manager.setup(rpg_world.current_location)
+@flag set origin warrior
+@event GAME_STARTED origin=warrior
 
 You arrive at the market square, your sword heavy at your side.
 The air is thick with the smell of spices and the sound of bartering.

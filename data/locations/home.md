@@ -9,6 +9,7 @@ map_type: structure
 map_x: 1000
 map_y: 1000
 zoom_range: 2.0, 5.0
+tags: [safe]
 entities:
   - id: market
     type: link
@@ -47,7 +48,8 @@ entities:
 
 # Bed
 ```flow
-I'm not tired right now.
+$ rest(8)
+You wake up feeling refreshed.
 ```
 
 # Mirror

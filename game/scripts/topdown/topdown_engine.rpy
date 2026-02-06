@@ -52,11 +52,20 @@ init -5 python:
         else:
             renpy.notify(f"Interacted with {obj.get('name')}")
 
-    def _td_interact(obj):
-        _td_interact_core(obj)
+    def _run_action(action):
+        if action:
+            renpy.run(action)
+
+    def _td_click_entity(entity):
+        if not entity or entity.is_player:
+            return
+        if getattr(entity, "requires_approach", False):
+            td_manager.walk_to_entity(entity.x, entity.y, lambda: _run_action(entity.action))
+        else:
+            _run_action(entity.action)
 
     class TopDownEntity(object):
-        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None, depth=None, is_player=False, rotation=0):
+        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None, depth=None, is_player=False, rotation=0, requires_approach=False):
             self.x = x
             self.y = y
             self.sprite = sprite
@@ -68,6 +77,7 @@ init -5 python:
             self.depth = depth  # None = use y position
             self.is_player = is_player
             self.rotation = rotation  # Only used for player
+            self.requires_approach = requires_approach
 
     class TopDownManager(object):
         def __init__(self):
@@ -135,7 +145,8 @@ init -5 python:
                                     sprite="images/topdown/chars/male_base.png",
                                         action=Function(self.walk_to_exit, dest_id),
                                         tooltip=tooltip_text,
-                                        sprite_tint=TintMatrix("#00ff00"))
+                                        sprite_tint=TintMatrix("#00ff00"),
+                                        requires_approach=False)
                     self.entities.append(ent)
                 
                 else:
@@ -155,7 +166,8 @@ init -5 python:
                                         action=Function(_td_interact, item),
                                         tooltip=item.get('name', "Entity"),
                                         idle_anim=item.get('idle_anim', True),
-                                        label=item.get('label'))
+                                        label=item.get('label'),
+                                        requires_approach=True)
                     self.entities.append(ent)
 
             for char in location.characters:
@@ -164,7 +176,8 @@ init -5 python:
                                     action=Function(_td_interact, char),
                                     tooltip=char.name,
                                     idle_anim=True,
-                                    label=f"char_{char.id}_interact")
+                                    label=f"char_{char.id}_interact",
+                                    requires_approach=True)
                 self.entities.append(ent)
             
             # Create player entity and add to entities list
@@ -174,7 +187,8 @@ init -5 python:
                 action=NullAction(),
                 tooltip=pc.name,
                 idle_anim=False,
-                is_player=True
+                is_player=True,
+                requires_approach=False
             )
             self.entities.append(self.player_entity)
 

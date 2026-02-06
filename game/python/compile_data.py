@@ -4,6 +4,7 @@ import json
 import yaml
 import argparse
 import sys
+import shlex
 
 def parse_markdown(filepath):
     try:
@@ -89,6 +90,116 @@ def parse_csv(value):
         return [x.strip() for x in cleaned.split(',') if x.strip()]
     return []
 
+def directive_to_python(line):
+    raw = line.lstrip('@').strip()
+    if not raw:
+        return None
+    try:
+        parts = shlex.split(raw)
+    except Exception:
+        return None
+    if not parts:
+        return None
+    cmd = parts[0].lower()
+    if cmd == "event":
+        if len(parts) < 2:
+            return None
+        event = parts[1]
+        kwargs = []
+        for token in parts[2:]:
+            if '=' not in token:
+                continue
+            k, v = token.split('=', 1)
+            try:
+                val = yaml.safe_load(v)
+            except Exception:
+                val = v
+            kwargs.append(f"{k}={repr(val)}")
+        if kwargs:
+            return f"event_manager.dispatch({event!r}, {', '.join(kwargs)})"
+        return f"event_manager.dispatch({event!r})"
+    if cmd == "flag":
+        if len(parts) < 3:
+            return None
+        op = parts[1].lower()
+        name = parts[2]
+        if op == "set":
+            val = True
+            if len(parts) > 3:
+                try:
+                    val = yaml.safe_load(parts[3])
+                except Exception:
+                    val = parts[3]
+            return f"flag_set({name!r}, {repr(val)})"
+        if op == "clear":
+            return f"flag_clear({name!r})"
+        if op == "toggle":
+            return f"flag_toggle({name!r})"
+    if cmd == "give":
+        if len(parts) < 2:
+            return None
+        item_id = parts[1]
+        count = int(parts[2]) if len(parts) > 2 else 1
+        return f"give_item({item_id!r}, {count})"
+    if cmd == "take":
+        if len(parts) < 2:
+            return None
+        item_id = parts[1]
+        count = int(parts[2]) if len(parts) > 2 else 1
+        return f"take_item({item_id!r}, {count})"
+    if cmd == "gold":
+        if len(parts) < 2:
+            return None
+        try:
+            amt = int(parts[1])
+        except Exception:
+            return None
+        return f"add_gold({amt})"
+    if cmd == "travel":
+        if len(parts) < 2:
+            return None
+        loc_id = parts[1]
+        return f"rpg_world.move_to({loc_id!r})"
+    if cmd == "rest":
+        hours = int(parts[1]) if len(parts) > 1 else 1
+        return f"rest({hours})"
+    if cmd == "scavenge":
+        return "scavenge_location()"
+    if cmd == "jump":
+        if len(parts) < 2:
+            return None
+        label = parts[1]
+        return f"renpy.jump({label!r})"
+    if cmd == "call":
+        if len(parts) < 2:
+            return None
+        label = parts[1]
+        return f"renpy.call({label!r})"
+    if cmd == "cond":
+        if len(parts) < 3:
+            return None
+        expr = parts[1]
+        label_true = parts[2]
+        label_false = parts[3] if len(parts) > 3 else None
+        return f"cond_jump({expr!r}, {label_true!r}, {label_false!r})"
+    if cmd == "check":
+        if len(parts) < 4:
+            return None
+        stat = parts[1]
+        try:
+            dc = int(parts[2])
+        except Exception:
+            return None
+        label_true = parts[3]
+        label_false = parts[4] if len(parts) > 4 else None
+        return f"contested_check({stat!r}, {dc}, success_label={label_true!r}, fail_label={label_false!r})"
+    if cmd == "notify":
+        if len(parts) < 2:
+            return None
+        text = " ".join(parts[1:])
+        return f"renpy.notify({text!r})"
+    return None
+
 def compile(lint_only=False):
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     game_dir = os.path.join(base_dir, "game")
@@ -154,6 +265,18 @@ def compile(lint_only=False):
                     entities = parse_yaml_list(raw_ents)
                 else:
                     entities = []
+                
+                raw_enc = props.get('encounters', [])
+                if isinstance(raw_enc, list):
+                    encounters = parse_yaml_list(raw_enc)
+                else:
+                    encounters = []
+                
+                raw_scav = props.get('scavenge', [])
+                if isinstance(raw_scav, list):
+                    scavenge = parse_yaml_list(raw_scav)
+                else:
+                    scavenge = []
 
                 data_consolidated["locations"][obj_id] = {
                     "name": props.get('name', obj_id),
@@ -161,6 +284,8 @@ def compile(lint_only=False):
                     "map_image": props.get('map_image'),
                     "obstacles": props.get('obstacles', []),
                     "entities": entities,
+                    "encounters": encounters,
+                    "scavenge": scavenge,
                     "body": body, # Store body for second pass
                     # Map Fields
                     "parent": props.get('parent'),
@@ -253,6 +378,7 @@ def compile(lint_only=False):
                             "chars": [obj_id],
                             "tags": config.get('tags', []),
                             "memory": config.get('memory', False),
+                            "reason": config.get('reason'),
                             "cond": str(config.get('cond', 'True')),
                             "label": f"CHOICE__{opt_id}",
                             "body": f"```flow\n{flow_content}\n```"
@@ -310,6 +436,7 @@ def compile(lint_only=False):
                     "chars": parse_csv(props.get('chars', '')),
                     "tags": parse_csv(props.get('tags', '')),
                     "memory": str(props.get('memory', 'False')).lower() == 'true',
+                    "reason": props.get('reason'),
                     "label": props.get('label'),
                     "cond": props.get('cond', 'True'),
                     "body": body
@@ -392,6 +519,29 @@ def compile(lint_only=False):
     errors = []
     warnings = []
 
+    def _emit_flow(flow_body, script_parts):
+        for line in flow_body.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith('$'):
+                script_parts.append(f"    {line}\n")
+                continue
+            if line.startswith('@'):
+                py = directive_to_python(line)
+                if py:
+                    script_parts.append(f"    $ {py}\n")
+                else:
+                    script_parts.append(f"    # {line}\n")
+                continue
+            if ':' in line:
+                cid, txt = line.split(':', 1)
+                txt = txt.strip().replace('"', '\\"')
+                script_parts.append(f"    {cid.strip().lower()} \"{txt}\"\n")
+            else:
+                txt = line.strip().replace('"', '\\"')
+                script_parts.append(f"    \"{txt}\"\n")
+
     # Second pass: Process bodies to link labels and generate RPY
     generated_labels = set()  # Track generated label names to avoid duplicates
 
@@ -428,18 +578,7 @@ def compile(lint_only=False):
                     generated_labels.add(label_name)
                     script_parts.append(f"label {label_name}:\n")
                     for flow_body in flows:
-                        for line in flow_body.split('\n'):
-                            line = line.strip()
-                            if not line: continue
-                            if line.startswith('$'):
-                                script_parts.append(f"    {line}\n")
-                            elif ':' in line:
-                                cid, txt = line.split(':', 1)
-                                txt = txt.strip().replace('"', '\\"')
-                                script_parts.append(f"    {cid.strip().lower()} \"{txt}\"\n")
-                            else:
-                                txt = line.strip().replace('"', '\\"')
-                                script_parts.append(f"    \"{txt}\"\n")
+                        _emit_flow(flow_body, script_parts)
                     script_parts.append("    return\n\n")
                 
                 # If specific types, we might skip the old section loop or mix it?
@@ -483,21 +622,12 @@ def compile(lint_only=False):
                         elif otype == "location":
                             # Check if heading matches an entity ID
                             for ent in data.get('entities', []):
+                                if not isinstance(ent, dict):
+                                    continue
                                 if ent.get('id', '').lower() == heading:
                                     ent['label'] = label_name
 
-                        for line in flow_body.split('\n'):
-                            line = line.strip()
-                            if not line: continue
-                            if line.startswith('$'):
-                                script_parts.append(f"    {line}\n")
-                            elif ':' in line:
-                                cid, txt = line.split(':', 1)
-                                txt = txt.strip().replace('"', '\\"')
-                                script_parts.append(f"    {cid.strip().lower()} \"{txt}\"\n")
-                            else:
-                                txt = line.strip().replace('"', '\\"')
-                                script_parts.append(f"    \"{txt}\"\n")
+                        _emit_flow(flow_body, script_parts)
                         
                         script_parts.append("    return\n\n")
 
@@ -523,6 +653,12 @@ def compile(lint_only=False):
                 continue
             if ent.get("type") == "link" and ent.get("id") and ent["id"] not in loc_ids:
                 errors.append(f"location {lid}: link target '{ent['id']}' missing")
+        for entry in l.get("scavenge", []) or []:
+            if not isinstance(entry, dict):
+                continue
+            item_id = entry.get("item")
+            if item_id and item_id not in item_ids:
+                warnings.append(f"location {lid}: scavenge item '{item_id}' missing")
     for rid, r in data_consolidated["recipes"].items():
         for iid in list(r.get("inputs", {}).keys()) + list(r.get("output", {}).keys()):
             if iid not in item_ids:

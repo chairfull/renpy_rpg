@@ -35,4 +35,19 @@ entities:
     x: 400
     y: 300
     sprite: "images/topdown/chars/male_base.png"
+encounters:
+  - id: market_pickpocket
+    label: LOC__market__encounter_pickpocket
+    chance: 0.35
+    once: true
+    cond: "not flag_get('market_pickpocket', False)"
 ---
+
+# encounter_pickpocket
+```flow
+A sudden jostle. Someone bumps your shoulder and vanishes into the crowd.
+You check your belt pouch and find a bruised apple tucked inside.
+$ pc.add_item(item_manager.get("apple"))
+@event ITEM_GAINED item=apple total=1
+@flag set market_pickpocket true
+```

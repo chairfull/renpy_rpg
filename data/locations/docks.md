@@ -8,4 +8,11 @@ map_x: 1300
 map_y: 1200
 zoom_range: 0.5, 3.0
 entities: [fisherman]
+scavenge:
+  - item: wood
+    chance: 0.3
+    min: 1
+    max: 2
+  - item: apple
+    chance: 0.2
 ---

@@ -10,6 +10,8 @@ intro_label: SCENE__scholar__intro
 
 ```flow
 $ renpy.store.td_manager.setup(rpg_world.current_location)
+@flag set origin scholar
+@event GAME_STARTED origin=scholar
 
 You wake up in your familiar study, surrounded by stacks of ancient parchment.
 The sunlight filters through the window, illuminating dust motes in the air.

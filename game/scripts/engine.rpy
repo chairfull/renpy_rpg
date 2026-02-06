@@ -1,5 +1,9 @@
 default persistent.met_characters = set()
 default persistent.unlocked_notes = set()
+default world_flags = {}
+default encounter_history = set()
+default scavenge_history = {}
+default allow_unvisited_travel = False
 
 init -10 python:
     # Initialize Persistent Data Defaults (Legacy safety)
@@ -59,6 +63,65 @@ init -10 python:
             return bool(eval(compile(tree, "<cond>", "eval"), {"__builtins__": {}, **safe_funcs}, env))
         except Exception:
             return False
+
+    def flag_get(name, default=False):
+        return world_flags.get(name, default)
+
+    def flag_set(name, value=True):
+        world_flags[name] = value
+        return value
+
+    def flag_clear(name):
+        if name in world_flags:
+            del world_flags[name]
+
+    def flag_toggle(name):
+        world_flags[name] = not world_flags.get(name, False)
+        return world_flags[name]
+
+    def find_item_by_tag(tag):
+        for it in pc.items:
+            if tag in getattr(it, "tags", set()):
+                return it
+        return None
+
+    def consume_item_by_tag(tag):
+        it = find_item_by_tag(tag)
+        if it:
+            pc.remove_item(it)
+            return it
+        return None
+
+    def give_item(item_id, count=1):
+        count = max(1, int(count))
+        for _ in range(count):
+            it = item_manager.get(item_id)
+            if it:
+                pc.add_item(it)
+        return True
+
+    def take_item(item_id, count=1):
+        count = max(1, int(count))
+        removed = 0
+        for it in list(pc.items):
+            if item_manager.get_id_of(it) == item_id:
+                pc.remove_item(it)
+                removed += 1
+                if removed >= count:
+                    break
+        return removed
+
+    def add_gold(amount):
+        pc.gold = max(0, int(pc.gold + amount))
+        return pc.gold
+
+    def cond_jump(expr, label_true, label_false=None):
+        ok = safe_eval_bool(expr, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get})
+        if ok and label_true and renpy.has_label(label_true):
+            renpy.jump(label_true)
+        elif (not ok) and label_false and renpy.has_label(label_false):
+            renpy.jump(label_false)
+        return ok
 
     # --- BASE MIXINS (must be defined first) ---
     class SpatialObject(object):
@@ -233,7 +296,7 @@ init -10 python:
             for k, v in self.trigger_data.items():
                 if k not in ["event", "cond", "total"] and str(kwargs.get(k)) != str(v): return False
             if self.trigger_data.get("cond"):
-                if not safe_eval_bool(self.trigger_data["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs}): 
+                if not safe_eval_bool(self.trigger_data["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get}): 
                     return False
             self.current_value = int(kwargs.get("total", self.current_value + 1))
             if self.current_value >= int(self.trigger_data.get("total", self.required_value)):
@@ -242,7 +305,7 @@ init -10 python:
             return False
 
     class DialogueOption(object):
-        def __init__(self, id, chars, short_text, long_text, emoji, label, cond=None, tags=None, memory=False):
+        def __init__(self, id, chars, short_text, long_text, emoji, label, cond=None, tags=None, memory=False, reason=None):
             self.id = id
             self.chars = set(chars or [])
             self.short_text = short_text
@@ -252,19 +315,32 @@ init -10 python:
             self.cond = cond
             self.tags = tags or []
             self.memory = memory
+            self.reason = reason
         
         def is_available(self, char):
             if self.chars and char.id not in self.chars and "*" not in self.chars:
                 return False
             if self.cond and str(self.cond).strip() and str(self.cond) != "True":
-                return safe_eval_bool(self.cond, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager})
+                return safe_eval_bool(self.cond, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager, "flags": world_flags, "flag_get": flag_get})
             return True
+
+        def availability_status(self, char):
+            if self.chars and char.id not in self.chars and "*" not in self.chars:
+                return False, "Not for this character."
+            if self.cond and str(self.cond).strip() and str(self.cond) != "True":
+                ok = safe_eval_bool(self.cond, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager, "flags": world_flags, "flag_get": flag_get})
+                if not ok:
+                    return False, self.reason or "Locked."
+            return True, "Available."
 
     class DialogueManager:
         def __init__(self):
             self.options = {}
         def register(self, opt):
             self.options[opt.id] = opt
+        def get_for_char(self, char):
+            opts = [opt for opt in self.options.values() if (not opt.chars or char.id in opt.chars or "*" in opt.chars)]
+            return sorted(opts, key=lambda x: x.id)
         def get_available(self, char):
             opts = [opt for opt in self.options.values() if opt.is_available(char)]
             return sorted(opts, key=lambda x: x.id)
@@ -335,7 +411,7 @@ init -10 python:
             for k, v in t.items():
                 if k not in ["event", "cond"] and str(kwargs.get(k)) != str(v): return False
             if t.get("cond"):
-                return safe_eval_bool(t["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs})
+                return safe_eval_bool(t["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get})
             return True
 
     quest_manager = QuestManager()
@@ -686,7 +762,7 @@ init -10 python:
             self.locked = True
 
     class Location(SpatialObject, TaggedObject):
-        def __init__(self, id, name, description, map_image=None, obstacles=None, entities=None, x=0, y=0, tags=None, factions=None,
+        def __init__(self, id, name, description, map_image=None, obstacles=None, entities=None, encounters=None, scavenge=None, x=0, y=0, tags=None, factions=None,
                 parent_id=None, ltype="world", map_x=0, map_y=0, zoom_range=(0.0, 99.0), floor_idx=0):
             SpatialObject.__init__(self, x, y)
             TaggedObject.__init__(self, tags)
@@ -695,6 +771,8 @@ init -10 python:
             self.map_image = map_image
             self.obstacles = obstacles or set()
             self.entities = entities or []
+            self.encounters = encounters or []
+            self.scavenge = scavenge or []
             self.visited = False
             
             # Map Hierarchy Fields
@@ -792,7 +870,21 @@ init -10 python:
         
         def travel_to_location(self, loc):
             """Travel to the selected location"""
-            if loc and rpg_world.move_to(loc.id):
+            if not loc:
+                return False
+            if not allow_unvisited_travel and not loc.visited and loc.id != rpg_world.current_location_id:
+                renpy.notify("You haven't discovered this location yet.")
+                return False
+            # Advance time based on map distance
+            curr = rpg_world.current_location
+            if curr and loc.id != curr.id:
+                dx = float(loc.map_x - curr.map_x)
+                dy = float(loc.map_y - curr.map_y)
+                dist = (dx * dx + dy * dy) ** 0.5
+                travel_mins = max(5, int(dist / 100.0 * 10))
+                time_manager.advance(travel_mins)
+                renpy.notify(f"Traveled to {loc.name} (+{travel_mins}m)")
+            if rpg_world.move_to(loc.id):
                 self.selected_location = None
                 # Hide map and show the new location
                 renpy.hide_screen("map_browser")
@@ -845,10 +937,54 @@ init -10 python:
         def move_to(self, lid):
             if lid in self.locations:
                 self.current_location_id = lid
+                was_visited = self.locations[lid].visited
                 self.locations[lid].visited = True
+                if not was_visited:
+                    renpy.notify(f"Discovered {self.locations[lid].name}")
+                    event_manager.dispatch("LOCATION_DISCOVERED", location=lid)
+                    flag_set(f"discover_{lid}", True)
                 event_manager.dispatch("LOCATION_VISITED", location=lid)
+                self._maybe_trigger_encounter(self.locations[lid])
                 return True
             return False
+
+        def _maybe_trigger_encounter(self, location):
+            if not location or not location.encounters:
+                return
+            candidates = []
+            for enc in location.encounters:
+                if not isinstance(enc, dict):
+                    continue
+                label = enc.get("label")
+                if not label or not renpy.has_label(label):
+                    continue
+                enc_id = enc.get("id", label)
+                if enc.get("once") and enc_id in encounter_history:
+                    continue
+                cond = enc.get("cond")
+                if cond and not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get}):
+                    continue
+                try:
+                    chance = float(enc.get("chance", 1.0))
+                except Exception:
+                    chance = 1.0
+                if chance > 1.0:
+                    chance = chance / 100.0
+                if renpy.random.random() <= chance:
+                    candidates.append((enc_id, label, enc.get("once")))
+            if not candidates:
+                return
+            enc_id, label, once = renpy.random.choice(candidates)
+            if once:
+                encounter_history.add(enc_id)
+            try:
+                import store
+                if hasattr(store, "flow_queue"):
+                    store.flow_queue.queue_label(label)
+                    return
+            except Exception:
+                pass
+            renpy.call_in_new_context(label)
 
     rpg_world = GameWorld()
     pc = RPGCharacter("player", "Player", base_image="characters/male_fit.png")
@@ -900,7 +1036,7 @@ init -10 python:
                     return False
             # Check condition if present
             if self.trigger.get("cond"):
-                if not safe_eval_bool(self.trigger["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs}):
+                if not safe_eval_bool(self.trigger["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get}):
                     return False
             return True
     
@@ -1018,6 +1154,93 @@ init -10 python:
         elif fail_label and not passed and renpy.has_label(fail_label):
             renpy.jump(fail_label)
         return passed
+
+    def rest(hours=1, require_safe=True, allow_camp=True, camp_ambush_chance=0.2):
+        loc = rpg_world.current_location
+        used_camp = False
+        if require_safe and loc and "safe" not in loc.tags:
+            if allow_camp:
+                kit = consume_item_by_tag("camp")
+                if kit:
+                    used_camp = True
+                    renpy.notify("You set up a small camp.")
+                    event_manager.dispatch("CAMP_USED", location=loc.id if loc else None)
+                else:
+                    renpy.notify("This doesn't feel safe enough to rest.")
+                    return False
+            else:
+                renpy.notify("This doesn't feel safe enough to rest.")
+                return False
+        time_manager.advance(int(hours * 60))
+        heal = int(hours * 10)
+        pc.stats.hp = min(pc.stats.max_hp, pc.stats.hp + heal)
+        renpy.notify(f"Rested {hours}h. HP +{heal}.")
+        if loc:
+            event_manager.dispatch("RESTED", hours=hours, location=loc.id, used_camp=used_camp)
+        if used_camp and renpy.random.random() < camp_ambush_chance:
+            label = "SCENE__camp_ambush__flow"
+            try:
+                import store
+                if renpy.has_label(label) and hasattr(store, "flow_queue"):
+                    store.flow_queue.queue_label(label)
+                elif renpy.has_label(label):
+                    renpy.call_in_new_context(label)
+                else:
+                    event_manager.dispatch("CAMP_AMBUSH", location=loc.id if loc else None)
+            except Exception:
+                event_manager.dispatch("CAMP_AMBUSH", location=loc.id if loc else None)
+        return True
+
+    def scavenge_location(loc=None):
+        if not loc:
+            loc = rpg_world.current_location
+        if not loc:
+            renpy.notify("There's nowhere to search.")
+            return False
+        if not getattr(loc, "scavenge", None):
+            renpy.notify("You don't find anything useful here.")
+            return False
+        key = f"{loc.id}:{time_manager.day}"
+        if scavenge_history.get(key):
+            renpy.notify("You've already searched here today.")
+            return False
+        results = []
+        for entry in loc.scavenge:
+            if not isinstance(entry, dict):
+                continue
+            cond = entry.get("cond")
+            if cond and not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get}):
+                continue
+            try:
+                chance = float(entry.get("chance", 1.0))
+            except Exception:
+                chance = 1.0
+            if chance > 1.0:
+                chance = chance / 100.0
+            if renpy.random.random() > chance:
+                continue
+            item_id = entry.get("item")
+            if not item_id:
+                continue
+            if "min" in entry or "max" in entry:
+                lo = int(entry.get("min", 1))
+                hi = int(entry.get("max", lo))
+                count = renpy.random.randint(lo, hi)
+            else:
+                count = int(entry.get("count", 1))
+            count = max(1, count)
+            for _ in range(count):
+                it = item_manager.get(item_id)
+                if it:
+                    pc.add_item(it)
+            results.append(f"{item_id} x{count}")
+        scavenge_history[key] = True
+        if results:
+            renpy.notify("Found: " + ", ".join(results))
+            event_manager.dispatch("SCAVENGED", location=loc.id, items=results)
+            return True
+        renpy.notify("You come up empty-handed.")
+        return False
 
     class Note(object):
         def __init__(self, id, name, content, tags=None):
@@ -1137,7 +1360,7 @@ init -10 python:
 
             loc = Location(
                 oid, p['name'], p['description'], 
-                p.get('map_image'), obstacles, p.get('entities'),
+                p.get('map_image'), obstacles, p.get('entities'), p.get('encounters'), p.get('scavenge'),
                 tags=p.get('tags', []),
                 factions=p.get('factions', []),
                 parent_id=p.get('parent'),
@@ -1183,7 +1406,8 @@ init -10 python:
                 label=p.get('label'),
                 cond=p.get('cond'),
                 tags=p.get('tags', []),
-                memory=(str(p.get('memory', 'False')).lower() == 'true')
+                memory=(str(p.get('memory', 'False')).lower() == 'true'),
+                reason=p.get('reason')
             ))
 
         # Story Origins

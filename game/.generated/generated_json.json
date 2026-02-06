@@ -13,6 +13,19 @@
             "equip_slots": [],
             "outfit_part": null
         },
+        "camp_kit": {
+            "name": "Camp Kit",
+            "description": "A light bundle for resting outdoors.",
+            "weight": 1.0,
+            "value": 20,
+            "tags": [
+                "camp",
+                "utility"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null
+        },
         "apple": {
             "name": "Apple",
             "description": "A juicy red apple. Restoration - 5 HP.",
@@ -471,6 +484,8 @@
                     "sprite": "images/topdown/chars/male_base.png"
                 }
             ],
+            "encounters": [],
+            "scavenge": [],
             "parent": null,
             "map_type": "structure",
             "map_x": 1000,
@@ -480,7 +495,9 @@
                 "5.0"
             ],
             "floor_idx": 0,
-            "tags": [],
+            "tags": [
+                "safe"
+            ],
             "factions": []
         },
         "market": {
@@ -524,6 +541,16 @@
                     "sprite": "images/topdown/chars/male_base.png"
                 }
             ],
+            "encounters": [
+                {
+                    "id": "market_pickpocket",
+                    "label": "LOC__market__encounter_pickpocket",
+                    "chance": 0.35,
+                    "once": true,
+                    "cond": "not flag_get('market_pickpocket', False)"
+                }
+            ],
+            "scavenge": [],
             "parent": null,
             "map_type": "city",
             "map_x": 1100,
@@ -542,6 +569,19 @@
             "map_image": null,
             "obstacles": [],
             "entities": [],
+            "encounters": [],
+            "scavenge": [
+                {
+                    "item": "wood",
+                    "chance": 0.3,
+                    "min": 1,
+                    "max": 2
+                },
+                {
+                    "item": "apple",
+                    "chance": 0.2
+                }
+            ],
             "parent": null,
             "map_type": "city",
             "map_x": 1300,
@@ -560,6 +600,8 @@
             "map_image": null,
             "obstacles": [],
             "entities": [],
+            "encounters": [],
+            "scavenge": [],
             "parent": null,
             "map_type": "city",
             "map_x": 800,
@@ -569,7 +611,9 @@
                 "3.0"
             ],
             "floor_idx": 0,
-            "tags": [],
+            "tags": [
+                "safe"
+            ],
             "factions": []
         },
         "forest_edge": {
@@ -578,6 +622,28 @@
             "map_image": null,
             "obstacles": [],
             "entities": [],
+            "encounters": [
+                {
+                    "id": "forest_rustle",
+                    "label": "LOC__forest_edge__encounter_rustle",
+                    "chance": 0.5,
+                    "cond": "not flag_get('forest_rustle', False)"
+                }
+            ],
+            "scavenge": [
+                {
+                    "item": "wood",
+                    "chance": 0.8,
+                    "min": 1,
+                    "max": 3
+                },
+                {
+                    "item": "stone",
+                    "chance": 0.4,
+                    "min": 1,
+                    "max": 2
+                }
+            ],
             "parent": null,
             "map_type": "wilderness",
             "map_x": 600,
@@ -596,6 +662,8 @@
             "map_image": null,
             "obstacles": [],
             "entities": [],
+            "encounters": [],
+            "scavenge": [],
             "parent": null,
             "map_type": "city",
             "map_x": 1000,
@@ -614,6 +682,8 @@
             "map_image": null,
             "obstacles": [],
             "entities": [],
+            "encounters": [],
+            "scavenge": [],
             "parent": null,
             "map_type": "city",
             "map_x": 900,
@@ -623,7 +693,9 @@
                 "3.0"
             ],
             "floor_idx": 0,
-            "tags": [],
+            "tags": [
+                "safe"
+            ],
             "factions": []
         },
         "guardhouse": {
@@ -632,6 +704,8 @@
             "map_image": null,
             "obstacles": [],
             "entities": [],
+            "encounters": [],
+            "scavenge": [],
             "parent": null,
             "map_type": "city",
             "map_x": 1050,
@@ -650,6 +724,8 @@
             "map_image": null,
             "obstacles": [],
             "entities": [],
+            "encounters": [],
+            "scavenge": [],
             "parent": "mage_tower",
             "map_type": "floor",
             "map_x": 1200,
@@ -679,6 +755,8 @@
                     ]
                 }
             ],
+            "encounters": [],
+            "scavenge": [],
             "parent": null,
             "map_type": "world",
             "map_x": 0,
@@ -697,6 +775,8 @@
             "map_image": null,
             "obstacles": [],
             "entities": [],
+            "encounters": [],
+            "scavenge": [],
             "parent": null,
             "map_type": "structure",
             "map_x": 1200,
@@ -786,6 +866,13 @@
             "name": "Saddle",
             "unequips": []
         },
+        "main_hand": {
+            "name": "Main Hand",
+            "unequips": [
+                "left_hand",
+                "right_hand"
+            ]
+        },
         "torso": {
             "name": "Torso",
             "unequips": []
@@ -799,7 +886,9 @@
         },
         "right_hand": {
             "name": "Right Hand",
-            "unequips": []
+            "unequips": [
+                "main_hand"
+            ]
         },
         "feet": {
             "name": "Feet",
@@ -807,7 +896,9 @@
         },
         "left_hand": {
             "name": "Left Hand",
-            "unequips": []
+            "unequips": [
+                "main_hand"
+            ]
         },
         "body": {
             "name": "Body",
@@ -829,6 +920,7 @@
                 "head",
                 "torso",
                 "pants",
+                "main_hand",
                 "left_hand",
                 "right_hand",
                 "two_piece",
@@ -856,6 +948,7 @@
                 "Charisma"
             ],
             "memory": false,
+            "reason": null,
             "cond": "pc.stats.charisma >= 12",
             "label": "CHOICE__mayor_charisma_test"
         },
@@ -871,6 +964,7 @@
                 "Lore"
             ],
             "memory": true,
+            "reason": null,
             "cond": "True",
             "label": "CHOICE__mayor_history"
         }
@@ -904,7 +998,9 @@
                 "potion",
                 "apple",
                 "apple",
-                "apple"
+                "apple",
+                "camp_kit",
+                "camp_kit"
             ]
         }
     },
@@ -1000,7 +1096,9 @@
                 "intro",
                 "progress"
             ],
-            "trigger": {},
+            "trigger": {
+                "event": "GAME_STARTED"
+            },
             "ticks": 1
         }
     }

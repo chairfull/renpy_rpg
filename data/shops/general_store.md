@@ -13,6 +13,8 @@ items:
   - apple
   - apple
   - apple
+  - camp_kit
+  - camp_kit
 ---
 
 # Talk

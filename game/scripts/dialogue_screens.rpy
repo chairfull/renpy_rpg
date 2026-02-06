@@ -1,6 +1,7 @@
 # Dialogue choice system with tags, emojis, and hover descriptions
 
 default hovered_dialogue_option = None
+default hovered_dialogue_reason = None
  
 screen dialogue_choice_screen(char):
     modal True
@@ -22,6 +23,8 @@ screen dialogue_choice_screen(char):
             vbox:
                 spacing 5
                 text "[hovered_dialogue_option.long_text]" size 24 italic True color "#ddd" text_align 0.5 xalign 0.5
+                if hovered_dialogue_reason:
+                    text "[hovered_dialogue_reason]" size 16 color "#ffcc66" xalign 0.5
                 if hovered_dialogue_option.tags:
                     $ tags_str = ", ".join(hovered_dialogue_option.tags)
                     text "Properties: [tags_str]" size 16 color "#888" xalign 0.5
@@ -40,9 +43,14 @@ screen dialogue_choice_screen(char):
                 spacing 20
                 text "Conversation with [char.name]" size 36 color "#ffd700" xalign 0.5
                 
-                $ options = dialogue_manager.get_available(char)
+                $ options = dialogue_manager.get_for_char(char)
+                python:
+                    option_rows = []
+                    for opt in options:
+                        avail, reason = opt.availability_status(char)
+                        option_rows.append((opt, avail, reason))
                 
-                if not options:
+                if not option_rows:
                     text "You have nothing special to discuss." italic True color "#666" xalign 0.5
                 else:
                     viewport:
@@ -52,29 +60,32 @@ screen dialogue_choice_screen(char):
                         ymaximum 400
                         vbox:
                             spacing 10
-                            for opt in options:
+                            for opt, is_avail, reason in option_rows:
                                 $ is_seen = opt.id in pc.dialogue_history
                                 $ tag_prefix = "".join([f"[{t}] " for t in opt.tags])
                                 
                                 button:
-                                    action [
-                                        Function(pc.dialogue_history.add, opt.id),
-                                        Return(opt.label)
-                                    ]
-                                    hovered SetVariable("hovered_dialogue_option", opt)
-                                    unhovered SetVariable("hovered_dialogue_option", None)
+                                    action (
+                                        [
+                                            Function(pc.dialogue_history.add, opt.id),
+                                            Return(opt.label)
+                                        ] if is_avail else NullAction()
+                                    )
+                                    hovered [SetVariable("hovered_dialogue_option", opt), SetVariable("hovered_dialogue_reason", (None if is_avail else reason))]
+                                    unhovered [SetVariable("hovered_dialogue_option", None), SetVariable("hovered_dialogue_reason", None)]
+                                    sensitive is_avail
                                     
                                     xfill True
                                     padding (20, 15)
-                                    background ("#252535" if not is_seen else "#151520")
-                                    hover_background "#353545"
+                                    background ("#252535" if is_avail and not is_seen else "#151520")
+                                    hover_background ("#353545" if is_avail else "#2a2a2a")
                                     
                                     at phone_visual_hover # Reuse our consistent hover logic
                                     
                                     hbox:
                                         spacing 15
                                         text "[opt.emoji]" size 24 yalign 0.5
-                                        text "[tag_prefix][opt.short_text]" size 22 color ("#fff" if not is_seen or not opt.memory else "#777") yalign 0.5
+                                        text "[tag_prefix][opt.short_text]" size 22 color ("#fff" if is_avail and (not is_seen or not opt.memory) else "#777") yalign 0.5
 
         vbox:
             spacing 20

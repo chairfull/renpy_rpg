@@ -6,4 +6,6 @@ description: Begin your adventure in the world
 icon: 🚀
 rarity: common
 tags: [intro, progress]
+trigger:
+  event: GAME_STARTED
 ---

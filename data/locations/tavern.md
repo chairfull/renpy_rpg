@@ -7,5 +7,6 @@ map_type: city
 map_x: 800
 map_y: 1100
 zoom_range: 0.5, 3.0
+tags: [safe]
 entities: [innkeeper, bard, stranger]
 ---

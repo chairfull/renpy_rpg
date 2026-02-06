@@ -73,6 +73,14 @@ screen dev_mode_screen():
                 action [Function(_dev_reload_content), Notify(dev_reload_message or "Reload requested")]
                 text_size 18
                 text_color "#ffcc66"
+            textbutton "TOGGLE FREE TRAVEL":
+                action ToggleVariable("allow_unvisited_travel")
+                text_size 14
+                text_color "#66ccff"
+            textbutton "TOGGLE QUICK TRAVEL":
+                action ToggleVariable("quick_travel_on_click")
+                text_size 14
+                text_color "#66ccff"
             if dev_reload_message:
                 text "[dev_reload_message]" size 14 color "#aaa"
 
