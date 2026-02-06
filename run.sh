@@ -3,6 +3,13 @@
 # Compiles data and launches Ren'Py
 
 # 1. Compile Data
+echo "Linting data..."
+python3 game/python/compile_data.py --lint
+if [ $? -ne 0 ]; then
+    echo "Lint failed. Fix issues above."
+    exit 1
+fi
+
 echo "Compiling data..."
 python3 game/python/compile_data.py
 

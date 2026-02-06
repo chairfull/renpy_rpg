@@ -19,9 +19,7 @@ label start:
     call screen story_select_screen
     
     # After selection, the screen jumps to the intro label.
-    # The world_loop will be called after the intro finishes.
-    return
-
+    # If selection is cancelled, fall back to the main loop.
     jump world_loop
 
 label world_loop:

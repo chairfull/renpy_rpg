@@ -1,6 +1,22 @@
 default meta_menu_tab = "inventory"
 default selected_inventory_item = None
 default selected_quest = None
+default selected_recipe = None
+default journal_tab = "quests"
+default selected_note = None
+default selected_person = None
+
+init python:
+    def _equip_item_quick(itm):
+        """Equip the item to the first compatible slot, using the safe equip pipeline."""
+        slots_for_body = slot_registry.get_slots_for_body(pc.body_type)
+        valid_slots = [s for s in getattr(itm, "equip_slots", []) if s in slots_for_body]
+        if not valid_slots:
+            renpy.notify("No valid slot for this item")
+            return
+        ok, msg = pc.equip(itm, valid_slots[0])
+        renpy.notify(msg)
+        renpy.restart_interaction()
 
 screen meta_menu():
     tag menu
@@ -17,7 +33,6 @@ screen meta_menu():
         hbox:
             spacing 10
             xalign 0.5
-            $ tab_style = "tab_button"
             
             textbutton "Inventory":
                 action SetVariable("meta_menu_tab", "inventory")
@@ -31,11 +46,23 @@ screen meta_menu():
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "stats")
             
-            textbutton "Quests":
-                action SetVariable("meta_menu_tab", "quests")
+            textbutton "Crafting":
+                action SetVariable("meta_menu_tab", "crafting")
                 style "tab_button"
                 text_style "tab_button_text"
-                selected (meta_menu_tab == "quests")
+                selected (meta_menu_tab == "crafting")
+            
+            textbutton "Journal":
+                action SetVariable("meta_menu_tab", "journal")
+                style "tab_button"
+                text_style "tab_button_text"
+                selected (meta_menu_tab == "journal")
+            
+            textbutton "🏆":
+                action SetVariable("meta_menu_tab", "achievements")
+                style "tab_button"
+                text_style "tab_button_text"
+                selected (meta_menu_tab == "achievements")
 
         # Main Content Area
         frame:
@@ -48,8 +75,12 @@ screen meta_menu():
                 use inventory_content
             elif meta_menu_tab == "stats":
                 use stats_content
-            elif meta_menu_tab == "quests":
-                use quest_content
+            elif meta_menu_tab == "crafting":
+                use crafting_content
+            elif meta_menu_tab == "journal":
+                use journal_content
+            elif meta_menu_tab == "achievements":
+                use achievements_content
 
         # Footer
         textbutton "Close":
@@ -105,6 +136,15 @@ screen inventory_content():
                     text "Weight: [itm.weight] kg" size 18 color "#cccccc"
                     text "Value: [itm.value] gold" size 18 color "#cccccc"
                     
+                    if itm.equip_slots:
+                        $ slots_for_body = slot_registry.get_slots_for_body(pc.body_type)
+                        vbox:
+                            spacing 4
+                            text "Slots: [', '.join(itm.equip_slots)]" size 16 color "#aaa"
+                            for s in itm.equip_slots:
+                                $ cur = pc.equipped_slots.get(s)
+                                text ("Currently in [s]: [cur.name]" if cur else f"Currently in {s}: (empty)") size 14 color "#888"
+                    
                     hbox:
                         spacing 10
                         if renpy.has_label(f"ITEM__{i_id}__inspect"):
@@ -112,9 +152,9 @@ screen inventory_content():
                                 action [Call(f"ITEM__{i_id}__inspect")]
                                 background "#555" padding (15, 10)
                         
-                        if itm.outfit_part:
+                        if itm.equip_slots:
                             textbutton "Equip":
-                                action [Function(pc.equipped_items.update, {itm.outfit_part: itm}), Notify(f"Equipped {itm.name}")]
+                                action Function(_equip_item_quick, itm)
                                 background "#444" padding (15, 10)
             else:
                 text "Select an item to see details." align (0.5, 0.5) color "#666666"
@@ -171,7 +211,39 @@ screen stats_content():
                         left_bar Solid("#ff4444")
                         right_bar Solid("#333")
 
-screen quest_content():
+screen journal_content():
+    vbox:
+        spacing 10
+        # Sub-tabs
+        hbox:
+            spacing 10
+            xalign 0.5
+            textbutton "Quests":
+                action SetVariable("journal_tab", "quests")
+                style "tab_button"
+                text_style "tab_button_text"
+                selected (journal_tab == "quests")
+            textbutton "Notes":
+                action SetVariable("journal_tab", "notes")
+                style "tab_button"
+                text_style "tab_button_text"
+                selected (journal_tab == "notes")
+            textbutton "People":
+                action SetVariable("journal_tab", "people")
+                style "tab_button"
+                text_style "tab_button_text"
+                selected (journal_tab == "people")
+        
+        null height 10
+
+        if journal_tab == "quests":
+             use quest_sub_content
+        elif journal_tab == "notes":
+             use notes_sub_content
+        elif journal_tab == "people":
+             use people_sub_content
+
+screen quest_sub_content():
     hbox:
         spacing 20
         # Quest List
@@ -186,11 +258,11 @@ screen quest_content():
                     spacing 5
                     for q in sorted(quest_manager.quests.values(), key=lambda x: x.state):
                         if q.state != "unknown":
-                            textbutton "[q.name]":
-                                action SetVariable("selected_quest", q)
-                                xfill True
-                                background ("#333" if globals().get("selected_quest") == q else "#111")
-                                text_style "quest_list_text"
+                             textbutton "[q.name]":
+                                 action SetVariable("selected_quest", q)
+                                 xfill True
+                                 background ("#333" if globals().get("selected_quest") == q else "#111")
+                                 text_style "quest_list_text"
 
         # Quest Details
         frame:
@@ -214,6 +286,140 @@ screen quest_content():
                                 text "[tick.name]" size 18 color ("#888" if tick.state == "complete" else "#eee")
             else:
                 text "Select a quest to see details." align (0.5, 0.5) color "#666666"
+
+screen notes_sub_content():
+    hbox:
+        spacing 20
+        # Note List
+        frame:
+            background "#222"
+            xsize 350
+            ysize 600
+            viewport:
+                scrollbars "vertical"
+                mousewheel True
+                vbox:
+                    spacing 5
+                    for note in wiki_manager.get_unlocked_notes():
+                         textbutton "[note.name]":
+                             action SetVariable("selected_note", note)
+                             xfill True
+                             background ("#333" if globals().get("selected_note") == note else "#111")
+                             text_style "inventory_item_text"
+
+        # Note Details
+        frame:
+            background "#222"
+            xsize 670
+            ysize 600
+            padding (20, 20)
+            
+            if globals().get("selected_note"):
+                $ n = selected_note
+                viewport:
+                    scrollbars "vertical"
+                    mousewheel True
+                    vbox:
+                        spacing 10
+                        text "[n.name]" size 30 color "#ffd700"
+                        text "[n.content]" size 22 color "#fff"
+            else:
+                text "Select a note to read." align (0.5, 0.5) color "#666666"
+
+screen people_sub_content():
+    hbox:
+        spacing 20
+        # People List
+        frame:
+            background "#222"
+            xsize 350
+            ysize 600
+            viewport:
+                scrollbars "vertical"
+                mousewheel True
+                vbox:
+                    spacing 5
+                    for name, desc in wiki_manager.met_list:
+                         textbutton "[name]":
+                             action SetVariable("selected_person", name)
+                             xfill True
+                             background ("#333" if globals().get("selected_person") == name else "#111")
+                             text_style "inventory_item_text"
+
+        # People Details
+        frame:
+            background "#222"
+            xsize 670
+            ysize 600
+            padding (20, 20)
+            
+            if globals().get("selected_person"):
+                $ pname = selected_person
+                $ desc = wiki_manager.entries.get(pname, "")
+                vbox:
+                    spacing 10
+                    text "[pname]" size 30 color "#ffd700"
+                    text "[desc]" size 22 color "#fff"
+            else:
+                text "Select a person to view details." align (0.5, 0.5) color "#666666"
+
+screen crafting_content():
+    hbox:
+        spacing 20
+        # Recipe List
+        frame:
+            background "#222"
+            xsize 400
+            ysize 600
+            viewport:
+                scrollbars "vertical"
+                mousewheel True
+                vbox:
+                    spacing 5
+                    for recipe in crafting_manager.get_all():
+                        textbutton "[recipe.name]":
+                            action SetVariable("selected_recipe", recipe)
+                            xfill True
+                            background ("#333" if globals().get("selected_recipe") == recipe else "#111")
+                            text_style "inventory_item_text"
+
+        # Recipe Details
+        frame:
+            background "#222"
+            xsize 620
+            ysize 600
+            padding (20, 20)
+            
+            if globals().get("selected_recipe"):
+                $ rec = selected_recipe
+                vbox:
+                    spacing 15
+                    text "[rec.name]" size 30 color "#ffd700"
+                    
+                    text "Requires:" size 24 color "#ffffff"
+                    for i_id, count in rec.inputs.items():
+                        $ itm = item_manager.get(i_id)
+                        $ itm_name = itm.name if itm else i_id
+                        # Check count in inventory
+                        $ have = 0
+                        python:
+                            have = 0
+                            for itm in pc.items:
+                                if item_manager.get_id_of(itm) == i_id: have += 1
+                        
+                        hbox:
+                            text "• [itm_name] x[count]" size 20 color ("#50fa7b" if have >= count else "#ff5555")
+                            text " (Have [have])" size 18 color "#888"
+                            
+                    null height 20
+                    
+                    textbutton "CRAFT":
+                        action [Function(crafting_manager.craft, rec, pc), Function(renpy.restart_interaction)]
+                        background "#444" padding (30, 15)
+                        text_style "tab_button_text"
+
+            else:
+                text "Select a recipe to view details." align (0.5, 0.5) color "#666666"
 
 style tab_button:
     background "#333"
@@ -262,7 +468,7 @@ screen char_interaction_menu(char):
     zorder 150
     tag menu
     
-    # Everything wrapped in a fixed block (Transition handled by label)
+    # Everything wrapped in a fixed block
     fixed:
         # Background dismissal
         button:
@@ -280,7 +486,7 @@ screen char_interaction_menu(char):
             vbox:
                 spacing 30
                 
-                # Character Name (Moved from Main Content)
+                # Character Name
                 text "[char.name!u]" size 60 color "#ffd700" outlines [(2, "#000", 0, 0)]
                 
                 vbox:
@@ -296,7 +502,12 @@ screen char_interaction_menu(char):
                     vbox:
                         spacing 8
                         label "SOCIAL" text_color "#ffd700" text_size 26
-                        text "Relation: Friendly" size 24 color "#50fa7b"
+                        if char.affinity >= 50:
+                            text "Relation: Friendly ([char.affinity])" size 24 color "#50fa7b"
+                        elif char.affinity <= -50:
+                            text "Relation: Hostile ([char.affinity])" size 24 color "#ff5555"
+                        else:
+                            text "Relation: Neutral ([char.affinity])" size 24 color "#ffffff"
                         text "Status: Relaxed" size 24 color "#f8f8f2"
                     
                     # Dynamic Attributes
@@ -313,12 +524,11 @@ screen char_interaction_menu(char):
             xfill True
             yfill True
             
-            # Sprite is anchored to the bottom of the monitor
             if char.base_image:
                 add char.base_image:
                     fit "contain"
                     align (0.6, 1.0)
-                    xzoom -1 # Flip to look left towards info
+                    xzoom -1
                     at glide_up
             else:
                 add Solid("#1a1a2a"):
@@ -327,7 +537,7 @@ screen char_interaction_menu(char):
                     ysize 650
                     at glide_up
         
-        # Actions Layer (Raised further)
+        # Actions Layer
         vbox:
             align (0.6, 0.95)
             yoffset -100
@@ -390,7 +600,7 @@ screen container_transfer_screen(container_inv):
 
         # Bottom Close Button
         textbutton "FINISH & CLOSE":
-            action Return()
+            action Hide("container_transfer_screen")
             xalign 0.5
             padding (40, 20)
             background Frame("#2c3e50", 4, 4)
@@ -496,9 +706,7 @@ style interact_button_text:
     size 24
     xalign 0.5
 
-# Existing screens below...
 screen shop_screen(shop):
-    # ... (same as before)
     tag menu
     add "#0c0c0c"
     vbox:
@@ -628,7 +836,6 @@ screen container_screen(container):
             padding (20, 10)
             text_style "back_button_text"
 
-# Redundant standalone screens can use meta_menu
 screen character_sheet():
     on "show" action SetVariable("meta_menu_tab", "stats")
     use meta_menu

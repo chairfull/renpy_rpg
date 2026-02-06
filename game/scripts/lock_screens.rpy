@@ -13,7 +13,7 @@ screen lock_interaction_screen(lock_obj, item_name):
             spacing 20
             xalign 0.5
             
-            text "LOCKED: [item_name]" size 30 color "#ff3333" xalign 0.5 font "gui/fonts/Almendra-Bold.ttf"
+            text "LOCKED: [item_name]" size 30 color "#ff3333" xalign 0.5
             
             hbox:
                 spacing 10
@@ -36,12 +36,11 @@ screen lock_interaction_screen(lock_obj, item_name):
                 $ key_name = "Unknown Key"
                 python:
                     for key_id in lock_obj.keys:
-                        # Check inventory (assuming pc.inventory or just pc.keys?)
-                        # PC inherits Inventory, so pc.has_item(key_id)?
-                        # Inventory logic: pc.items is list of Items.
-                        # We need to scan items.
+                        # Check inventory for matching key by ID or name
                         for item in pc.items:
-                            if item.id == key_id:
+                            # Safely get item ID, falling back to name for matching
+                            item_id = getattr(item, 'id', None) or getattr(item, 'name', '').lower().replace(' ', '_')
+                            if item_id == key_id:
                                 has_key = True
                                 key_name = item.name
                                 break

@@ -19,7 +19,7 @@ init -5 python:
 default flow_queue = FlowQueueManager()
 
 init -5 python:
-    def _td_interact(obj):
+    def _td_interact_core(obj):
         # Determine if it's an NPC or a raw dict object
         is_npc = hasattr(obj, 'id') and not isinstance(obj, dict)
         
@@ -43,17 +43,20 @@ init -5 python:
             # Check for Lock
             lock = obj.get('lock_obj')
             if lock and lock.locked:
-                renpy.call_screen("lock_interaction_screen", lock, obj.get('name', 'Container'))
+                renpy.show_screen("lock_interaction_screen", lock, obj.get('name', 'Container'))
             else:
                 # Show side-by-side transfer screen
-                renpy.call_screen("container_transfer_screen", obj['inventory'])
+                renpy.show_screen("container_transfer_screen", obj['inventory'])
         elif 'label' in obj:
             flow_queue.queue_label(obj['label'])
         else:
             renpy.notify(f"Interacted with {obj.get('name')}")
 
+    def _td_interact(obj):
+        _td_interact_core(obj)
+
     class TopDownEntity(object):
-        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None):
+        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None, depth=None, is_player=False, rotation=0):
             self.x = x
             self.y = y
             self.sprite = sprite
@@ -62,6 +65,9 @@ init -5 python:
             self.idle_anim = idle_anim
             self.sprite_tint = sprite_tint
             self.label = label
+            self.depth = depth  # None = use y position
+            self.is_player = is_player
+            self.rotation = rotation  # Only used for player
 
     class TopDownManager(object):
         def __init__(self):
@@ -91,6 +97,20 @@ init -5 python:
             
             # Exit Logic
             self.pending_exit = None
+            
+            # Player entity reference (set in setup)
+            self.player_entity = None
+            
+            # Camera snap flag - skip lerp on first frame after setup
+            self._camera_snapped = False
+
+        def get_sorted_entities(self):
+            """Return all entities (including player) sorted by depth (Y position)"""
+            def get_depth(e):
+                if e.depth is not None:
+                    return e.depth
+                return e.y
+            return sorted(self.entities, key=get_depth)
 
         def setup(self, location):
             self.entities = []
@@ -98,6 +118,7 @@ init -5 python:
 
             self.center_player()
             self.snap_camera()
+            self._camera_snapped = True  # Mark camera as snapped to skip lerp on first frame
 
             for item in location.entities:
                 itype = item.get('type', 'object')
@@ -145,6 +166,17 @@ init -5 python:
                                     idle_anim=True,
                                     label=f"char_{char.id}_interact")
                 self.entities.append(ent)
+            
+            # Create player entity and add to entities list
+            self.player_entity = TopDownEntity(
+                rpg_world.actor.x, rpg_world.actor.y,
+                sprite=pc.td_sprite,
+                action=NullAction(),
+                tooltip=pc.name,
+                idle_anim=False,
+                is_player=True
+            )
+            self.entities.append(self.player_entity)
 
             self.current_location = location
             self.obstacles = location.obstacles
@@ -176,8 +208,14 @@ init -5 python:
             target_cam_x = self.player_pos[0] - self.screen_center[0]
             target_cam_y = self.player_pos[1] - self.screen_center[1]
             
-            self.camera_offset[0] = self.lerp(self.camera_offset[0], target_cam_x, dt * self.camera_lerp_speed)
-            self.camera_offset[1] = self.lerp(self.camera_offset[1], target_cam_y, dt * self.camera_lerp_speed)
+            # Skip lerp if camera was just snapped (first frame after setup)
+            if self._camera_snapped:
+                self.camera_offset[0] = target_cam_x
+                self.camera_offset[1] = target_cam_y
+                self._camera_snapped = False
+            else:
+                self.camera_offset[0] = self.lerp(self.camera_offset[0], target_cam_x, dt * self.camera_lerp_speed)
+                self.camera_offset[1] = self.lerp(self.camera_offset[1], target_cam_y, dt * self.camera_lerp_speed)
 
             target_rot = self.target_rotation
             diff = (target_rot - self.player_rotation + 180) % 360 - 180
@@ -206,6 +244,12 @@ init -5 python:
 
             rpg_world.actor.x = int(self.player_pos[0])
             rpg_world.actor.y = int(self.player_pos[1])
+            
+            # Sync player entity position for unified rendering
+            if self.player_entity:
+                self.player_entity.x = self.player_pos[0]
+                self.player_entity.y = self.player_pos[1]
+                self.player_entity.rotation = self.player_rotation
 
         def check_interaction(self):
             if self.interaction_callback:
@@ -216,7 +260,10 @@ init -5 python:
             self.interaction_callback = None
             start = (int(self.player_pos[0]), int(self.player_pos[1]))
             end = (int(x), int(y))
-            self.path = [end] 
+            self.path = self.find_path(start, end)
+            if not self.path:
+                renpy.notify("Path blocked")
+                return
             self.moving = True
             self.target_pos = end
             self.interaction_callback = callback
@@ -240,7 +287,60 @@ init -5 python:
                 if callback: callback()
 
         def find_path(self, start, end):
-            return [end]
+            """A* on a coarse grid using self.cell_size; obstacles are cell tuples."""
+            cell = self.cell_size
+            def to_cell(pt):
+                return (pt[0] // cell, pt[1] // cell)
+            def to_world(c):
+                return (c[0] * cell + cell // 2, c[1] * cell + cell // 2)
+            start_c = to_cell(start)
+            end_c = to_cell(end)
+
+            if start_c == end_c:
+                return [end]
+            
+            blocked = set(self.obstacles or set())
+            if end_c in blocked:
+                return []
+            
+            import heapq
+            open_set = []
+            heapq.heappush(open_set, (0, start_c))
+            came_from = {}
+            g = {start_c: 0}
+            
+            def heuristic(a, b):
+                return abs(a[0]-b[0]) + abs(a[1]-b[1])
+            
+            max_iter = 5000
+            iter_count = 0
+            neighbors = [(1,0),(-1,0),(0,1),(0,-1)]
+            
+            while open_set and iter_count < max_iter:
+                iter_count += 1
+                _, current = heapq.heappop(open_set)
+                if current == end_c:
+                    # Reconstruct
+                    path_cells = []
+                    c = current
+                    while c != start_c:
+                        path_cells.append(c)
+                        c = came_from[c]
+                    path_cells.reverse()
+                    return [to_world(c) for c in path_cells]
+                
+                for dx, dy in neighbors:
+                    nxt = (current[0]+dx, current[1]+dy)
+                    if nxt in blocked:
+                        continue
+                    tentative_g = g[current] + 1
+                    if tentative_g < g.get(nxt, 1e9):
+                        came_from[nxt] = current
+                        g[nxt] = tentative_g
+                        f = tentative_g + heuristic(nxt, end_c)
+                        heapq.heappush(open_set, (f, nxt))
+            
+            return []
 
         def lerp(self, start, end, t):
             return start + (end - start) * t

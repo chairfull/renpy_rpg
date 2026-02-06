@@ -1,5 +1,18 @@
 {
     "items": {
+        "wood": {
+            "name": "Wood",
+            "description": "A sturdy piece of timber.",
+            "weight": 1.0,
+            "value": 2,
+            "tags": [
+                "material",
+                "crafting"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null
+        },
         "apple": {
             "name": "Apple",
             "description": "A juicy red apple. Restoration - 5 HP.",
@@ -14,6 +27,21 @@
             "equip_slots": [],
             "outfit_part": null
         },
+        "club": {
+            "name": "Wooden Club",
+            "description": "A primitive weapon made of wood and stone.",
+            "weight": 3.5,
+            "value": 10,
+            "tags": [
+                "weapon",
+                "blunt"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "main_hand"
+            ],
+            "outfit_part": null
+        },
         "potion": {
             "name": "Health Potion",
             "description": "A bubbling red liquid. Restores 30 HP.",
@@ -23,6 +51,19 @@
                 "potion",
                 "consumable",
                 "health"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null
+        },
+        "stone": {
+            "name": "Stone",
+            "description": "A heavy rock.",
+            "weight": 2.0,
+            "value": 1,
+            "tags": [
+                "material",
+                "crafting"
             ],
             "factions": [],
             "equip_slots": [],
@@ -52,7 +93,7 @@
             "description": "A noblewoman browsing the market wares.",
             "location": "market",
             "items": [],
-            "base_image": "characters/female_fit.png",
+            "base_image": "chars/female_fit.png",
             "td_sprite": null,
             "x": 900,
             "y": 600,
@@ -64,7 +105,118 @@
             ],
             "body_type": "humanoid",
             "stats": {},
+            "affinity": 0,
+            "schedule": {},
             "label": "CHAR__lady__talk"
+        },
+        "ranger": {
+            "name": "Ranger Thorne",
+            "description": "A taciturn woodsman who patrols the forest roads.",
+            "location": "forest_edge",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 400,
+            "y": 300,
+            "tags": [
+                "outdoorsman",
+                "soldier"
+            ],
+            "factions": [
+                "rangers"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": -5,
+            "schedule": {},
+            "label": "CHAR__ranger__talk"
+        },
+        "merchant_hakim": {
+            "name": "Merchant Hakim",
+            "description": "A foreign trader with exotic wares from distant lands.",
+            "location": "market",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 600,
+            "y": 550,
+            "tags": [
+                "merchant",
+                "traveler"
+            ],
+            "factions": [
+                "merchants",
+                "foreign"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 5,
+            "schedule": {},
+            "label": "CHAR__merchant_hakim__talk"
+        },
+        "guard_captain": {
+            "name": "Guard Captain",
+            "description": "A stern but fair leader of the town guard.",
+            "location": "city_center",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 600,
+            "y": 400,
+            "tags": [
+                "authority",
+                "soldier"
+            ],
+            "factions": [
+                "town_guard"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 0,
+            "schedule": {},
+            "label": "CHAR__guard_captain__talk"
+        },
+        "bard": {
+            "name": "Traveling Bard",
+            "description": "A flamboyant musician who performs for coin and applause.",
+            "location": "tavern",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 500,
+            "y": 300,
+            "tags": [
+                "entertainer",
+                "traveler"
+            ],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 15,
+            "schedule": {},
+            "label": "CHAR__bard__talk"
+        },
+        "stranger": {
+            "name": "Mysterious Stranger",
+            "description": "A cloaked figure who seems to know more than they let on.",
+            "location": "tavern",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 150,
+            "y": 400,
+            "tags": [
+                "mysterious",
+                "quest_giver"
+            ],
+            "factions": [
+                "unknown"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": -10,
+            "schedule": {},
+            "label": "CHAR__stranger__talk"
         },
         "warrior": {
             "name": "Mercenary Kael",
@@ -73,7 +225,7 @@
             "items": [
                 "sword"
             ],
-            "base_image": "characters/male_fit.png",
+            "base_image": "chars/male_fit.png",
             "td_sprite": null,
             "x": 0,
             "y": 0,
@@ -86,14 +238,59 @@
                 "intelligence": 8,
                 "charisma": 8
             },
+            "affinity": 0,
+            "schedule": {},
             "label": "CHAR__warrior__talk"
+        },
+        "fisherman": {
+            "name": "Old Fisherman",
+            "description": "A weathered sailor with tales from the sea.",
+            "location": "docks",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 700,
+            "y": 500,
+            "tags": [
+                "commoner",
+                "storyteller"
+            ],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 5,
+            "schedule": {},
+            "label": "CHAR__fisherman__talk"
+        },
+        "blacksmith": {
+            "name": "Blacksmith Greta",
+            "description": "A muscular woman with arms like tree trunks and a fiery temper.",
+            "location": "market",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 400,
+            "y": 500,
+            "tags": [
+                "merchant",
+                "crafter"
+            ],
+            "factions": [
+                "merchants",
+                "craftsmen"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 0,
+            "schedule": {},
+            "label": "CHAR__blacksmith__talk"
         },
         "shopkeeper": {
             "name": "Shopkeeper",
             "description": "A friendly old man.",
             "location": "shop",
             "items": [],
-            "base_image": "characters/male_average.png",
+            "base_image": "chars/male_average.png",
             "td_sprite": null,
             "x": 0,
             "y": 0,
@@ -101,17 +298,19 @@
             "factions": [],
             "body_type": "humanoid",
             "stats": {},
+            "affinity": 0,
+            "schedule": {},
             "label": "CHAR__shopkeeper__talk"
         },
         "scholar": {
             "name": "Scholar Theo",
             "description": "A seeker of truth and ancient knowledge.",
-            "location": "home",
+            "location": "city_center",
             "items": [],
-            "base_image": "characters/male_thin.png",
+            "base_image": "chars/male_thin.png",
             "td_sprite": null,
-            "x": 0,
-            "y": 0,
+            "x": 500,
+            "y": 500,
             "tags": [],
             "factions": [],
             "body_type": "humanoid",
@@ -121,14 +320,59 @@
                 "intelligence": 16,
                 "charisma": 14
             },
+            "affinity": 0,
+            "schedule": {},
             "label": "CHAR__scholar__talk"
+        },
+        "priestess": {
+            "name": "Priestess Elena",
+            "description": "A serene healer devoted to the old gods.",
+            "location": "temple",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 500,
+            "y": 300,
+            "tags": [
+                "healer",
+                "religious"
+            ],
+            "factions": [
+                "temple"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 20,
+            "schedule": {},
+            "label": "CHAR__priestess__talk"
+        },
+        "orphan": {
+            "name": "Orphan Pip",
+            "description": "A scrappy street kid who knows every alley in town.",
+            "location": "market",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 200,
+            "y": 600,
+            "tags": [
+                "child",
+                "commoner",
+                "thief"
+            ],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 0,
+            "schedule": {},
+            "label": "CHAR__orphan__talk"
         },
         "mayor": {
             "name": "Mayor",
             "description": "The leader of our fine town.",
             "location": "market",
             "items": [],
-            "base_image": "characters/male_fit.png",
+            "base_image": "chars/male_fit.png",
             "td_sprite": null,
             "x": 800,
             "y": 600,
@@ -142,7 +386,31 @@
             ],
             "body_type": "humanoid",
             "stats": {},
+            "affinity": 0,
+            "schedule": {},
             "label": "CHAR__mayor__talk"
+        },
+        "innkeeper": {
+            "name": "Innkeeper",
+            "description": "A jovial fellow who runs the Rusty Tankard.",
+            "location": "tavern",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 300,
+            "y": 350,
+            "tags": [
+                "merchant",
+                "friendly"
+            ],
+            "factions": [
+                "merchants"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 10,
+            "schedule": {},
+            "label": "CHAR__innkeeper__talk"
         }
     },
     "locations": {
@@ -184,7 +452,7 @@
                 },
                 {
                     "id": "closet",
-                    "type": "physical",
+                    "type": "container",
                     "name": "Bedroom Closet",
                     "description": "A sturdy wooden closet for your belongings.",
                     "x": 0,
@@ -193,11 +461,13 @@
                         "sword",
                         "potion"
                     ],
-                    "lock": "",
-                    "difficulty": 3,
-                    "keys": [
-                        "closet_key"
-                    ],
+                    "lock": {
+                        "type": "physical",
+                        "difficulty": 3,
+                        "keys": [
+                            "closet_key"
+                        ]
+                    },
                     "sprite": "images/topdown/chars/male_base.png"
                 }
             ],
@@ -214,8 +484,8 @@
             "factions": []
         },
         "market": {
-            "name": "Market Square",
-            "description": "The bustling heart of the town.",
+            "name": "Grand Market",
+            "description": "The bustling heart of the town, filled with merchants hawking their wares.",
             "map_image": "#333",
             "obstacles": "10,10|10,11|11,10|11,11",
             "entities": [
@@ -239,6 +509,10 @@
                         800
                     ]
                 },
+                "mayor",
+                "blacksmith",
+                "orphan",
+                "merchant_hakim",
                 {
                     "id": "dummy",
                     "type": "object",
@@ -251,14 +525,140 @@
                 }
             ],
             "parent": null,
-            "map_type": "world",
-            "map_x": 0,
-            "map_y": 0,
+            "map_type": "city",
+            "map_x": 1100,
+            "map_y": 900,
             "zoom_range": [
-                "0.0",
-                "99.0"
+                "0.5",
+                "3.0"
             ],
             "floor_idx": 0,
+            "tags": [],
+            "factions": []
+        },
+        "docks": {
+            "name": "Harbor Docks",
+            "description": "Wooden piers stretching into the sea, with ships coming and going.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "parent": null,
+            "map_type": "city",
+            "map_x": 1300,
+            "map_y": 1200,
+            "zoom_range": [
+                "0.5",
+                "3.0"
+            ],
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
+        },
+        "tavern": {
+            "name": "The Rusty Tankard",
+            "description": "A lively tavern filled with music, laughter, and the smell of ale.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "parent": null,
+            "map_type": "city",
+            "map_x": 800,
+            "map_y": 1100,
+            "zoom_range": [
+                "0.5",
+                "3.0"
+            ],
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
+        },
+        "forest_edge": {
+            "name": "Forest Edge",
+            "description": "The border between civilization and the wild woods beyond.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "parent": null,
+            "map_type": "wilderness",
+            "map_x": 600,
+            "map_y": 500,
+            "zoom_range": [
+                "0.5",
+                "3.0"
+            ],
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
+        },
+        "city_center": {
+            "name": "City Center",
+            "description": "The bustling heart of the city.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "parent": null,
+            "map_type": "city",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "0.5",
+                "3.0"
+            ],
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
+        },
+        "temple": {
+            "name": "Temple of the Light",
+            "description": "An ancient stone temple where priests tend to the faithful.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "parent": null,
+            "map_type": "city",
+            "map_x": 900,
+            "map_y": 700,
+            "zoom_range": [
+                "0.5",
+                "3.0"
+            ],
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
+        },
+        "guardhouse": {
+            "name": "Town Guardhouse",
+            "description": "Where the town guard keeps watch and holds prisoners.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "parent": null,
+            "map_type": "city",
+            "map_x": 1050,
+            "map_y": 1050,
+            "zoom_range": [
+                "0.5",
+                "3.0"
+            ],
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
+        },
+        "mage_tower_f1": {
+            "name": "Mage Tower (Floor 1)",
+            "description": "The lobby of the tower.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "parent": "mage_tower",
+            "map_type": "floor",
+            "map_x": 1200,
+            "map_y": 800,
+            "zoom_range": [
+                "3.0",
+                "5.0"
+            ],
+            "floor_idx": 1,
             "tags": [],
             "factions": []
         },
@@ -291,42 +691,6 @@
             "tags": [],
             "factions": []
         },
-        "city_center": {
-            "name": "City Center",
-            "description": "The bustling heart of the city.",
-            "map_image": null,
-            "obstacles": [],
-            "entities": [],
-            "parent": null,
-            "map_type": "city",
-            "map_x": 1000,
-            "map_y": 1000,
-            "zoom_range": [
-                "0.5",
-                "3.0"
-            ],
-            "floor_idx": 0,
-            "tags": [],
-            "factions": []
-        },
-        "mage_tower_f1": {
-            "name": "Mage Tower (Floor 1)",
-            "description": "The lobby of the tower.",
-            "map_image": null,
-            "obstacles": [],
-            "entities": [],
-            "parent": "mage_tower",
-            "map_type": "floor",
-            "map_x": 1200,
-            "map_y": 800,
-            "zoom_range": [
-                "3.0",
-                "5.0"
-            ],
-            "floor_idx": 1,
-            "tags": [],
-            "factions": []
-        },
         "mage_tower": {
             "name": "Mage Tower",
             "description": "A tall spire piercing the sky.",
@@ -347,9 +711,21 @@
         }
     },
     "quests": {
+        "iron_and_fire": {
+            "name": "Iron and Fire",
+            "description": "Blacksmith Greta needs some materials to test your worth."
+        },
         "apple_hunt": {
             "name": "The Great Apple Hunt",
             "description": "Gathering supplies for the journey."
+        },
+        "formal_intro": {
+            "name": "Formal Introduction",
+            "description": "Meet the leaders of the town."
+        },
+        "scholars_secret": {
+            "name": "The Scholar's Secret",
+            "description": "Scholar Theo is looking for an ancient text."
         }
     },
     "containers": {},
@@ -505,14 +881,14 @@
             "description": "A battle-hardened veteran seeking coin and glory. High physical stats but less silver-tongued.",
             "pc_id": "warrior",
             "intro_label": "SCENE__warrior__intro",
-            "image": "characters/male_fit.png"
+            "image": "chars/male_fit.png"
         },
         "scholar": {
             "name": "The Scholar",
             "description": "A seeker of truth and ancient knowledge. Weaker in combat but highly intelligent and charismatic.",
             "pc_id": "scholar",
             "intro_label": "SCENE__scholar__intro",
-            "image": "characters/male_thin.png"
+            "image": "chars/male_thin.png"
         }
     },
     "shops": {
@@ -530,6 +906,102 @@
                 "apple",
                 "apple"
             ]
+        }
+    },
+    "recipes": {
+        "recipe_club": {
+            "name": "Crude Club",
+            "inputs": {
+                "wood": 1,
+                "stone": 1
+            },
+            "output": {
+                "club": 1
+            },
+            "req_skill": {
+                "strength": 1
+            },
+            "tags": [
+                "beginner",
+                "weapon"
+            ]
+        }
+    },
+    "notes": {
+        "note_ancient_history": {
+            "name": "Ancient History",
+            "tags": [
+                "lore",
+                "history"
+            ]
+        }
+    },
+    "achievements": {
+        "lore_keeper": {
+            "name": "Lore Keeper",
+            "description": "Discover 5 hidden notes",
+            "icon": "\ud83d\udcdc",
+            "rarity": "rare",
+            "tags": [
+                "exploration",
+                "lore"
+            ],
+            "trigger": {
+                "event": "NOTE_UNLOCKED"
+            },
+            "ticks": 5
+        },
+        "social_butterfly": {
+            "name": "Social Butterfly",
+            "description": "Meet 10 different characters",
+            "icon": "\ud83e\udd8b",
+            "rarity": "epic",
+            "tags": [
+                "social",
+                "exploration"
+            ],
+            "trigger": {
+                "event": "CHAR_MET"
+            },
+            "ticks": 10
+        },
+        "completionist": {
+            "name": "Completionist",
+            "description": "Complete 100% of the game",
+            "icon": "\ud83d\udc51",
+            "rarity": "legendary",
+            "tags": [
+                "endgame",
+                "completion"
+            ],
+            "trigger": {},
+            "ticks": 1
+        },
+        "master_crafter": {
+            "name": "Master Crafter",
+            "description": "Craft your first item",
+            "icon": "\ud83d\udd28",
+            "rarity": "uncommon",
+            "tags": [
+                "crafting",
+                "progress"
+            ],
+            "trigger": {
+                "event": "ITEM_CRAFTED"
+            },
+            "ticks": 1
+        },
+        "first_steps": {
+            "name": "First Steps",
+            "description": "Begin your adventure in the world",
+            "icon": "\ud83d\ude80",
+            "rarity": "common",
+            "tags": [
+                "intro",
+                "progress"
+            ],
+            "trigger": {},
+            "ticks": 1
         }
     }
 }

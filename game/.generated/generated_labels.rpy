@@ -22,12 +22,98 @@ label CHAR__lady__talk:
     lady "The market here is surprisingly well-stocked today."
     return
 
+label CHAR__ranger:
+    ranger "You shouldn't wander the forest alone."
+    ranger "Wolves, bandits... and worse things lurk in the shadows."
+    $ ranger.mark_as_met()
+    return
+
+label CHAR__ranger__talk:
+    ranger "You shouldn't wander the forest alone."
+    ranger "Wolves, bandits... and worse things lurk in the shadows."
+    $ ranger.mark_as_met()
+    return
+
+label CHAR__merchant_hakim:
+    merchant_hakim "Salaam, my friend! Come, look at my wares!"
+    merchant_hakim "I have silks, spices, and treasures from across the sea!"
+    $ merchant_hakim.mark_as_met()
+    return
+
+label CHAR__merchant_hakim__talk:
+    merchant_hakim "Salaam, my friend! Come, look at my wares!"
+    merchant_hakim "I have silks, spices, and treasures from across the sea!"
+    $ merchant_hakim.mark_as_met()
+    return
+
+label CHAR__guard_captain:
+    guard_captain "Halt! State your business, traveler."
+    guard_captain "Hmm, you look harmless enough. Welcome to the city."
+    $ guard_captain.mark_as_met()
+    return
+
+label CHAR__guard_captain__talk:
+    guard_captain "Halt! State your business, traveler."
+    guard_captain "Hmm, you look harmless enough. Welcome to the city."
+    $ guard_captain.mark_as_met()
+    return
+
+label CHAR__bard:
+    bard "Ah, a new face! Perhaps you'd like to hear a song?"
+    bard "I know ballads from every corner of the realm!"
+    $ bard.mark_as_met()
+    return
+
+label CHAR__bard__talk:
+    bard "Ah, a new face! Perhaps you'd like to hear a song?"
+    bard "I know ballads from every corner of the realm!"
+    $ bard.mark_as_met()
+    return
+
+label CHAR__stranger:
+    stranger "..."
+    stranger "You have a curious look about you."
+    stranger "Perhaps we'll speak again when the time is right."
+    $ stranger.mark_as_met()
+    return
+
+label CHAR__stranger__talk:
+    stranger "..."
+    stranger "You have a curious look about you."
+    stranger "Perhaps we'll speak again when the time is right."
+    $ stranger.mark_as_met()
+    return
+
 label CHAR__warrior:
     "You sharpen your blade, contemplating your next contract."
     return
 
 label CHAR__warrior__talk:
     "You sharpen your blade, contemplating your next contract."
+    return
+
+label CHAR__fisherman:
+    fisherman "Ahoy there! Looking for fish or for stories?"
+    fisherman "Either way, I've got plenty of both!"
+    $ fisherman.mark_as_met()
+    return
+
+label CHAR__fisherman__talk:
+    fisherman "Ahoy there! Looking for fish or for stories?"
+    fisherman "Either way, I've got plenty of both!"
+    $ fisherman.mark_as_met()
+    return
+
+label CHAR__blacksmith:
+    blacksmith "Need something forged? I make the best blades in the realm!"
+    blacksmith "Don't waste my time with small talk though."
+    $ blacksmith.mark_as_met()
+    return
+
+label CHAR__blacksmith__talk:
+    blacksmith "Need something forged? I make the best blades in the realm!"
+    blacksmith "Don't waste my time with small talk though."
+    $ blacksmith.mark_as_met()
     return
 
 label CHAR__shopkeeper:
@@ -46,6 +132,30 @@ label CHAR__scholar:
 
 label CHAR__scholar__talk:
     "You think about your next research project."
+    return
+
+label CHAR__priestess:
+    priestess "May the light guide your path, traveler."
+    priestess "If you seek healing or wisdom, you have come to the right place."
+    $ priestess.mark_as_met()
+    return
+
+label CHAR__priestess__talk:
+    priestess "May the light guide your path, traveler."
+    priestess "If you seek healing or wisdom, you have come to the right place."
+    $ priestess.mark_as_met()
+    return
+
+label CHAR__orphan:
+    orphan "Hey mister! Got any spare coins?"
+    orphan "I can show you secret places if you've got food!"
+    $ orphan.mark_as_met()
+    return
+
+label CHAR__orphan__talk:
+    orphan "Hey mister! Got any spare coins?"
+    orphan "I can show you secret places if you've got food!"
+    $ orphan.mark_as_met()
     return
 
 label CHAR__mayor:
@@ -84,6 +194,18 @@ label CHAR__mayor__history:
     mayor "Well, it started a long time ago, when the first settlers arrived."
     mayor "They built this town to be a safe place for travelers."
     mayor "It's been here ever since."
+    return
+
+label CHAR__innkeeper:
+    innkeeper "Welcome to the Rusty Tankard, friend!"
+    innkeeper "We've got ale, rooms, and fresh gossip."
+    $ innkeeper.mark_as_met()
+    return
+
+label CHAR__innkeeper__talk:
+    innkeeper "Welcome to the Rusty Tankard, friend!"
+    innkeeper "We've got ale, rooms, and fresh gossip."
+    $ innkeeper.mark_as_met()
     return
 
 label CHOICE__mayor_charisma_test:

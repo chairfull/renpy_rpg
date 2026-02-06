@@ -2,6 +2,8 @@ import os
 import re
 import json
 import yaml
+import argparse
+import sys
 
 def parse_markdown(filepath):
     try:
@@ -44,44 +46,22 @@ def parse_markdown(filepath):
     return props, parts[2].strip()
 
 def parse_yaml_list(lines):
-    items = []
-    current_item = None
-    for line in lines:
-        stripped = line.strip()
-        if not stripped: continue
-        
-        # New item start
-        if line.lstrip().startswith('- '):
-            if current_item: items.append(current_item)
-            current_item = {}
-            # Check for inline content after "- "
-            content = line.lstrip()[2:].strip() # remove "- "
-            if ':' in content:
-                k, v = content.split(':', 1)
-                val = v.strip()
-                # Simple integer conversion
-                if val.isdigit(): val = int(val)
-                # Simple list conversion [x, y]
-                elif val.startswith('[') and val.endswith(']'):
-                     val = [int(x.strip()) if x.strip().isdigit() else x.strip() for x in val[1:-1].split(',')]
-                else:
-                     val = val.strip('"\'')
-                current_item[k.strip()] = val
-        
-        # Property
-        elif ':' in stripped:
-            if current_item is not None:
-                k, v = stripped.split(':', 1)
-                val = v.strip()
-                if val.isdigit(): val = int(val)
-                elif val.startswith('[') and val.endswith(']'):
-                     val = [int(x.strip()) if x.strip().isdigit() else x.strip() for x in val[1:-1].split(',')]
-                else:
-                     val = val.strip('"\'')
-                current_item[k.strip()] = val
-    
-    if current_item: items.append(current_item)
-    return items
+    """Safely parse a block of YAML lines into a list of dictionaries."""
+    if not lines:
+        return []
+    try:
+        # Join the lines with newlines to form a valid YAML block string
+        yaml_content = "\n".join(lines)
+        data = yaml.safe_load(yaml_content)
+        if isinstance(data, list):
+            return data
+        elif isinstance(data, dict):
+             # Sometimes it might be a single dict if not starting with "-"
+             return [data]
+        return []
+    except Exception as e:
+        print(f"Error parsing YAML list block: {e}")
+        return []
 
 def parse_csv(value):
     """Safely parse a comma-separated value that might be a string, list, or empty."""
@@ -103,10 +83,13 @@ def parse_csv(value):
                 result.extend([x.strip() for x in cleaned.split(',') if x.strip()])
         return result
     if isinstance(value, str):
-        return [x.strip() for x in value.split(',') if x.strip()]
+        cleaned = value.strip()
+        if cleaned.startswith('[') and cleaned.endswith(']'):
+            cleaned = cleaned[1:-1]
+        return [x.strip() for x in cleaned.split(',') if x.strip()]
     return []
 
-def compile():
+def compile(lint_only=False):
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     game_dir = os.path.join(base_dir, "game")
     data_dir = os.path.join(base_dir, "data") # Moved to root
@@ -131,7 +114,10 @@ def compile():
         "body_types": {},
         "dialogue": {},
         "story_origins": {},
-        "shops": {}
+        "shops": {},
+        "recipes": {},
+        "notes": {},
+        "achievements": {}
     }
     
     for root, dirs, files in os.walk(data_dir):
@@ -200,6 +186,29 @@ def compile():
                                 stats_dict[k.strip().replace('- ', '')] = int(v.strip())
                             except ValueError:
                                 stats_dict[k.strip().replace('- ', '')] = v.strip()
+                # Parse schedule block
+                schedule_raw = props.get('schedule', [])
+                schedule = {}
+                if isinstance(schedule_raw, list):
+                    for line in schedule_raw:
+                        line = line.strip()
+                        if ':' in line:
+                            # expecting "HH:MM: location_id" or "HH:MM: location_id"
+                            # Split by FIRST colon for time, but here we have 08:00: loc
+                            # So we might split by first space or handle safely
+                            # Actually, YAML style: "08:00: market"
+                            parts = line.split(':', 2)
+                            if len(parts) >= 3:
+                                # 08, 00, market
+                                time_str = f"{parts[0].strip()}:{parts[1].strip()}"
+                                loc_id = parts[2].strip()
+                                schedule[time_str] = loc_id
+                            elif len(parts) == 2:
+                                # maybe "8:00 market" - irregular but possible
+                                # Or just key: value
+                                k, v = parts
+                                schedule[k.strip()] = v.strip()
+
                 data_consolidated["characters"][obj_id] = {
                     "name": props.get('name'),
                     "description": props.get('description', ''),
@@ -213,6 +222,8 @@ def compile():
                     "factions": parse_csv(props.get('factions', '')),
                     "body_type": props.get('body_type', 'humanoid'),
                     "stats": stats_dict,
+                    "affinity": int(props.get('affinity', 0)),
+                    "schedule": schedule,
                     "body": body
                 }
                 
@@ -312,6 +323,42 @@ def compile():
                     "image": props.get('image'),
                     "body": body
                 }
+            elif otype == 'recipe':
+                def parse_counts(val):
+                    res = {}
+                    if isinstance(val, list):
+                        for item in val: 
+                             if isinstance(item, dict):
+                                 res.update(item)
+                             elif isinstance(item, str) and ':' in item:
+                                 k, v = item.split(':', 1)
+                                 try: res[k.strip()] = int(v.strip())
+                                 except: pass
+                    elif isinstance(val, dict):
+                        res = val
+                    return res
+                
+                req_skill = {}
+                rs_raw = props.get('req_skill')
+                # If req_skill is a dict (from markdown) or list
+                if rs_raw: 
+                    if isinstance(rs_raw, dict): req_skill = rs_raw
+                    elif isinstance(rs_raw, list): req_skill = parse_counts(rs_raw)
+                    else: req_skill = {} # Handle scalar?
+
+                data_consolidated["recipes"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "inputs": parse_counts(props.get('inputs', [])),
+                    "output": parse_counts(props.get('output', [])),
+                    "req_skill": req_skill,
+                    "tags": parse_csv(props.get('tags', ''))
+                }
+            elif otype == 'note':
+                data_consolidated["notes"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "tags": parse_csv(props.get('tags', '')),
+                    "body": body
+                }
             elif otype == 'shop':
                 data_consolidated["shops"][obj_id] = {
                     "name": props.get('name', obj_id),
@@ -321,9 +368,34 @@ def compile():
                     "items": parse_csv(props.get('items', '')),
                     "body": body
                 }
+            elif otype == 'achievement':
+                trigger_raw = props.get('trigger', {})
+                trigger = {}
+                if isinstance(trigger_raw, list):
+                    try:
+                        trigger = yaml.safe_load("\n".join(trigger_raw))
+                    except:
+                        print(f"Error parsing achievement trigger for {obj_id}")
+                elif isinstance(trigger_raw, dict):
+                    trigger = trigger_raw
+
+                data_consolidated["achievements"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "description": props.get('description', ''),
+                    "icon": props.get('icon', '🏆'),
+                    "rarity": props.get('rarity', 'common'),
+                    "tags": parse_csv(props.get('tags', '')),
+                    "trigger": trigger,
+                    "ticks": int(props.get('ticks', 1))
+                }
             
+    errors = []
+    warnings = []
+
     # Second pass: Process bodies to link labels and generate RPY
-    for otype, collection in [("location", "locations"), ("character", "characters"), ("item", "items"), ("quest", "quests"), ("container", "containers"), ("dialogue", "dialogue"), ("story_origin", "story_origins"), ("shop", "shops")]:
+    generated_labels = set()  # Track generated label names to avoid duplicates
+
+    for otype, collection in [("location", "locations"), ("character", "characters"), ("item", "items"), ("quest", "quests"), ("container", "containers"), ("dialogue", "dialogue"), ("story_origin", "story_origins"), ("shop", "shops"), ("recipe", "recipes"), ("note", "notes")]:
         for oid, data in data_consolidated[collection].items():
             if 'body' not in data: continue
             body = data.pop('body')
@@ -348,9 +420,15 @@ def compile():
                 else:
                     label_name = f"{prefix}__{oid}__flow"
 
-                script_parts.append(f"label {label_name}:\n")
-                for flow_body in flows:
-                    for line in flow_body.split('\n'):
+                # Skip if this label was already generated
+                if label_name in generated_labels:
+                    if otype in ['dialogue', 'story_origin']:
+                        continue
+                else:
+                    generated_labels.add(label_name)
+                    script_parts.append(f"label {label_name}:\n")
+                    for flow_body in flows:
+                        for line in flow_body.split('\n'):
                             line = line.strip()
                             if not line: continue
                             if line.startswith('$'):
@@ -362,7 +440,7 @@ def compile():
                             else:
                                 txt = line.strip().replace('"', '\\"')
                                 script_parts.append(f"    \"{txt}\"\n")
-                script_parts.append("    return\n\n")
+                    script_parts.append("    return\n\n")
                 
                 # If specific types, we might skip the old section loop or mix it?
                 # User preference "minimise labels generated outside of markdown" -> prefer flows.
@@ -392,6 +470,11 @@ def compile():
                         else:
                             label_name = f"{prefix}__{oid}__{heading}"
                         
+                        # Skip if this label was already generated
+                        if label_name in generated_labels:
+                            continue
+                        generated_labels.add(label_name)
+                        
                         script_parts.append(f"label {label_name}:\n")
                         
                         # Link label to character/entity
@@ -418,6 +501,56 @@ def compile():
                         
                         script_parts.append("    return\n\n")
 
+    # Cross-reference validation
+    loc_ids = set(data_consolidated["locations"].keys())
+    char_ids = set(data_consolidated["characters"].keys())
+    item_ids = set(data_consolidated["items"].keys())
+    slot_ids = set(data_consolidated["slots"].keys())
+    body_ids = set(data_consolidated["body_types"].keys())
+
+    for cid, c in data_consolidated["characters"].items():
+        if c.get("location") and c["location"] not in loc_ids:
+            errors.append(f"character {cid}: unknown location '{c['location']}'")
+        if c.get("body_type") and c["body_type"] not in body_ids:
+            errors.append(f"character {cid}: unknown body_type '{c['body_type']}'")
+        for itm in c.get("items", []):
+            if itm not in item_ids:
+                errors.append(f"character {cid}: unknown item '{itm}'")
+    for lid, l in data_consolidated["locations"].items():
+        ents = l.get("entities", []) or []
+        for ent in ents:
+            if not isinstance(ent, dict):
+                continue
+            if ent.get("type") == "link" and ent.get("id") and ent["id"] not in loc_ids:
+                errors.append(f"location {lid}: link target '{ent['id']}' missing")
+    for rid, r in data_consolidated["recipes"].items():
+        for iid in list(r.get("inputs", {}).keys()) + list(r.get("output", {}).keys()):
+            if iid not in item_ids:
+                errors.append(f"recipe {rid}: unknown item '{iid}'")
+    for iid, it in data_consolidated["items"].items():
+        for slot in it.get("equip_slots", []):
+            if slot not in slot_ids:
+                warnings.append(f"item {iid}: unknown slot '{slot}'")
+
+    if lint_only:
+        if errors:
+            print("Lint failed:")
+            for e in errors:
+                print(f" - {e}")
+            sys.exit(1)
+        if warnings:
+            print("Lint warnings:")
+            for w in warnings:
+                print(f" - {w}")
+        else:
+            print("Lint passed.")
+        return
+
+    if errors:
+        print("Warnings (non-fatal):")
+        for e in errors:
+            print(f" - {e}")
+
     # Write RPY
     with open(labels_file, "w", encoding="utf-8") as out:
         out.write("".join(script_parts))
@@ -429,4 +562,7 @@ def compile():
     print(f"Compiled data to {json_file}")
 
 if __name__ == "__main__":
-    compile()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--lint", action="store_true", help="Validate data without generating output")
+    args = parser.parse_args()
+    compile(lint_only=args.lint)

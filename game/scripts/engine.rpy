@@ -1,7 +1,64 @@
+default persistent.met_characters = set()
+default persistent.unlocked_notes = set()
+
 init -10 python:
+    # Initialize Persistent Data Defaults (Legacy safety)
+    if persistent.met_characters is None:
+        persistent.met_characters = set()
+    if persistent.unlocked_notes is None:
+        persistent.unlocked_notes = set()
+
     import json
     import random
     import copy
+    import ast
+
+    SAFE_FUNC_NAMES = {"len", "int", "float", "str", "max", "min"}
+
+    def _ast_safe(node):
+        """Whitelist a small subset of Python expressions for data-driven conditions."""
+        allowed = (
+            ast.Expression, ast.BoolOp, ast.UnaryOp, ast.BinOp, ast.Compare,
+            ast.Name, ast.Load, ast.Attribute, ast.Constant,
+            ast.And, ast.Or, ast.Not, ast.Eq, ast.NotEq, ast.Lt, ast.LtE,
+            ast.Gt, ast.GtE, ast.In, ast.NotIn, ast.Is, ast.IsNot,
+            ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Mod, ast.USub
+        )
+        if isinstance(node, ast.Call):
+            # Allow basic builtins and kwargs.get only
+            func = node.func
+            if isinstance(func, ast.Name) and func.id in SAFE_FUNC_NAMES:
+                pass
+            elif isinstance(func, ast.Attribute) and func.attr == "get" and isinstance(func.value, ast.Name) and func.value.id == "kwargs":
+                pass
+            else:
+                return False
+            return all(_ast_safe(arg) for arg in node.args) and all(_ast_safe(kw.value) for kw in node.keywords)
+        if not isinstance(node, allowed):
+            return False
+        for child in ast.iter_child_nodes(node):
+            if not _ast_safe(child):
+                return False
+        return True
+
+    def safe_eval_bool(expr, env):
+        """Evaluate small boolean expressions safely; returns False on error."""
+        try:
+            tree = ast.parse(str(expr), mode="eval")
+        except Exception:
+            return False
+        if not _ast_safe(tree):
+            return False
+        try:
+            builtins_obj = __builtins__
+            safe_funcs = {}
+            for n in SAFE_FUNC_NAMES:
+                fn = getattr(builtins_obj, n, None) if hasattr(builtins_obj, n) else builtins_obj.get(n) if isinstance(builtins_obj, dict) else None
+                if fn:
+                    safe_funcs[n] = fn
+            return bool(eval(compile(tree, "<cond>", "eval"), {"__builtins__": {}, **safe_funcs}, env))
+        except Exception:
+            return False
 
     # --- BASE MIXINS (must be defined first) ---
     class SpatialObject(object):
@@ -37,8 +94,9 @@ init -10 python:
 
     # --- ITEM SYSTEM ---
     class Item(TaggedObject):
-        def __init__(self, name, description, weight=0, value=0, tags=None, factions=None, equip_slots=None, outfit_part=None):
+        def __init__(self, name="Unknown", description="", weight=0, value=0, tags=None, factions=None, equip_slots=None, outfit_part=None, id=None, **kwargs):
             TaggedObject.__init__(self, tags)
+            self.id = id
             self.factions = set(factions or [])
             self.name, self.description, self.weight, self.value = name, description, weight, value
             self.equip_slots = equip_slots or []
@@ -61,21 +119,107 @@ init -10 python:
 
     item_manager = ItemManager()
 
+    class Recipe(object):
+        def __init__(self, id, name, inputs, output, req_skill=None, tags=None):
+            self.id = id
+            self.name = name
+            self.inputs = inputs # {item_id: count}
+            self.output = output # {item_id: count}
+            self.req_skill = req_skill # {skill_name: level}
+            self.tags = set(tags or [])
+
+    class CraftingManager:
+        def __init__(self):
+            self.recipes = {}
+        
+        def register(self, recipe):
+            self.recipes[recipe.id] = recipe
+            
+        def get_all(self):
+            return sorted(self.recipes.values(), key=lambda x: x.name)
+
+        def can_craft(self, recipe, inventory):
+            for item_id, count in recipe.inputs.items():
+                current_count = 0
+                for itm in inventory.items:
+                    # Helper to match ID
+                    if item_manager.get_id_of(itm) == item_id:
+                        current_count += 1
+                
+                if current_count < count:
+                    return False, f"Missing {item_id}"
+            
+            if recipe.req_skill:
+                for skill, level in recipe.req_skill.items():
+                    if pc.stats.get(skill) < level:
+                        return False, f"Need {skill} {level}"
+            
+            return True, "OK"
+
+        def craft(self, recipe, inventory):
+            can, msg = self.can_craft(recipe, inventory)
+            if not can:
+                renpy.notify(msg)
+                return False
+            
+            # Consume inputs
+            for item_id, count in recipe.inputs.items():
+                items_to_remove = []
+                found = 0
+                for itm in inventory.items:
+                    if item_manager.get_id_of(itm) == item_id:
+                        items_to_remove.append(itm)
+                        found += 1
+                        if found >= count:
+                            break
+                for itm in items_to_remove:
+                    inventory.remove_item(itm)
+            
+            # Grant outputs
+            for item_id, count in recipe.output.items():
+                for _ in range(count):
+                    new_item = item_manager.get(item_id)
+                    inventory.add_item(new_item, force=True)
+            
+            renpy.notify(f"Crafted {recipe.name}")
+            event_manager.dispatch("ITEM_CRAFTED", item=recipe.output, recipe=recipe.id)
+            return True
+
+    crafting_manager = CraftingManager()
+
     class EventManager:
-        def dispatch(self, etype, **kwargs): quest_manager.handle_event(etype, **kwargs)
+        def dispatch(self, etype, **kwargs): 
+            quest_manager.handle_event(etype, **kwargs)
+            ach_mgr.handle_event(etype, **kwargs)
 
     event_manager = EventManager()
 
     class TimeManager(object):
-        def __init__(self, hour=8, minute=0):
+        def __init__(self, hour=8, minute=0, day=1):
             self.hour, self.minute = hour, minute
+            self.day = day
+        
         @property
-        def time_string(self): return "{:02d}:{:02d}".format(self.hour, self.minute)
+        def time_string(self): return "{:02d}:{:02d} (Day {})".format(self.hour, self.minute, self.day)
+        
+        @property
+        def time_of_day(self):
+            if 5 <= self.hour < 12: return "Morning"
+            elif 12 <= self.hour < 17: return "Afternoon"
+            elif 17 <= self.hour < 21: return "Evening"
+            else: return "Night"
+
         def advance(self, mins):
             self.minute += mins
             while self.minute >= 60:
                 self.minute -= 60
-                self.hour = (self.hour + 1) % 24
+                self.hour += 1
+            while self.hour >= 24:
+                self.hour -= 24
+                self.day += 1
+            
+            # notify world of time change
+            rpg_world.update_schedules()
 
     time_manager = TimeManager()
 
@@ -89,9 +233,8 @@ init -10 python:
             for k, v in self.trigger_data.items():
                 if k not in ["event", "cond", "total"] and str(kwargs.get(k)) != str(v): return False
             if self.trigger_data.get("cond"):
-                try:
-                    if not eval(self.trigger_data["cond"], {}, {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs}): return False
-                except: return False
+                if not safe_eval_bool(self.trigger_data["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs}): 
+                    return False
             self.current_value = int(kwargs.get("total", self.current_value + 1))
             if self.current_value >= int(self.trigger_data.get("total", self.required_value)):
                 self.state = "complete"
@@ -114,10 +257,7 @@ init -10 python:
             if self.chars and char.id not in self.chars and "*" not in self.chars:
                 return False
             if self.cond and str(self.cond).strip() and str(self.cond) != "True":
-                try:
-                    return eval(str(self.cond), {}, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager})
-                except:
-                    return False
+                return safe_eval_bool(self.cond, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager})
             return True
 
     class DialogueManager:
@@ -195,8 +335,7 @@ init -10 python:
             for k, v in t.items():
                 if k not in ["event", "cond"] and str(kwargs.get(k)) != str(v): return False
             if t.get("cond"):
-                try: return eval(t["cond"], {}, {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs})
-                except: return False
+                return safe_eval_bool(t["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs})
             return True
 
     quest_manager = QuestManager()
@@ -374,10 +513,12 @@ init -10 python:
 
     # --- CHARACTER ---
     class RPGCharacter(Inventory):
-        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, **kwargs):
+        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, affinity=0, schedule=None, **kwargs):
             super(RPGCharacter, self).__init__(id, name, **kwargs)
             self.stats = stats if isinstance(stats, StatBlock) else StatBlock(stats) if stats else StatBlock()
             self.factions = set(factions or [])
+            self.affinity = affinity  # -100 to 100
+            self.schedule = schedule or {}  # "HH:MM": "loc_id"
             self.body_type = body_type
             self.base_image = base_image
             
@@ -397,6 +538,60 @@ init -10 python:
             self.dialogue_history = set()
             # Legacy compatibility
             self.equipped_items = self.equipped_slots
+        
+        def change_affinity(self, amount):
+            self.affinity = max(-100, min(100, self.affinity + amount))
+            status = "Neutral"
+            if self.affinity >= 50: status = "Friendly"
+            elif self.affinity <= -50: status = "Hostile"
+            renpy.notify(f"{self.name} is now {status} ({self.affinity})")
+
+        def check_schedule(self):
+            """Move character if current time matches a schedule entry"""
+            tm = time_manager
+            current_time_str = "{:02d}:00".format(tm.hour) # Simple hourly check for now
+            
+            # Find best match (exact or previous hour?)
+            # For now, let's just check if we are AT or PAST a schedule point that puts us somewhere new
+            # Better: iterate schedule, find latest time <= current time
+            target_loc = None
+            latest_time = -1
+            
+            current_mins = tm.hour * 60 + tm.minute
+            
+            for time_str, loc_id in self.schedule.items():
+                try:
+                    h, m = map(int, time_str.split(':'))
+                    mins = h * 60 + m
+                    if mins <= current_mins and mins > latest_time:
+                        latest_time = mins
+                        target_loc = loc_id
+                except: continue
+                
+            if target_loc and target_loc != self.location_id:
+                self.location_id = target_loc
+                # If player is in same location, maybe show notification?
+                # renpy.notify(f"{self.name} moved to {target_loc}")
+        
+        def next_schedule_entry(self):
+            """Return (time_str, loc_id) for the next scheduled move after current time."""
+            if not self.schedule:
+                return None, None
+            tm = time_manager
+            now = tm.hour * 60 + tm.minute
+            future = []
+            for time_str, loc_id in self.schedule.items():
+                try:
+                    h, m = map(int, time_str.split(':'))
+                    mins = h*60 + m
+                    if mins >= now:
+                        future.append((mins, time_str, loc_id))
+                except:
+                    continue
+            if not future:
+                return None, None
+            future.sort(key=lambda x: x[0])
+            return future[0][1], future[0][2]
         
         def __call__(self, what, *args, **kwargs):
             return self.pchar(what, *args, **kwargs)
@@ -525,13 +720,39 @@ init -10 python:
     class MapManager:
         def __init__(self):
             self.zoom = 1.0
+            self.target_zoom = 1.0  # For smooth zoom animation
             self.cam_x = 0
             self.cam_y = 0
             self.search_query = ""
             self.selected_structure = None
+            self.selected_location = None  # For location info popup
         
         def set_zoom(self, z):
-            self.zoom = max(0.5, min(z, 5.0))
+            """Set target zoom for smooth animation"""
+            self.target_zoom = max(0.5, min(z, 5.0))
+        
+        def update_zoom(self, adj_x, adj_y, view_w, view_h):
+            """Lerp zoom toward target while maintaining center point"""
+            if abs(self.zoom - self.target_zoom) < 0.001:
+                return None  # Already at target, no update needed
+            
+            # Get current center point in world coords BEFORE zoom changes
+            old_zoom = self.zoom
+            center_world_x = (adj_x.value + view_w / 2) / old_zoom
+            center_world_y = (adj_y.value + view_h / 2) / old_zoom
+            
+            # Lerp zoom (fast but smooth), snap when very close
+            if abs(self.zoom - self.target_zoom) < 0.01:
+                self.zoom = self.target_zoom
+            else:
+                lerp_factor = 0.2
+                self.zoom = self.zoom + (self.target_zoom - self.zoom) * lerp_factor
+            
+            # Calculate new scroll position to maintain center (always, including final frame)
+            new_adj_x = center_world_x * self.zoom - view_w / 2
+            new_adj_y = center_world_y * self.zoom - view_h / 2
+            
+            return (new_adj_x, new_adj_y)
             
         def get_visible_markers(self):
             # Return list of locations relevant to current zoom
@@ -558,14 +779,45 @@ init -10 python:
             self.search_query = query.strip()
 
         def select_location(self, loc):
+            """Select a location - opens info popup"""
+            self.selected_location = loc
             if loc.ltype == 'structure':
                 self.selected_structure = loc
             else:
                 self.selected_structure = None
-            
-            # Optional: Center camera?
-            # For now just select logic
         
+        def close_location_popup(self):
+            """Close the location info popup"""
+            self.selected_location = None
+        
+        def travel_to_location(self, loc):
+            """Travel to the selected location"""
+            if loc and rpg_world.move_to(loc.id):
+                self.selected_location = None
+                # Hide map and show the new location
+                renpy.hide_screen("map_browser")
+                if renpy.has_label("_post_travel_setup"):
+                    renpy.call("_post_travel_setup")
+                return True
+            return False
+        
+        def center_on_player(self, adj_x, adj_y, view_w, view_h, pad):
+            """Center the map view on the player's current location"""
+            if not rpg_world.current_location_id:
+                return
+                
+            loc = rpg_world.locations.get(rpg_world.current_location_id)
+            if not loc:
+                return
+                
+            # Calculate center position in map coords (including padding)
+            center_x = (loc.map_x + pad) * self.zoom
+            center_y = (loc.map_y + pad) * self.zoom
+            
+            # Update adjustments to center the view
+            adj_x.value = center_x - view_w / 2
+            adj_y.value = center_y - view_h / 2
+            
         def input_search(self):
             renpy.call_in_new_context("map_search_input_label")
 
@@ -577,6 +829,12 @@ init -10 python:
         def actor(self): return pc
         @property
         def current_location(self): return self.locations.get(self.current_location_id)
+        
+        def update_schedules(self):
+            for c in self.characters.values():
+                if c.id != "player":
+                    c.check_schedule()
+
         def add_location(self, l):
             self.locations[l.id] = l
             if not self.current_location_id: self.current_location_id = l.id
@@ -595,29 +853,255 @@ init -10 python:
     rpg_world = GameWorld()
     pc = RPGCharacter("player", "Player", base_image="characters/male_fit.png")
     rpg_world.add_character(pc)
+    
+    # --- ACHIEVEMENT SYSTEM ---
+    class Achievement(object):
+        """Represents an unlockable achievement with rarity tiers and event triggers."""
+        RARITY_COLORS = {
+            "common": "#9d9d9d",      # Gray
+            "uncommon": "#1eff00",    # Green
+            "rare": "#0070dd",        # Blue
+            "epic": "#a335ee",        # Purple
+            "legendary": "#ff8000",   # Orange
+        }
+        RARITY_POINTS = {
+            "common": 5,
+            "uncommon": 10,
+            "rare": 25,
+            "epic": 50,
+            "legendary": 100,
+        }
+        
+        def __init__(self, id, name, description, icon="🏆", rarity="common", tags=None, trigger=None, ticks_required=1):
+            self.id = id
+            self.name = name
+            self.description = description
+            self.icon = icon
+            self.rarity = rarity.lower() if rarity else "common"
+            self.tags = set(tags or [])
+            self.trigger = trigger or {}  # {event: "EVENT_NAME", key: value, cond: "..."}
+            self.ticks_required = max(1, int(ticks_required))
+        
+        @property
+        def color(self):
+            return self.RARITY_COLORS.get(self.rarity, "#9d9d9d")
+        
+        @property
+        def points(self):
+            return self.RARITY_POINTS.get(self.rarity, 5)
+        
+        def check_trigger(self, etype, **kwargs):
+            """Check if an event matches this achievement's trigger."""
+            if not self.trigger or self.trigger.get("event") != etype:
+                return False
+            # Check all key-value pairs in trigger (except reserved keys)
+            for k, v in self.trigger.items():
+                if k not in ["event", "cond"] and str(kwargs.get(k)) != str(v):
+                    return False
+            # Check condition if present
+            if self.trigger.get("cond"):
+                if not safe_eval_bool(self.trigger["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs}):
+                    return False
+            return True
+    
+    # Persistent progress for multi-tick achievements
+    default persistent.achievement_progress = {}
+    
     class AchievementManager:
+        """Manages achievement definitions, tracking, and event-based unlocks."""
+        def __init__(self):
+            self.registry = {}  # id -> Achievement
+        
+        def register(self, achievement):
+            """Register an achievement definition."""
+            self.registry[achievement.id] = achievement
+        
+        def get(self, ach_id):
+            """Get achievement by ID."""
+            return self.registry.get(ach_id)
+        
+        def get_progress(self, ach_id):
+            """Get current tick progress for an achievement."""
+            if persistent.achievement_progress is None:
+                persistent.achievement_progress = {}
+            return persistent.achievement_progress.get(ach_id, 0)
+        
+        def add_tick(self, ach_id, count=1):
+            """Add ticks to an achievement's progress. Auto-unlocks when complete."""
+            if persistent.achievement_progress is None:
+                persistent.achievement_progress = {}
+            
+            ach = self.registry.get(ach_id)
+            if not ach or self.is_unlocked(ach_id):
+                return False
+            
+            current = persistent.achievement_progress.get(ach_id, 0)
+            new_progress = current + count
+            persistent.achievement_progress[ach_id] = new_progress
+            
+            if new_progress >= ach.ticks_required:
+                self.unlock(ach_id)
+                return True
+            return False
+        
+        def handle_event(self, etype, **kwargs):
+            """Check all achievements for matching triggers."""
+            for ach in self.registry.values():
+                if not self.is_unlocked(ach.id) and ach.check_trigger(etype, **kwargs):
+                    self.add_tick(ach.id)
+        
         def unlock(self, ach_id):
-            if ach_id not in persistent.achievements:
+            """Unlock an achievement for the player."""
+            if persistent.achievements is None:
+                persistent.achievements = set()
+            
+            if ach_id in self.registry and ach_id not in persistent.achievements:
                 persistent.achievements.add(ach_id)
-                renpy.notify(f"Achievement Unlocked: {ach_id}")
+                ach = self.registry[ach_id]
+                renpy.show_screen("achievement_toast", ach=ach)
+                renpy.restart_interaction()
+                return True
+            return False
+        
+        def is_unlocked(self, ach_id):
+            """Check if achievement is unlocked."""
+            if persistent.achievements is None:
+                return False
+            return ach_id in persistent.achievements
+        
+        def get_all(self):
+            """Get all registered achievements."""
+            return sorted(self.registry.values(), key=lambda x: (x.rarity != "legendary", x.rarity != "epic", x.name))
+        
+        def get_unlocked(self):
+            """Get all unlocked achievements."""
+            if persistent.achievements is None:
+                return []
+            return [self.registry[aid] for aid in persistent.achievements if aid in self.registry]
+        
+        def get_locked(self):
+            """Get all locked achievements."""
+            if persistent.achievements is None:
+                return list(self.registry.values())
+            return [a for a in self.registry.values() if a.id not in persistent.achievements]
+        
+        @property
+        def total_points(self):
+            """Calculate total achievement points."""
+            return sum(a.points for a in self.get_unlocked())
+        
+        @property
+        def progress_text(self):
+            """Get progress as text (e.g., '3/10')."""
+            unlocked = len(self.get_unlocked())
+            total = len(self.registry)
+            return f"{unlocked}/{total}"
 
-    ach_mgr = AchievementManager() # Internal name
-    achievements = ach_mgr # Global alias for Markdown/Labels
+    ach_mgr = AchievementManager()
+    achievements = ach_mgr  # Global alias
 
-    class WikiManager:
-        def __init__(self): self.entries = {}
-        def register(self, n, d): self.entries[n] = d
+    def contested_check(stat_name, difficulty=10, target=None, success_label=None, fail_label=None):
+        """
+        Roll 1d20 + stat modifier against a difficulty or opposing stat (if target provided).
+        If success_label/fail_label are provided and exist, jump accordingly; otherwise returns bool.
+        """
+        roll = renpy.random.randint(1, 20)
+        actor_stat = getattr(pc.stats, stat_name, 0)
+        target_dc = difficulty
+        if target and hasattr(target, "stats"):
+            target_dc = getattr(target.stats, stat_name, difficulty)
+        total = roll + (actor_stat - 10) // 2
+        passed = total >= target_dc
+        renpy.notify(f"Check {stat_name}: {total} vs {target_dc} ({'pass' if passed else 'fail'})")
+        if success_label and passed and renpy.has_label(success_label):
+            renpy.jump(success_label)
+        elif fail_label and not passed and renpy.has_label(fail_label):
+            renpy.jump(fail_label)
+        return passed
+
+    class Note(object):
+        def __init__(self, id, name, content, tags=None):
+            self.id = id
+            self.name = name
+            self.content = content
+            self.tags = set(tags or [])
+
+    class JournalManager:
+        def __init__(self):
+            self.entries = {} # People: name -> description
+            self.notes = {}   # Notes: id -> Note object
+        
+        # --- People Logic (Legacy Wiki) ---
+        def register(self, n, d): 
+            self.entries[n] = d
+            
         def unlock(self, n, d=None):
             if n not in persistent.met_characters:
                 persistent.met_characters.add(n)
                 if d: self.register(n, d)
-                renpy.notify(f"Wiki Unlock: {n}")
+                renpy.notify(f"New Person Met: {n}")
+                event_manager.dispatch("CHAR_MET", char=n)
+        
         @property
-        def met_list(self): return [(n, self.entries.get(n, "No data.")) for n in sorted(persistent.met_characters)]
+        def met_list(self): 
+            return [(n, self.entries.get(n, "No data.")) for n in sorted(persistent.met_characters)]
 
-    wiki_manager = WikiManager()
+        # --- Note Logic ---
+        def register_note(self, note):
+            self.notes[note.id] = note
+            
+        def unlock_note(self, note_id):
+            if note_id in self.notes:
+                if persistent.unlocked_notes is None:
+                    persistent.unlocked_notes = set()
+                
+                if note_id not in persistent.unlocked_notes:
+                    persistent.unlocked_notes.add(note_id)
+                    renpy.notify(f"Note Found: {self.notes[note_id].name}")
+                    event_manager.dispatch("NOTE_UNLOCKED", note=note_id)
+        
+        def get_unlocked_notes(self):
+            if persistent.unlocked_notes is None:
+                return []
+            return [self.notes[nid] for nid in persistent.unlocked_notes if nid in self.notes]
 
+    wiki_manager = JournalManager()
+    journal_manager = wiki_manager # Alias
+
+    def from_dict(cls, data, id=None, **defaults):
+        """
+        Convert a YAML dict to class constructor kwargs.
+        Merges defaults with data (data takes precedence).
+        Optionally injects 'id' if provided.
+        """
+        params = dict(defaults)
+        params.update(data)
+        if id is not None:
+            params['id'] = id
+        return cls(**params)
+
+    def reset_game_data():
+        """Clear runtime registries before reloading generated data."""
+        item_manager.registry.clear()
+        slot_registry.slots.clear()
+        slot_registry.body_types.clear()
+        crafting_manager.recipes.clear()
+        dialogue_manager.options.clear()
+        story_origin_manager.origins.clear()
+        quest_manager.quests.clear()
+        quest_manager.start_triggers.clear()
+        ach_mgr.registry.clear()
+        wiki_manager.entries.clear()
+        wiki_manager.notes.clear()
+        rpg_world.locations.clear()
+        rpg_world.shops.clear()
+        rpg_world.characters.clear()
+        rpg_world.current_location_id = None
+        # Re-register the player to keep references stable across reloads
+        rpg_world.add_character(pc)
+    
     def instantiate_all():
+        reset_game_data()
         try:
             with renpy.file(".generated/generated_json.json") as f:
                 data = json.load(f)
@@ -635,17 +1119,8 @@ init -10 python:
 
         # Items (now with tags and equip_slots)
         for oid, p in data.get("items", {}).items():
-            item_manager.register(oid, Item(
-                p['name'], 
-                p['description'], 
-                p.get('weight', 0), 
-                p.get('value', 0),
-                tags=p.get('tags', []),
-                factions=p.get('factions', []),
-                equip_slots=p.get('equip_slots', []),
-                outfit_part=p.get('outfit_part')
-            ))
-            
+            item_manager.register(oid, from_dict(Item, p, id=oid))
+
 
         
         # Locations
@@ -691,7 +1166,9 @@ init -10 python:
                 factions=p.get('factions', []),
                 body_type=p.get('body_type', 'humanoid'),
                 items=p.get('items', []),
-                tags=p.get('tags', [])
+                tags=p.get('tags', []),
+                affinity=int(p.get('affinity', 0)),
+                schedule=p.get('schedule', {})
             )
             rpg_world.add_character(char)
                 
@@ -735,9 +1212,42 @@ init -10 python:
             rpg_world.shops[oid] = shop
             renpy.store.__dict__[oid] = shop
 
+        # Recipes
+        for oid, p in data.get("recipes", {}).items():
+            crafting_manager.register(Recipe(
+                oid,
+                p.get('name', oid),
+                p.get('inputs', {}),
+                p.get('output', {}),
+                req_skill=p.get('req_skill'),
+                tags=p.get('tags', [])
+            ))
+
+        # Notes
+        for oid, p in data.get("notes", {}).items():
+            wiki_manager.register_note(Note(
+                oid,
+                p.get('name', oid),
+                p.get('body', ''),
+                tags=p.get('tags', [])
+            ))
+
         # Quests
         for oid, p in data.get("quests", {}).items():
             quest_manager.add_quest(Quest(oid, p['name'], p['description']))
+
+        # Achievements
+        for oid, p in data.get("achievements", {}).items():
+            ach_mgr.register(Achievement(
+                oid,
+                p.get('name', oid),
+                p.get('description', ''),
+                icon=p.get('icon', '🏆'),
+                rarity=p.get('rarity', 'common'),
+                tags=p.get('tags', []),
+                trigger=p.get('trigger', {}),
+                ticks_required=p.get('ticks', 1)
+            ))
 
     instantiate_all()
 

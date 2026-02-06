@@ -1,4 +1,5 @@
 default td_zoom = 1.0
+default show_reachability = False
 
 transform td_cinematic_enter:
     subpixel True
@@ -26,6 +27,8 @@ screen top_down_map(location):
     key "K_MINUS" action SetVariable("td_zoom", max(0.5, td_zoom - 0.1))
     key "mousedown_4" action SetVariable("td_zoom", min(2.5, td_zoom + 0.1))
     key "mousedown_5" action SetVariable("td_zoom", max(0.5, td_zoom - 0.1))
+    key "c" action Function(td_manager.snap_camera)
+    key "h" action ToggleVariable("show_reachability")
     
     # Update Loop - Paused when phone is open
     timer 0.033 repeat True action [
@@ -65,10 +68,14 @@ screen top_down_map(location):
                 action Function(_td_click_to_move)
                 background None
 
-            # 3. Interactive Entities (NPCs, Exits, Objects)
-            for entity in td_manager.entities:
+            # 3. Interactive Entities (NPCs, Exits, Objects, Player) - Depth Sorted
+            for entity in td_manager.get_sorted_entities():
                 $ sx = int(entity.x - cam_x)
                 $ sy = int(entity.y - cam_y)
+                $ reach_color = None
+                if show_reachability and not entity.is_player:
+                    $ path_ok = bool(td_manager.find_path((int(td_manager.player_pos[0]), int(td_manager.player_pos[1])), (int(entity.x), int(entity.y))))
+                    $ reach_color = TintMatrix("#44ff44") if path_ok else TintMatrix("#ff4444")
                 
                 button:
                     anchor (0.5, 0.5)
@@ -80,34 +87,28 @@ screen top_down_map(location):
                     
                     background None
                     
-                    # Visuals
-                    fixed at phone_visual_hover:
-                        if entity.sprite_tint:
-                            # For colored markers (like exits)
-                            # NO SCALE CHANGE ON HOVER
-                            add Transform(entity.sprite, zoom=0.3, matrixcolor=entity.sprite_tint) align (0.5, 0.5)
-                        else:
-                            # For characters/objects
-                            if entity.idle_anim:
-                                # NO SCALE CHANGE ON HOVER
-                                add At(Transform(entity.sprite, zoom=0.35), char_idle_anim) align (0.5, 0.5)
+                    # Visuals - Different rendering for player vs other entities
+                    if entity.is_player:
+                        add Transform(
+                            entity.sprite,
+                            zoom=0.35,
+                            rotate=entity.rotation,
+                            anchor=(0.5, 1.0),
+                            align=(0.5, 1.0),
+                            transform_anchor=True,
+                            subpixel=True
+                        )
+                    else:
+                        fixed at phone_visual_hover:
+                            if entity.sprite_tint:
+                                # For colored markers (like exits)
+                                add Transform(entity.sprite, zoom=0.3, matrixcolor=entity.sprite_tint) align (0.5, 0.5)
                             else:
-                                # NO SCALE CHANGE ON HOVER
-                                add Transform(entity.sprite, zoom=0.35) align (0.5, 0.5)
-
-            # 4. Player Sprite
-            $ psx = int(td_manager.player_pos[0] - cam_x)
-            $ psy = int(td_manager.player_pos[1] - cam_y)
-            
-            button:
-                anchor (0.5, 0.5)
-                pos (psx, psy)
-                xsize 120 ysize 120
-                action NullAction()
-                tooltip pc.name
-                background None
-                
-                add Transform(pc.td_sprite, zoom=0.35, rotate=td_manager.player_rotation, subpixel=True) align (0.5, 0.5)
+                                # For characters/objects
+                                if entity.idle_anim:
+                                    add At(Transform(entity.sprite, zoom=0.35, matrixcolor=reach_color), char_idle_anim) align (0.5, 0.5)
+                                else:
+                                    add Transform(entity.sprite, zoom=0.35, matrixcolor=reach_color) align (0.5, 0.5)
     
     # 5. UI Layers (Location Name, Dashboard)
     frame:
@@ -115,6 +116,30 @@ screen top_down_map(location):
         background "#00000088"
         padding (20, 8)
         text "[location.name]" size 28 color "#ffffff"
+    
+    # Time and schedule quick panel
+    frame:
+        align (0.18, 0.02)
+        background "#00000088"
+        padding (12, 10)
+        vbox:
+            spacing 6
+            text "Time: [time_manager.time_string]" size 18 color "#ffd700"
+            hbox:
+                spacing 6
+                textbutton "+15m" action Function(time_manager.advance, 15) text_size 14
+                textbutton "+1h" action Function(time_manager.advance, 60) text_size 14
+                text "[time_manager.time_of_day]" size 14 color "#ccc"
+            text "Here now:" size 14 color "#aaa"
+            vbox:
+                spacing 2
+                for c in location.characters:
+                    $ nxt_time, nxt_loc = c.next_schedule_entry()
+                    hbox:
+                        spacing 6
+                        text c.name size 14 color "#fff"
+                        if nxt_time and nxt_loc:
+                            text f"→ {nxt_loc} @ {nxt_time}" size 12 color "#777"
     
     frame:
         align (0.02, 0.98)
@@ -124,6 +149,7 @@ screen top_down_map(location):
             spacing 10
             textbutton "📱 PHONE" action Show("phone_router") text_size 24 text_color "#00bfff"
             textbutton "DEV" action Show("dev_mode_screen") text_size 14 text_color "#ff3333"
+            textbutton "CENTER" action Function(td_manager.snap_camera) text_size 12 text_color "#ccc"
 
     # 6. Tooltip Layer
     use mouse_tooltip

@@ -1,5 +1,27 @@
 # Developer Mode Screens
 default dev_tab = "items"
+default dev_reload_message = ""
+
+init python:
+    import subprocess, sys, os
+    def _dev_reload_content():
+        global dev_reload_message
+        base_dir = os.path.dirname(config.gamedir)
+        compile_path = os.path.join(base_dir, "game", "python", "compile_data.py")
+        try:
+            res = subprocess.run([sys.executable, compile_path], cwd=base_dir, capture_output=True, text=True)
+            if res.returncode != 0:
+                dev_reload_message = f"Compile failed: {res.stderr.strip() or res.stdout.strip()}"
+                return dev_reload_message
+        except Exception as e:
+            dev_reload_message = f"Compile error: {e}"
+            return dev_reload_message
+        try:
+            instantiate_all()
+            dev_reload_message = "Content reloaded."
+        except Exception as e:
+            dev_reload_message = f"Reload error: {e}"
+        return dev_reload_message
 
 screen dev_mode_screen():
     tag menu
@@ -44,6 +66,16 @@ screen dev_mode_screen():
             elif dev_tab == "chars":
                 use dev_chars_view()
         
+        hbox:
+            spacing 20
+            xalign 0.5
+            textbutton "RELOAD CONTENT":
+                action [Function(_dev_reload_content), Notify(dev_reload_message or "Reload requested")]
+                text_size 18
+                text_color "#ffcc66"
+            if dev_reload_message:
+                text "[dev_reload_message]" size 14 color "#aaa"
+
         textbutton "EXIT CONSOLE":
             xalign 0.5
             action Hide("dev_mode_screen")
