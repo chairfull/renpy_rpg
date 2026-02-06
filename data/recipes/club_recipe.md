@@ -1,13 +1,13 @@
 ---
 type: recipe
 id: recipe_club
-name: Crude Club
+name: Signal Baton
 inputs:
   wood: 1
   stone: 1
 output:
   club: 1
 req_skill:
-  strength: 1
-tags: [beginner, weapon]
+  dexterity: 1
+tags: [beginner, tool]
 ---

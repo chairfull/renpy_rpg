@@ -1,18 +1,19 @@
 ---
 type: character
 id: lady
-name: Lady Elara
-description: A noblewoman browsing the market wares.
+name: Councilor Imani
+description: A policy lead who tracks routes, ration flow, and risk.
 base_image: chars/female_fit.png
 location: market
 pos: 900,600
 factions:
-  - nobles
+  - merchants
 tags:
+  - planner
   - important
 ---
 # Talk
 ```flow
-lady: Oh, hello there. Are you also looking for rare spices?
-lady: The market here is surprisingly well-stocked today.
+lady: We keep people moving and the sleepers drifting.
+lady: If you hear a new pattern, report it fast.
 ```

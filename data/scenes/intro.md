@@ -1,12 +1,12 @@
 ---
 type: scene
 id: intro
-name: Arrival in Town
+name: The Quiet Drift
 ---
 # Start
 ```flow
-Welcome to the town of AI.
-A small place with big potential.
-You stand in the Town Square, looking around.
-$ achievements.unlock("started_game")
+The city is quiet now.
+Not dead. Just slow.
+They call them sleepers, and they follow sound more than light.
+Your settlement has held, but the walls are thinning.
 ```

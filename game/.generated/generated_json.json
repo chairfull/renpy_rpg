@@ -27,27 +27,26 @@
             "outfit_part": null
         },
         "apple": {
-            "name": "Apple",
-            "description": "A juicy red apple. Restoration - 5 HP.",
-            "weight": 0.1,
+            "name": "Ration Bar",
+            "description": "A compact calorie bar for quick energy.",
+            "weight": 0.2,
             "value": 5,
             "tags": [
                 "food",
-                "consumable",
-                "health"
+                "ration"
             ],
             "factions": [],
             "equip_slots": [],
             "outfit_part": null
         },
         "club": {
-            "name": "Wooden Club",
-            "description": "A primitive weapon made of wood and stone.",
-            "weight": 3.5,
+            "name": "Signal Baton",
+            "description": "A weighted baton tuned to knock and tap without harm.",
+            "weight": 2.5,
             "value": 10,
             "tags": [
-                "weapon",
-                "blunt"
+                "tool",
+                "signal"
             ],
             "factions": [],
             "equip_slots": [
@@ -56,12 +55,12 @@
             "outfit_part": null
         },
         "potion": {
-            "name": "Health Potion",
-            "description": "A bubbling red liquid. Restores 30 HP.",
-            "weight": 0.5,
-            "value": 20,
+            "name": "Antiseptic Ampoule",
+            "description": "A sealed dose that eases fever and stabilizes wounds.",
+            "weight": 0.3,
+            "value": 25,
             "tags": [
-                "potion",
+                "medical",
                 "consumable",
                 "health"
             ],
@@ -83,27 +82,26 @@
             "outfit_part": null
         },
         "sword": {
-            "name": "Iron Sword",
-            "description": "A standard iron sword. Sharp and reliable.",
+            "name": "Utility Pry Bar",
+            "description": "A solid metal bar for lifting panels and opening jammed doors.",
             "weight": 2.0,
             "value": 50,
             "tags": [
-                "weapon",
+                "tool",
                 "metal",
-                "melee"
+                "utility"
             ],
             "factions": [],
             "equip_slots": [
-                "right_hand",
-                "left_hand"
+                "main_hand"
             ],
             "outfit_part": null
         }
     },
     "characters": {
         "lady": {
-            "name": "Lady Elara",
-            "description": "A noblewoman browsing the market wares.",
+            "name": "Councilor Imani",
+            "description": "A policy lead who tracks routes, ration flow, and risk.",
             "location": "market",
             "items": [],
             "base_image": "chars/female_fit.png",
@@ -111,20 +109,22 @@
             "x": 900,
             "y": 600,
             "tags": [
+                "planner",
                 "important"
             ],
             "factions": [
-                "nobles"
+                "merchants"
             ],
             "body_type": "humanoid",
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__lady__talk"
         },
         "ranger": {
-            "name": "Ranger Thorne",
-            "description": "A taciturn woodsman who patrols the forest roads.",
+            "name": "Scout Lena",
+            "description": "A quiet scout who reads the outskirts like a map.",
             "location": "forest_edge",
             "items": [],
             "base_image": null,
@@ -132,21 +132,22 @@
             "x": 400,
             "y": 300,
             "tags": [
-                "outdoorsman",
-                "soldier"
+                "outdoors",
+                "scout"
             ],
             "factions": [
-                "rangers"
+                "town_guard"
             ],
             "body_type": "humanoid",
             "stats": {},
             "affinity": -5,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__ranger__talk"
         },
         "merchant_hakim": {
-            "name": "Merchant Hakim",
-            "description": "A foreign trader with exotic wares from distant lands.",
+            "name": "Quartermaster Hakim",
+            "description": "Manages the ration crates and barter ledgers.",
             "location": "market",
             "items": [],
             "base_image": null,
@@ -155,22 +156,22 @@
             "y": 550,
             "tags": [
                 "merchant",
-                "traveler"
+                "organizer"
             ],
             "factions": [
-                "merchants",
-                "foreign"
+                "merchants"
             ],
             "body_type": "humanoid",
             "stats": {},
             "affinity": 5,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__merchant_hakim__talk"
         },
         "guard_captain": {
-            "name": "Guard Captain",
-            "description": "A stern but fair leader of the town guard.",
-            "location": "city_center",
+            "name": "Watch Captain Rafi",
+            "description": "The calm, firm voice at the quarantine gate.",
+            "location": "guardhouse",
             "items": [],
             "base_image": null,
             "td_sprite": null,
@@ -178,7 +179,7 @@
             "y": 400,
             "tags": [
                 "authority",
-                "soldier"
+                "watch"
             ],
             "factions": [
                 "town_guard"
@@ -187,11 +188,12 @@
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__guard_captain__talk"
         },
         "bard": {
-            "name": "Traveling Bard",
-            "description": "A flamboyant musician who performs for coin and applause.",
+            "name": "Signalist Jun",
+            "description": "A calm voice who keeps the shelter steady with tone and timing.",
             "location": "tavern",
             "items": [],
             "base_image": null,
@@ -199,19 +201,20 @@
             "x": 500,
             "y": 300,
             "tags": [
-                "entertainer",
-                "traveler"
+                "signal",
+                "tech"
             ],
             "factions": [],
             "body_type": "humanoid",
             "stats": {},
-            "affinity": 15,
+            "affinity": 10,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__bard__talk"
         },
         "stranger": {
-            "name": "Mysterious Stranger",
-            "description": "A cloaked figure who seems to know more than they let on.",
+            "name": "Drifter Ash",
+            "description": "A quiet survivor with a map of places that no longer exist.",
             "location": "tavern",
             "items": [],
             "base_image": null,
@@ -220,20 +223,19 @@
             "y": 400,
             "tags": [
                 "mysterious",
-                "quest_giver"
+                "survivor"
             ],
-            "factions": [
-                "unknown"
-            ],
+            "factions": [],
             "body_type": "humanoid",
             "stats": {},
             "affinity": -10,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__stranger__talk"
         },
         "warrior": {
-            "name": "Mercenary Kael",
-            "description": "A battle-hardened veteran seeking coin and glory.",
+            "name": "Runner Kael",
+            "description": "A fast courier who knows which alleys still breathe.",
             "location": "market",
             "items": [
                 "sword"
@@ -246,18 +248,19 @@
             "factions": [],
             "body_type": "humanoid",
             "stats": {
-                "strength": 15,
-                "dexterity": 12,
-                "intelligence": 8,
+                "strength": 12,
+                "dexterity": 15,
+                "intelligence": 9,
                 "charisma": 8
             },
             "affinity": 0,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__warrior__talk"
         },
         "fisherman": {
-            "name": "Old Fisherman",
-            "description": "A weathered sailor with tales from the sea.",
+            "name": "Dockworker Jace",
+            "description": "A quiet worker who watches the harbor for lights.",
             "location": "docks",
             "items": [],
             "base_image": null,
@@ -266,18 +269,19 @@
             "y": 500,
             "tags": [
                 "commoner",
-                "storyteller"
+                "lookout"
             ],
             "factions": [],
             "body_type": "humanoid",
             "stats": {},
             "affinity": 5,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__fisherman__talk"
         },
         "blacksmith": {
-            "name": "Blacksmith Greta",
-            "description": "A muscular woman with arms like tree trunks and a fiery temper.",
+            "name": "Mechanic Greta",
+            "description": "Keeps alarms, doors, and rigs working with a steady hand.",
             "location": "market",
             "items": [],
             "base_image": null,
@@ -285,22 +289,22 @@
             "x": 400,
             "y": 500,
             "tags": [
-                "merchant",
-                "crafter"
+                "crafter",
+                "mechanic"
             ],
             "factions": [
-                "merchants",
-                "craftsmen"
+                "merchants"
             ],
             "body_type": "humanoid",
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__blacksmith__talk"
         },
         "shopkeeper": {
-            "name": "Shopkeeper",
-            "description": "A friendly old man.",
+            "name": "Depot Clerk",
+            "description": "Keeps the shelves moving and the ledger clean.",
             "location": "shop",
             "items": [],
             "base_image": "chars/male_average.png",
@@ -313,11 +317,12 @@
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__shopkeeper__talk"
         },
         "scholar": {
-            "name": "Scholar Theo",
-            "description": "A seeker of truth and ancient knowledge.",
+            "name": "Archivist Theo",
+            "description": "Keeps records of signals, routes, and survivor logs.",
             "location": "city_center",
             "items": [],
             "base_image": "chars/male_thin.png",
@@ -335,11 +340,12 @@
             },
             "affinity": 0,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__scholar__talk"
         },
         "priestess": {
-            "name": "Priestess Elena",
-            "description": "A serene healer devoted to the old gods.",
+            "name": "Clinician Elena",
+            "description": "A careful medic who keeps panic low and recovery high.",
             "location": "temple",
             "items": [],
             "base_image": null,
@@ -348,20 +354,19 @@
             "y": 300,
             "tags": [
                 "healer",
-                "religious"
+                "medic"
             ],
-            "factions": [
-                "temple"
-            ],
+            "factions": [],
             "body_type": "humanoid",
             "stats": {},
             "affinity": 20,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__priestess__talk"
         },
         "orphan": {
-            "name": "Orphan Pip",
-            "description": "A scrappy street kid who knows every alley in town.",
+            "name": "Lost Kid Nia",
+            "description": "A sharp eyed kid who knows every safe corner.",
             "location": "market",
             "items": [],
             "base_image": null,
@@ -370,19 +375,19 @@
             "y": 600,
             "tags": [
                 "child",
-                "commoner",
-                "thief"
+                "runner"
             ],
             "factions": [],
             "body_type": "humanoid",
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__orphan__talk"
         },
         "mayor": {
-            "name": "Mayor",
-            "description": "The leader of our fine town.",
+            "name": "Coordinator Mara",
+            "description": "The steady hand keeping the settlement running.",
             "location": "market",
             "items": [],
             "base_image": "chars/male_fit.png",
@@ -391,7 +396,7 @@
             "y": 600,
             "tags": [
                 "important",
-                "noble"
+                "leader"
             ],
             "factions": [
                 "town_guard",
@@ -401,11 +406,12 @@
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__mayor__talk"
         },
         "innkeeper": {
-            "name": "Innkeeper",
-            "description": "A jovial fellow who runs the Rusty Tankard.",
+            "name": "Shelter Host Faye",
+            "description": "Keeps cots, soup, and rumors in the same warm room.",
             "location": "tavern",
             "items": [],
             "base_image": null,
@@ -413,7 +419,7 @@
             "x": 300,
             "y": 350,
             "tags": [
-                "merchant",
+                "host",
                 "friendly"
             ],
             "factions": [
@@ -423,13 +429,14 @@
             "stats": {},
             "affinity": 10,
             "schedule": {},
+            "companion_mods": {},
             "label": "CHAR__innkeeper__talk"
         }
     },
     "locations": {
         "home": {
-            "name": "Your Home",
-            "description": "A cozy little house.",
+            "name": "Safehouse Room",
+            "description": "Your assigned bunk inside the quarantine block.",
             "map_image": "#1a1a2a",
             "obstacles": [],
             "entities": [
@@ -446,8 +453,8 @@
                 {
                     "id": "bed",
                     "type": "object",
-                    "name": "Bed",
-                    "description": "A comfortable-looking bed.",
+                    "name": "Cot",
+                    "description": "A narrow cot with a clean blanket.",
                     "label": "LOC__home__bed",
                     "x": 300,
                     "y": 500,
@@ -456,8 +463,8 @@
                 {
                     "id": "mirror",
                     "type": "object",
-                    "name": "Mirror",
-                    "description": "You look great today!",
+                    "name": "Small Mirror",
+                    "description": "Check your face and move on.",
                     "label": "LOC__home__mirror",
                     "x": 1400,
                     "y": 300,
@@ -466,21 +473,15 @@
                 {
                     "id": "closet",
                     "type": "container",
-                    "name": "Bedroom Closet",
-                    "description": "A sturdy wooden closet for your belongings.",
+                    "name": "Supply Locker",
+                    "description": "A battered locker for your essentials.",
                     "x": 0,
                     "y": 0,
                     "items": [
-                        "sword",
+                        "camp_kit",
+                        "apple",
                         "potion"
                     ],
-                    "lock": {
-                        "type": "physical",
-                        "difficulty": 3,
-                        "keys": [
-                            "closet_key"
-                        ]
-                    },
                     "sprite": "images/topdown/chars/male_base.png"
                 }
             ],
@@ -501,10 +502,15 @@
             "factions": []
         },
         "market": {
-            "name": "Grand Market",
-            "description": "The bustling heart of the town, filled with merchants hawking their wares.",
+            "name": "Relief Exchange",
+            "description": "Lines of crates and a steady flow of supplies.",
             "map_image": "#333",
-            "obstacles": "10,10|10,11|11,10|11,11",
+            "obstacles": [
+                "  - [10, 10]",
+                "  - [10, 11]",
+                "  - [11, 10]",
+                "  - [11, 11]"
+            ],
             "entities": [
                 {
                     "id": "home",
@@ -526,15 +532,11 @@
                         800
                     ]
                 },
-                "mayor",
-                "blacksmith",
-                "orphan",
-                "merchant_hakim",
                 {
-                    "id": "dummy",
+                    "id": "console",
                     "type": "object",
-                    "name": "Training Dummy",
-                    "description": "Looks tough.",
+                    "name": "Signal Console",
+                    "description": "A cracked screen with a faint repeating tone.",
                     "label": "test_minigame",
                     "x": 400,
                     "y": 300,
@@ -543,11 +545,11 @@
             ],
             "encounters": [
                 {
-                    "id": "market_pickpocket",
-                    "label": "LOC__market__encounter_pickpocket",
+                    "id": "market_swap",
+                    "label": "LOC__market__encounter_swap",
                     "chance": 0.35,
                     "once": true,
-                    "cond": "not flag_get('market_pickpocket', False)"
+                    "cond": "not flag_get('market_swap', False)"
                 }
             ],
             "scavenge": [],
@@ -564,8 +566,8 @@
             "factions": []
         },
         "docks": {
-            "name": "Harbor Docks",
-            "description": "Wooden piers stretching into the sea, with ships coming and going.",
+            "name": "Quarantine Docks",
+            "description": "Silent piers and a distant, empty harbor.",
             "map_image": null,
             "obstacles": [],
             "entities": [],
@@ -595,8 +597,8 @@
             "factions": []
         },
         "tavern": {
-            "name": "The Rusty Tankard",
-            "description": "A lively tavern filled with music, laughter, and the smell of ale.",
+            "name": "Shelter Hall",
+            "description": "Cots, quiet songs, and a warm meal if you're lucky.",
             "map_image": null,
             "obstacles": [],
             "entities": [],
@@ -617,17 +619,17 @@
             "factions": []
         },
         "forest_edge": {
-            "name": "Forest Edge",
-            "description": "The border between civilization and the wild woods beyond.",
+            "name": "Outskirts Line",
+            "description": "The fence line where the city thins into overgrowth and silent lots.",
             "map_image": null,
             "obstacles": [],
             "entities": [],
             "encounters": [
                 {
-                    "id": "forest_rustle",
-                    "label": "LOC__forest_edge__encounter_rustle",
+                    "id": "fence_rattle",
+                    "label": "LOC__forest_edge__encounter_rattle",
                     "chance": 0.5,
-                    "cond": "not flag_get('forest_rustle', False)"
+                    "cond": "not flag_get('fence_rattle', False)"
                 }
             ],
             "scavenge": [
@@ -657,8 +659,8 @@
             "factions": []
         },
         "city_center": {
-            "name": "City Center",
-            "description": "The bustling heart of the city.",
+            "name": "Civic Hub",
+            "description": "A sandbagged plaza with radios and posted routes.",
             "map_image": null,
             "obstacles": [],
             "entities": [],
@@ -677,8 +679,8 @@
             "factions": []
         },
         "temple": {
-            "name": "Temple of the Light",
-            "description": "An ancient stone temple where priests tend to the faithful.",
+            "name": "Dawn Clinic",
+            "description": "Clean sheets, soft lights, and careful hands.",
             "map_image": null,
             "obstacles": [],
             "entities": [],
@@ -699,8 +701,8 @@
             "factions": []
         },
         "guardhouse": {
-            "name": "Town Guardhouse",
-            "description": "Where the town guard keeps watch and holds prisoners.",
+            "name": "Quarantine Gate",
+            "description": "Checkpoint lights, logbooks, and a tight line of rules.",
             "map_image": null,
             "obstacles": [],
             "entities": [],
@@ -719,8 +721,8 @@
             "factions": []
         },
         "mage_tower_f1": {
-            "name": "Mage Tower (Floor 1)",
-            "description": "The lobby of the tower.",
+            "name": "Broadcast Tower Lobby",
+            "description": "Dusty consoles and a sealed control room.",
             "map_image": null,
             "obstacles": [],
             "entities": [],
@@ -739,8 +741,8 @@
             "factions": []
         },
         "shop": {
-            "name": "General Store",
-            "description": "A place to buy supplies.",
+            "name": "Supply Depot",
+            "description": "Shelves of ration tins and repair tools.",
             "map_image": null,
             "obstacles": [],
             "entities": [
@@ -770,8 +772,8 @@
             "factions": []
         },
         "mage_tower": {
-            "name": "Mage Tower",
-            "description": "A tall spire piercing the sky.",
+            "name": "Broadcast Tower",
+            "description": "A concrete spire that once blanketed the city with signal.",
             "map_image": null,
             "obstacles": [],
             "entities": [],
@@ -792,20 +794,24 @@
     },
     "quests": {
         "iron_and_fire": {
-            "name": "Iron and Fire",
-            "description": "Blacksmith Greta needs some materials to test your worth."
+            "name": "Tools and Fire",
+            "description": "Mechanic Greta needs materials to build non-lethal tools and alarms."
         },
         "apple_hunt": {
-            "name": "The Great Apple Hunt",
-            "description": "Gathering supplies for the journey."
+            "name": "Ration Run",
+            "description": "Gather rations for the shelter."
         },
         "formal_intro": {
-            "name": "Formal Introduction",
-            "description": "Meet the leaders of the town."
+            "name": "Chain of Command",
+            "description": "Meet the leaders keeping the district steady."
+        },
+        "long_dawn": {
+            "name": "The Long Dawn",
+            "description": "A non-violent journey to restore hope and a cure in a world of sleepers."
         },
         "scholars_secret": {
-            "name": "The Scholar's Secret",
-            "description": "Scholar Theo is looking for an ancient text."
+            "name": "Patient Zero",
+            "description": "Theo is searching for the first record of the sleepers."
         }
     },
     "containers": {},
@@ -841,24 +847,20 @@
     },
     "factions": {
         "merchants": {
-            "name": "Merchants Guild",
-            "description": "A guild of traders and shopkeepers.",
+            "name": "Relief Guild",
+            "description": "Supply runners, mechanics, and traders keeping people fed and equipped.",
             "allies": [
-                "town_guard",
-                "nobles"
+                "town_guard"
             ],
             "enemies": []
         },
         "town_guard": {
-            "name": "Town Guard",
-            "description": "Protectors of the city.",
+            "name": "Civic Watch",
+            "description": "The quarantine line and patrols that keep the settlement secure.",
             "allies": [
-                "merchants",
-                "nobles"
+                "merchants"
             ],
-            "enemies": [
-                "thieves"
-            ]
+            "enemies": []
         }
     },
     "slots": {
@@ -937,49 +939,138 @@
         }
     },
     "dialogue": {
-        "mayor_charisma_test": {
-            "short": "Compliment outfit",
-            "long": "You look very professional today, Mayor. (Requires Charisma 12)",
-            "emoji": "\u2728",
+        "ranger_ask_for_a_guide": {
+            "short": "Ask for a guide",
+            "long": "I could use a scout. Walk with me.",
+            "emoji": "",
             "chars": [
-                "mayor"
+                "ranger"
             ],
             "tags": [
-                "Charisma"
+                "Companion"
             ],
-            "memory": false,
-            "reason": null,
-            "cond": "pc.stats.charisma >= 12",
-            "label": "CHOICE__mayor_charisma_test"
+            "memory": true,
+            "reason": "Already traveling with you.",
+            "cond": "not flag_get('scout_joined', False)",
+            "label": "CHOICE__ranger_ask_for_a_guide"
         },
-        "mayor_history": {
-            "short": "Ask about history",
-            "long": "This town has been here for a long time. I'd like to know how it all started.",
-            "emoji": "\ud83d\udcd6",
+        "ranger_ask_to_part_ways": {
+            "short": "Ask to part ways",
+            "long": "Head back. I will manage from here.",
+            "emoji": "",
+            "chars": [
+                "ranger"
+            ],
+            "tags": [
+                "Companion"
+            ],
+            "memory": true,
+            "reason": "Not traveling with you.",
+            "cond": "flag_get('scout_joined', False)",
+            "label": "CHOICE__ranger_ask_to_part_ways"
+        },
+        "guard_captain_request_gate_pass": {
+            "short": "Request gate pass",
+            "long": "I need access beyond the fence. (Requires Charisma 10)",
+            "emoji": "",
+            "chars": [
+                "guard_captain"
+            ],
+            "tags": [
+                "Gate"
+            ],
+            "memory": true,
+            "reason": "Needs Charisma 10.",
+            "cond": "pc.stats.charisma >= 10",
+            "label": "CHOICE__guard_captain_request_gate_pass"
+        },
+        "guard_captain_report_a_quiet_route": {
+            "short": "Report quiet route",
+            "long": "I found a path with less noise and fewer sleepers.",
+            "emoji": "",
+            "chars": [
+                "guard_captain"
+            ],
+            "tags": [
+                "Patrol"
+            ],
+            "memory": true,
+            "reason": null,
+            "cond": "True",
+            "label": "CHOICE__guard_captain_report_a_quiet_route"
+        },
+        "bard_learn_cadence": {
+            "short": "Learn cadence",
+            "long": "Teach me a calming signal pattern.",
+            "emoji": "",
+            "chars": [
+                "bard"
+            ],
+            "tags": [
+                "Signal"
+            ],
+            "memory": true,
+            "reason": "You already learned it.",
+            "cond": "not flag_get('cadence_learned', False)",
+            "label": "CHOICE__bard_learn_cadence"
+        },
+        "priestess_checkup": {
+            "short": "Ask for a checkup",
+            "long": "Can you take a quick look at me?",
+            "emoji": "",
+            "chars": [
+                "priestess"
+            ],
+            "tags": [
+                "Medical"
+            ],
+            "memory": true,
+            "reason": null,
+            "cond": "True",
+            "label": "CHOICE__priestess_checkup"
+        },
+        "mayor_offer_help": {
+            "short": "Offer help",
+            "long": "If you need someone fast, I can run it.",
+            "emoji": "",
             "chars": [
                 "mayor"
             ],
             "tags": [
-                "History",
+                "Quest"
+            ],
+            "memory": true,
+            "reason": null,
+            "cond": "True",
+            "label": "CHOICE__mayor_offer_help"
+        },
+        "mayor_ask_about_the_signal": {
+            "short": "Ask about the signal",
+            "long": "What do we know about the repeating tone?",
+            "emoji": "",
+            "chars": [
+                "mayor"
+            ],
+            "tags": [
                 "Lore"
             ],
             "memory": true,
             "reason": null,
             "cond": "True",
-            "label": "CHOICE__mayor_history"
+            "label": "CHOICE__mayor_ask_about_the_signal"
         }
     },
     "story_origins": {
         "warrior": {
-            "name": "The Mercenary",
-            "description": "A battle-hardened veteran seeking coin and glory. High physical stats but less silver-tongued.",
+            "name": "The Courier",
+            "description": "A fast runner trusted with dangerous routes and fragile messages.",
             "pc_id": "warrior",
             "intro_label": "SCENE__warrior__intro",
             "image": "chars/male_fit.png"
         },
         "scholar": {
-            "name": "The Scholar",
-            "description": "A seeker of truth and ancient knowledge. Weaker in combat but highly intelligent and charismatic.",
+            "name": "The Medic",
+            "description": "A calm clinician who knows how to soothe panic and treat the sick.",
             "pc_id": "scholar",
             "intro_label": "SCENE__scholar__intro",
             "image": "chars/male_thin.png"
@@ -987,26 +1078,25 @@
     },
     "shops": {
         "general_store": {
-            "name": "AI General Store",
-            "description": "The best place for supplies in the digital world.",
-            "buy_mult": 1.2,
+            "name": "Relief Depot",
+            "description": "The main distribution point for rations and repair kits.",
+            "buy_mult": 1.1,
             "sell_mult": 0.6,
             "items": [
-                "sword",
-                "sword",
+                "apple",
+                "apple",
                 "potion",
                 "potion",
-                "apple",
-                "apple",
-                "apple",
                 "camp_kit",
-                "camp_kit"
+                "camp_kit",
+                "sword",
+                "club"
             ]
         }
     },
     "recipes": {
         "recipe_club": {
-            "name": "Crude Club",
+            "name": "Signal Baton",
             "inputs": {
                 "wood": 1,
                 "stone": 1
@@ -1015,21 +1105,18 @@
                 "club": 1
             },
             "req_skill": {
-                "strength": 1
+                "dexterity": 1
             },
             "tags": [
                 "beginner",
-                "weapon"
+                "tool"
             ]
         }
     },
     "notes": {
         "note_ancient_history": {
-            "name": "Ancient History",
-            "tags": [
-                "lore",
-                "history"
-            ]
+            "name": "Outbreak Chronicle",
+            "tags": []
         }
     },
     "achievements": {
@@ -1100,6 +1187,48 @@
                 "event": "GAME_STARTED"
             },
             "ticks": 1
+        }
+    },
+    "perks": {
+        "silver_tongue": {
+            "name": "Silver Tongue",
+            "description": "Your words carry extra weight.",
+            "mods": {
+                "charisma": 2
+            },
+            "tags": [
+                "social"
+            ],
+            "duration": null
+        }
+    },
+    "status_effects": {
+        "flu": {
+            "name": "Feverish",
+            "description": "Shaky hands and a foggy head.",
+            "mods": {
+                "strength": -2,
+                "dexterity": -2
+            },
+            "tags": [
+                "illness"
+            ],
+            "duration": "1440"
+        }
+    },
+    "bonds": {
+        "mayor_guard_captain": {
+            "a": "mayor",
+            "b": "guard_captain",
+            "tags": [
+                "coordinator",
+                "watch",
+                "chain_of_command"
+            ],
+            "stats": {
+                "trust": 40,
+                "strain": 10
+            }
         }
     }
 }

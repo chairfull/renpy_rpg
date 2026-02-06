@@ -70,6 +70,29 @@ The Tower? It has stood there since before my grandfather's time.
 The Mayor sighs deeply as he looks toward the horizon.
 ```
 
+### ✅ Flow Directives (ALLCAPS)
+Inside ` ```flow` blocks you can write simple ALLCAPS commands (no Python needed):
+
+```flow
+FLAG SET met_mayor true
+EVENT ITEM_GAINED item=gold_coin total=1
+GIVE apple 2
+TAKE potion 1
+GOLD 10
+REST 8
+SCAVENGE
+PERK ADD silver_tongue
+STATUS ADD flu 120
+COMPANION ADD bard
+BOND ADD mayor trust 5
+BOND TAG mayor ally
+TRAVEL market
+JUMP SCENE__intro__flow
+COND "flag_get('met_mayor', False)" SCENE__mayor__talk SCENE__mayor__locked
+CHECK dexterity 12 SCENE__sneak_success SCENE__sneak_fail
+NOTIFY "You feel a cold draft."
+```
+
 # Sub-Dialogue: GIVE_GOLD
 Oh! Generous indeed. The town council will remember this.
 

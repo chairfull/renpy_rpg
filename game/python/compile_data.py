@@ -90,8 +90,57 @@ def parse_csv(value):
         return [x.strip() for x in cleaned.split(',') if x.strip()]
     return []
 
+def parse_kv_block(lines):
+    result = {}
+    if not isinstance(lines, list):
+        return result
+    for line in lines:
+        line = line.strip()
+        if ':' in line:
+            k, v = line.split(':', 1)
+            k = k.strip().replace('- ', '')
+            try:
+                result[k] = int(v.strip())
+            except ValueError:
+                try:
+                    result[k] = float(v.strip())
+                except ValueError:
+                    result[k] = v.strip()
+    return result
+
+FLOW_COMMANDS = {
+    "event",
+    "flag",
+    "give",
+    "take",
+    "gold",
+    "travel",
+    "rest",
+    "scavenge",
+    "jump",
+    "call",
+    "cond",
+    "check",
+    "notify",
+    "companion",
+    "perk",
+    "status",
+    "bond",
+}
+
+def is_caps_command(line):
+    stripped = line.strip()
+    if not stripped:
+        return False
+    token = stripped.split()[0]
+    if token.endswith(':'):
+        token = token[:-1]
+    return token.isupper() and token.lower() in FLOW_COMMANDS
+
 def directive_to_python(line):
-    raw = line.lstrip('@').strip()
+    raw = line.strip()
+    if raw.startswith('@'):
+        raw = raw[1:].strip()
     if not raw:
         return None
     try:
@@ -100,7 +149,10 @@ def directive_to_python(line):
         return None
     if not parts:
         return None
-    cmd = parts[0].lower()
+    cmd = parts[0]
+    if cmd.endswith(':'):
+        cmd = cmd[:-1]
+    cmd = cmd.lower()
     if cmd == "event":
         if len(parts) < 2:
             return None
@@ -198,6 +250,67 @@ def directive_to_python(line):
             return None
         text = " ".join(parts[1:])
         return f"renpy.notify({text!r})"
+    if cmd == "companion":
+        if len(parts) < 3:
+            return None
+        op = parts[1].lower()
+        cid = parts[2]
+        if op == "add":
+            return f"companion_add({cid!r})"
+        if op == "remove":
+            return f"companion_remove({cid!r})"
+    if cmd == "perk":
+        if len(parts) < 3:
+            return None
+        op = parts[1].lower()
+        pid = parts[2]
+        if op == "add":
+            mins = int(parts[3]) if len(parts) > 3 else None
+            return f"perk_add({pid!r}, {mins})"
+        if op == "remove":
+            return f"perk_remove({pid!r})"
+    if cmd == "status":
+        if len(parts) < 3:
+            return None
+        op = parts[1].lower()
+        sid = parts[2]
+        if op == "add":
+            mins = int(parts[3]) if len(parts) > 3 else None
+            return f"status_add({sid!r}, {mins})"
+        if op == "remove":
+            return f"status_remove({sid!r})"
+    if cmd == "bond":
+        if len(parts) < 4:
+            return None
+        op = parts[1].lower()
+        other = parts[2]
+        name = parts[3]
+        if op == "add":
+            if len(parts) < 5:
+                return None
+            try:
+                delta = int(parts[4])
+            except Exception:
+                return None
+            return f"bond_add_stat(pc.id, {other!r}, {name!r}, {delta})"
+        if op == "set":
+            if len(parts) < 5:
+                return None
+            try:
+                value = int(parts[4])
+            except Exception:
+                return None
+            return f"bond_set_stat(pc.id, {other!r}, {name!r}, {value})"
+        if op == "tag":
+            if len(parts) < 5:
+                return None
+            tag = parts[4]
+            return f"bond_add_tag(pc.id, {other!r}, {tag!r})"
+        if op == "untag":
+            if len(parts) < 5:
+                return None
+            tag = parts[4]
+            return f"bond_remove_tag(pc.id, {other!r}, {tag!r})"
     return None
 
 def compile(lint_only=False):
@@ -228,7 +341,10 @@ def compile(lint_only=False):
         "shops": {},
         "recipes": {},
         "notes": {},
-        "achievements": {}
+        "achievements": {},
+        "perks": {},
+        "status_effects": {},
+        "bonds": {}
     }
     
     for root, dirs, files in os.walk(data_dir):
@@ -303,14 +419,7 @@ def compile(lint_only=False):
                 stats_raw = props.get('stats', {})
                 stats_dict = {}
                 if isinstance(stats_raw, list):
-                    for line in stats_raw:
-                        line = line.strip()
-                        if ':' in line:
-                            k, v = line.split(':', 1)
-                            try:
-                                stats_dict[k.strip().replace('- ', '')] = int(v.strip())
-                            except ValueError:
-                                stats_dict[k.strip().replace('- ', '')] = v.strip()
+                    stats_dict = parse_kv_block(stats_raw)
                 # Parse schedule block
                 schedule_raw = props.get('schedule', [])
                 schedule = {}
@@ -349,6 +458,7 @@ def compile(lint_only=False):
                     "stats": stats_dict,
                     "affinity": int(props.get('affinity', 0)),
                     "schedule": schedule,
+                    "companion_mods": parse_kv_block(props.get('companion_mods', [])) if isinstance(props.get('companion_mods', []), list) else {},
                     "body": body
                 }
                 
@@ -515,6 +625,32 @@ def compile(lint_only=False):
                     "trigger": trigger,
                     "ticks": int(props.get('ticks', 1))
                 }
+            elif otype == 'perk':
+                mods = parse_kv_block(props.get('mods', [])) if isinstance(props.get('mods', []), list) else {}
+                data_consolidated["perks"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "description": props.get('description', ''),
+                    "mods": mods,
+                    "tags": parse_csv(props.get('tags', '')),
+                    "duration": props.get('duration')
+                }
+            elif otype == 'status':
+                mods = parse_kv_block(props.get('mods', [])) if isinstance(props.get('mods', []), list) else {}
+                data_consolidated["status_effects"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "description": props.get('description', ''),
+                    "mods": mods,
+                    "tags": parse_csv(props.get('tags', '')),
+                    "duration": props.get('duration')
+                }
+            elif otype == 'bond':
+                stats = parse_kv_block(props.get('stats', [])) if isinstance(props.get('stats', []), list) else {}
+                data_consolidated["bonds"][obj_id] = {
+                    "a": props.get('a'),
+                    "b": props.get('b'),
+                    "tags": parse_csv(props.get('tags', '')),
+                    "stats": stats
+                }
             
     errors = []
     warnings = []
@@ -527,7 +663,7 @@ def compile(lint_only=False):
             if line.startswith('$'):
                 script_parts.append(f"    {line}\n")
                 continue
-            if line.startswith('@'):
+            if line.startswith('@') or is_caps_command(line):
                 py = directive_to_python(line)
                 if py:
                     script_parts.append(f"    $ {py}\n")

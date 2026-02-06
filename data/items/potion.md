@@ -1,18 +1,17 @@
 ---
 type: item
 id: potion
-name: Health Potion
-description: A bubbling red liquid. Restores 30 HP.
-weight: 0.5
-value: 20
+name: Antiseptic Ampoule
+description: A sealed dose that eases fever and stabilizes wounds.
+weight: 0.3
+value: 25
 tags:
-  - potion
+  - medical
   - consumable
   - health
 ---
 
 # Inspect
 ```flow
-The red liquid inside the glass vial bubbles occasionally.
-A faint scent of cinnamon and iron wafts from the cork.
+Clear liquid, faint alcohol smell, and a sterile snap when opened.
 ```

@@ -1,8 +1,8 @@
 ---
 type: story_origin
 id: warrior
-name: The Mercenary
-description: A battle-hardened veteran seeking coin and glory. High physical stats but less silver-tongued.
+name: The Courier
+description: A fast runner trusted with dangerous routes and fragile messages.
 pc_id: warrior
 image: chars/male_fit.png
 intro_label: SCENE__warrior__intro
@@ -10,12 +10,12 @@ intro_label: SCENE__warrior__intro
 
 ```flow
 $ renpy.store.td_manager.setup(rpg_world.current_location)
-@flag set origin warrior
-@event GAME_STARTED origin=warrior
+FLAG SET origin courier
+EVENT GAME_STARTED origin=courier
 
-You arrive at the market square, your sword heavy at your side.
-The air is thick with the smell of spices and the sound of bartering.
-Your journey as a mercenary begins here.
+You arrive at the Relief Exchange, breath steady, pack light.
+The settlement needs a runner more than a fighter.
+Today you carry a message that could change everything.
 $ renpy.jump("world_loop")
 ```
 ---

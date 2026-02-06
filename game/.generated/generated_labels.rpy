@@ -1,285 +1,370 @@
 # AUTOMATICALLY GENERATED LABELS - DO NOT EDIT
 label LOC__home__flow:
     $ rest(8)
-    "You wake up feeling refreshed."
-    "You look great today!"
+    "You wake to the soft hum of the wall speakers."
+    "You check for dust, bruises, and any new marks."
+    "All clear."
     return
 
 label LOC__home__bed:
     $ rest(8)
-    "You wake up feeling refreshed."
+    "You wake to the soft hum of the wall speakers."
     return
 
 label LOC__home__mirror:
-    "You look great today!"
+    "You check for dust, bruises, and any new marks."
+    "All clear."
     return
 
 label LOC__market__flow:
-    "A sudden jostle. Someone bumps your shoulder and vanishes into the crowd."
-    "You check your belt pouch and find a bruised apple tucked inside."
-    $ pc.add_item(item_manager.get("apple"))
+    "A volunteer presses a ration bar into your hand."
+    "\"Take it,\" she says. \"You look like you run far.\""
     $ event_manager.dispatch('ITEM_GAINED', item='apple', total=1)
-    $ flag_set('market_pickpocket', True)
+    $ flag_set('market_swap', True)
     return
 
-label LOC__market__encounter_pickpocket:
-    "A sudden jostle. Someone bumps your shoulder and vanishes into the crowd."
-    "You check your belt pouch and find a bruised apple tucked inside."
-    $ pc.add_item(item_manager.get("apple"))
+label LOC__market__encounter_swap:
+    "A volunteer presses a ration bar into your hand."
+    "\"Take it,\" she says. \"You look like you run far.\""
     $ event_manager.dispatch('ITEM_GAINED', item='apple', total=1)
-    $ flag_set('market_pickpocket', True)
+    $ flag_set('market_swap', True)
     return
 
 label LOC__forest_edge__flow:
-    "The bushes tremble. You catch a glimpse of a shadow before it slips away."
-    $ event_manager.dispatch('LOCATION_EVENT', location='forest_edge', tag='rustle')
-    $ flag_set('forest_rustle', True)
+    "The fence gives a soft rattle."
+    "A sleeper drifts by, head tilted toward a far away tone."
+    $ event_manager.dispatch('LOCATION_EVENT', location='forest_edge', tag='rattle')
+    $ flag_set('fence_rattle', True)
     return
 
-label LOC__forest_edge__encounter_rustle:
-    "The bushes tremble. You catch a glimpse of a shadow before it slips away."
-    $ event_manager.dispatch('LOCATION_EVENT', location='forest_edge', tag='rustle')
-    $ flag_set('forest_rustle', True)
+label LOC__forest_edge__encounter_rattle:
+    "The fence gives a soft rattle."
+    "A sleeper drifts by, head tilted toward a far away tone."
+    $ event_manager.dispatch('LOCATION_EVENT', location='forest_edge', tag='rattle')
+    $ flag_set('fence_rattle', True)
     return
 
 label CHAR__lady:
-    lady "Oh, hello there. Are you also looking for rare spices?"
-    lady "The market here is surprisingly well-stocked today."
+    lady "We keep people moving and the sleepers drifting."
+    lady "If you hear a new pattern, report it fast."
     return
 
 label CHAR__lady__talk:
-    lady "Oh, hello there. Are you also looking for rare spices?"
-    lady "The market here is surprisingly well-stocked today."
+    lady "We keep people moving and the sleepers drifting."
+    lady "If you hear a new pattern, report it fast."
     return
 
 label CHAR__ranger:
-    ranger "You shouldn't wander the forest alone."
-    ranger "Wolves, bandits... and worse things lurk in the shadows."
+    ranger "The sleepers follow sound more than sight."
+    ranger "Keep your steps light and your voice softer."
     $ ranger.mark_as_met()
+    ranger "Fine. Keep up and keep quiet."
+    $ companion_add('ranger')
+    $ flag_set('scout_joined', True)
+    $ bond_add_stat(pc.id, 'ranger', 'trust', 3)
+    ranger "Understood. Stay safe."
+    $ companion_remove('ranger')
+    $ flag_set('scout_joined', False)
     return
 
 label CHAR__ranger__talk:
-    ranger "You shouldn't wander the forest alone."
-    ranger "Wolves, bandits... and worse things lurk in the shadows."
+    ranger "The sleepers follow sound more than sight."
+    ranger "Keep your steps light and your voice softer."
     $ ranger.mark_as_met()
     return
 
+label CHAR__ranger__ask_for_a_guide:
+    ranger "Fine. Keep up and keep quiet."
+    $ companion_add('ranger')
+    $ flag_set('scout_joined', True)
+    $ bond_add_stat(pc.id, 'ranger', 'trust', 3)
+    return
+
+label CHAR__ranger__ask_to_part_ways:
+    ranger "Understood. Stay safe."
+    $ companion_remove('ranger')
+    $ flag_set('scout_joined', False)
+    return
+
 label CHAR__merchant_hakim:
-    merchant_hakim "Salaam, my friend! Come, look at my wares!"
-    merchant_hakim "I have silks, spices, and treasures from across the sea!"
+    merchant_hakim "Every bar is counted. Every kit is signed for."
+    merchant_hakim "If you trade, trade fair, and we both sleep."
     $ merchant_hakim.mark_as_met()
     return
 
 label CHAR__merchant_hakim__talk:
-    merchant_hakim "Salaam, my friend! Come, look at my wares!"
-    merchant_hakim "I have silks, spices, and treasures from across the sea!"
+    merchant_hakim "Every bar is counted. Every kit is signed for."
+    merchant_hakim "If you trade, trade fair, and we both sleep."
     $ merchant_hakim.mark_as_met()
     return
 
 label CHAR__guard_captain:
-    guard_captain "Halt! State your business, traveler."
-    guard_captain "Hmm, you look harmless enough. Welcome to the city."
+    guard_captain "Keep your steps light and your voice lower."
+    guard_captain "We keep the line so others can sleep."
     $ guard_captain.mark_as_met()
+    guard_captain "I can log a short pass. Do not linger."
+    $ flag_set('gate_pass', True)
+    $ bond_add_stat(pc.id, 'guard_captain', 'respect', 3)
+    $ renpy.notify('Gate pass logged.')
+    guard_captain "Good. That keeps the line intact."
+    $ bond_add_stat(pc.id, 'guard_captain', 'trust', 2)
     return
 
 label CHAR__guard_captain__talk:
-    guard_captain "Halt! State your business, traveler."
-    guard_captain "Hmm, you look harmless enough. Welcome to the city."
+    guard_captain "Keep your steps light and your voice lower."
+    guard_captain "We keep the line so others can sleep."
     $ guard_captain.mark_as_met()
     return
 
+label CHAR__guard_captain__request_gate_pass:
+    guard_captain "I can log a short pass. Do not linger."
+    $ flag_set('gate_pass', True)
+    $ bond_add_stat(pc.id, 'guard_captain', 'respect', 3)
+    $ renpy.notify('Gate pass logged.')
+    return
+
+label CHAR__guard_captain__report_a_quiet_route:
+    guard_captain "Good. That keeps the line intact."
+    $ bond_add_stat(pc.id, 'guard_captain', 'trust', 2)
+    return
+
 label CHAR__bard:
-    bard "Ah, a new face! Perhaps you'd like to hear a song?"
-    bard "I know ballads from every corner of the realm!"
+    bard "The hall is loud inside, quiet outside. The right tone keeps it that way."
+    bard "If you can carry a message, I can teach you a cadence."
     $ bard.mark_as_met()
+    bard "Three beats, then a breath. Keep it even."
+    $ perk_add('silver_tongue', None)
+    $ flag_set('cadence_learned', True)
     return
 
 label CHAR__bard__talk:
-    bard "Ah, a new face! Perhaps you'd like to hear a song?"
-    bard "I know ballads from every corner of the realm!"
+    bard "The hall is loud inside, quiet outside. The right tone keeps it that way."
+    bard "If you can carry a message, I can teach you a cadence."
     $ bard.mark_as_met()
     return
 
+label CHAR__bard__learn_cadence:
+    bard "Three beats, then a breath. Keep it even."
+    $ perk_add('silver_tongue', None)
+    $ flag_set('cadence_learned', True)
+    return
+
 label CHAR__stranger:
-    stranger "..."
-    stranger "You have a curious look about you."
-    stranger "Perhaps we'll speak again when the time is right."
+    stranger "The city moves when you find the right sound."
+    stranger "If you go out, go light."
     $ stranger.mark_as_met()
     return
 
 label CHAR__stranger__talk:
-    stranger "..."
-    stranger "You have a curious look about you."
-    stranger "Perhaps we'll speak again when the time is right."
+    stranger "The city moves when you find the right sound."
+    stranger "If you go out, go light."
     $ stranger.mark_as_met()
     return
 
 label CHAR__warrior:
-    "You sharpen your blade, contemplating your next contract."
+    "You check your gear and plan your next run."
     return
 
 label CHAR__warrior__talk:
-    "You sharpen your blade, contemplating your next contract."
+    "You check your gear and plan your next run."
     return
 
 label CHAR__fisherman:
-    fisherman "Ahoy there! Looking for fish or for stories?"
-    fisherman "Either way, I've got plenty of both!"
+    fisherman "No ships, just wind and rust."
+    fisherman "If the sleepers turn, I ring the bell and we all move."
     $ fisherman.mark_as_met()
     return
 
 label CHAR__fisherman__talk:
-    fisherman "Ahoy there! Looking for fish or for stories?"
-    fisherman "Either way, I've got plenty of both!"
+    fisherman "No ships, just wind and rust."
+    fisherman "If the sleepers turn, I ring the bell and we all move."
     $ fisherman.mark_as_met()
     return
 
 label CHAR__blacksmith:
-    blacksmith "Need something forged? I make the best blades in the realm!"
-    blacksmith "Don't waste my time with small talk though."
+    blacksmith "I can quiet a hinge or wake the block with one tap."
+    blacksmith "Bring wood and stone if you want a signal baton."
     $ blacksmith.mark_as_met()
     return
 
 label CHAR__blacksmith__talk:
-    blacksmith "Need something forged? I make the best blades in the realm!"
-    blacksmith "Don't waste my time with small talk though."
+    blacksmith "I can quiet a hinge or wake the block with one tap."
+    blacksmith "Bring wood and stone if you want a signal baton."
     $ blacksmith.mark_as_met()
     return
 
 label CHAR__shopkeeper:
-    shopkeeper "Welcome to my shop! Take a look at my wares."
+    shopkeeper "Take what you need, log what you take."
     $ renpy.store.general_store.interact()
     return
 
 label CHAR__shopkeeper__talk:
-    shopkeeper "Welcome to my shop! Take a look at my wares."
+    shopkeeper "Take what you need, log what you take."
     $ renpy.store.general_store.interact()
     return
 
 label CHAR__scholar:
-    "You think about your next research project."
+    scholar "If we can chart the patterns, we can predict the drift."
     return
 
 label CHAR__scholar__talk:
-    "You think about your next research project."
+    scholar "If we can chart the patterns, we can predict the drift."
     return
 
 label CHAR__priestess:
-    priestess "May the light guide your path, traveler."
-    priestess "If you seek healing or wisdom, you have come to the right place."
+    priestess "Slow breaths. Clean hands. That keeps people alive."
+    priestess "If you feel sick, tell me before you go out."
     $ priestess.mark_as_met()
+    priestess "Hold still."
+    $ status_remove('flu')
+    $ renpy.notify('You feel steadier.')
     return
 
 label CHAR__priestess__talk:
-    priestess "May the light guide your path, traveler."
-    priestess "If you seek healing or wisdom, you have come to the right place."
+    priestess "Slow breaths. Clean hands. That keeps people alive."
+    priestess "If you feel sick, tell me before you go out."
     $ priestess.mark_as_met()
     return
 
+label CHAR__priestess__checkup:
+    priestess "Hold still."
+    $ status_remove('flu')
+    $ renpy.notify('You feel steadier.')
+    return
+
 label CHAR__orphan:
-    orphan "Hey mister! Got any spare coins?"
-    orphan "I can show you secret places if you've got food!"
+    orphan "You look like you can move fast."
+    orphan "If you ever need a shortcut, I know one."
     $ orphan.mark_as_met()
     return
 
 label CHAR__orphan__talk:
-    orphan "Hey mister! Got any spare coins?"
-    orphan "I can show you secret places if you've got food!"
+    orphan "You look like you can move fast."
+    orphan "If you ever need a shortcut, I know one."
     $ orphan.mark_as_met()
     return
 
 label CHAR__mayor:
-    mayor "Welcome to our town, traveler!"
-    mayor "I hope you find everything to your liking."
+    mayor "You made it in. Good. We need fast legs and calm voices."
+    mayor "The signal from the old tower keeps repeating."
     $ mayor.mark_as_met()
-    $ mayor.items.append(Item("Town Map", "A map of the local area."))
-    pc "You look professional today, Mayor."
-    mayor "Thank you, you look great too!."
-    pc "Where did you get that outfit?"
-    mayor "It's a gift from the king."
-    pc "He has good taste."
-    pc "This town has been here for a long time. I'd like to know how it all started."
-    mayor "Well, it started a long time ago, when the first settlers arrived."
-    mayor "They built this town to be a safe place for travelers."
-    mayor "It's been here ever since."
+    pc "If you need someone fast, I can run it."
+    mayor "Then take this route map and head to the Broadcast Tower when ready."
+    $ mayor.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
+    $ flag_set('long_dawn', True)
+    $ bond_add_stat(pc.id, 'mayor', 'trust', 5)
+    mayor "It started three nights ago. Same pattern, same hour."
+    mayor "If we can shape it, we can move the sleepers away from the walls."
     return
 
 label CHAR__mayor__talk:
-    mayor "Welcome to our town, traveler!"
-    mayor "I hope you find everything to your liking."
+    mayor "You made it in. Good. We need fast legs and calm voices."
+    mayor "The signal from the old tower keeps repeating."
     $ mayor.mark_as_met()
-    $ mayor.items.append(Item("Town Map", "A map of the local area."))
     return
 
-label CHAR__mayor__charisma_test:
-    pc "You look professional today, Mayor."
-    mayor "Thank you, you look great too!."
-    pc "Where did you get that outfit?"
-    mayor "It's a gift from the king."
-    pc "He has good taste."
+label CHAR__mayor__offer_help:
+    pc "If you need someone fast, I can run it."
+    mayor "Then take this route map and head to the Broadcast Tower when ready."
+    $ mayor.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
+    $ flag_set('long_dawn', True)
+    $ bond_add_stat(pc.id, 'mayor', 'trust', 5)
     return
 
-label CHAR__mayor__history:
-    pc "This town has been here for a long time. I'd like to know how it all started."
-    mayor "Well, it started a long time ago, when the first settlers arrived."
-    mayor "They built this town to be a safe place for travelers."
-    mayor "It's been here ever since."
+label CHAR__mayor__ask_about_the_signal:
+    mayor "It started three nights ago. Same pattern, same hour."
+    mayor "If we can shape it, we can move the sleepers away from the walls."
     return
 
 label CHAR__innkeeper:
-    innkeeper "Welcome to the Rusty Tankard, friend!"
-    innkeeper "We've got ale, rooms, and fresh gossip."
+    innkeeper "You look tired. Sit, eat, then move."
+    innkeeper "If you need a cot, I can find a corner."
     $ innkeeper.mark_as_met()
     return
 
 label CHAR__innkeeper__talk:
-    innkeeper "Welcome to the Rusty Tankard, friend!"
-    innkeeper "We've got ale, rooms, and fresh gossip."
+    innkeeper "You look tired. Sit, eat, then move."
+    innkeeper "If you need a cot, I can find a corner."
     $ innkeeper.mark_as_met()
     return
 
-label CHOICE__mayor_charisma_test:
-    pc "You look professional today, Mayor."
-    mayor "Thank you, you look great too!."
-    pc "Where did you get that outfit?"
-    mayor "It's a gift from the king."
-    pc "He has good taste."
+label CHOICE__ranger_ask_for_a_guide:
+    ranger "Fine. Keep up and keep quiet."
+    $ companion_add('ranger')
+    $ flag_set('scout_joined', True)
+    $ bond_add_stat(pc.id, 'ranger', 'trust', 3)
     return
 
-label CHOICE__mayor_history:
-    pc "This town has been here for a long time. I'd like to know how it all started."
-    mayor "Well, it started a long time ago, when the first settlers arrived."
-    mayor "They built this town to be a safe place for travelers."
-    mayor "It's been here ever since."
+label CHOICE__ranger_ask_to_part_ways:
+    ranger "Understood. Stay safe."
+    $ companion_remove('ranger')
+    $ flag_set('scout_joined', False)
+    return
+
+label CHOICE__guard_captain_request_gate_pass:
+    guard_captain "I can log a short pass. Do not linger."
+    $ flag_set('gate_pass', True)
+    $ bond_add_stat(pc.id, 'guard_captain', 'respect', 3)
+    $ renpy.notify('Gate pass logged.')
+    return
+
+label CHOICE__guard_captain_report_a_quiet_route:
+    guard_captain "Good. That keeps the line intact."
+    $ bond_add_stat(pc.id, 'guard_captain', 'trust', 2)
+    return
+
+label CHOICE__bard_learn_cadence:
+    bard "Three beats, then a breath. Keep it even."
+    $ perk_add('silver_tongue', None)
+    $ flag_set('cadence_learned', True)
+    return
+
+label CHOICE__priestess_checkup:
+    priestess "Hold still."
+    $ status_remove('flu')
+    $ renpy.notify('You feel steadier.')
+    return
+
+label CHOICE__mayor_offer_help:
+    pc "If you need someone fast, I can run it."
+    mayor "Then take this route map and head to the Broadcast Tower when ready."
+    $ mayor.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
+    $ flag_set('long_dawn', True)
+    $ bond_add_stat(pc.id, 'mayor', 'trust', 5)
+    return
+
+label CHOICE__mayor_ask_about_the_signal:
+    mayor "It started three nights ago. Same pattern, same hour."
+    mayor "If we can shape it, we can move the sleepers away from the walls."
     return
 
 label SCENE__warrior__intro:
     $ renpy.store.td_manager.setup(rpg_world.current_location)
-    $ flag_set('origin', 'warrior')
-    $ event_manager.dispatch('GAME_STARTED', origin='warrior')
-    "You arrive at the market square, your sword heavy at your side."
-    "The air is thick with the smell of spices and the sound of bartering."
-    "Your journey as a mercenary begins here."
+    $ flag_set('origin', 'courier')
+    $ event_manager.dispatch('GAME_STARTED', origin='courier')
+    "You arrive at the Relief Exchange, breath steady, pack light."
+    "The settlement needs a runner more than a fighter."
+    "Today you carry a message that could change everything."
     $ renpy.jump("world_loop")
     return
 
 label SCENE__scholar__intro:
     $ renpy.store.td_manager.setup(rpg_world.current_location)
-    $ flag_set('origin', 'scholar')
-    $ event_manager.dispatch('GAME_STARTED', origin='scholar')
-    "You wake up in your familiar study, surrounded by stacks of ancient parchment."
-    "The sunlight filters through the window, illuminating dust motes in the air."
-    "Today is the day you begin your grand research into the town's history."
+    $ flag_set('origin', 'medic')
+    $ event_manager.dispatch('GAME_STARTED', origin='medic')
+    "The clinic is already awake. You wash your hands and check the supplies."
+    "Outside, the sleepers drift past the window like a slow tide."
+    "Today you take the first steps toward a cure."
     $ renpy.jump("world_loop")
     return
 
 label SHOP__general_store__flow:
-    "\"Welcome to my shop! Take a look at my wares.\""
+    "\"Check the crate tags before you take anything.\""
     $ renpy.store.general_store.interact()
     return
 
 label SHOP__general_store__talk:
-    "\"Welcome to my shop! Take a look at my wares.\""
+    "\"Check the crate tags before you take anything.\""
     $ renpy.store.general_store.interact()
     return
 

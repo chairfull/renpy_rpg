@@ -195,22 +195,41 @@ screen stats_content():
                 spacing 15
                 text "Attributes" size 28 color "#ffd700"
                 $ stats = pc.stats
-                $ stat_list = [("Strength", stats.strength, "💪"), ("Dexterity", stats.dexterity, "🏹"), ("Intelligence", stats.intelligence, "🧠"), ("Charisma", stats.charisma, "✨")]
+                $ stat_list = [("Strength", "strength", "💪"), ("Dexterity", "dexterity", "🏹"), ("Intelligence", "intelligence", "🧠"), ("Charisma", "charisma", "✨")]
                 for sname, sval, sicon in stat_list:
+                    $ total = pc.get_stat_total(sval)
+                    $ mod = pc.get_stat_mod(sval)
                     hbox:
                         xfill True
                         text "[sicon] [sname]" size 22 color "#ffffff"
-                        text "[sval]" size 22 color "#00bfff" xalign 1.0
+                        text "[total] ([mod:+])" size 22 color "#00bfff" xalign 1.0
                 null height 20
                 text "Vitals" size 28 color "#ffd700"
                 vbox:
                     spacing 5
-                    text "HP: [stats.hp] / [stats.max_hp]" size 18 color "#ffffff"
-                    bar value stats.hp range stats.max_hp:
-                        xsize 440
-                        ysize 20
-                        left_bar Solid("#ff4444")
-                        right_bar Solid("#333")
+                text "HP: [stats.hp] / [stats.max_hp]" size 18 color "#ffffff"
+                bar value stats.hp range stats.max_hp:
+                    xsize 440
+                    ysize 20
+                    left_bar Solid("#ff4444")
+                    right_bar Solid("#333")
+                
+                null height 10
+                text "Perks" size 22 color "#ffd700"
+                if pc.active_perks:
+                    for p in pc.active_perks:
+                        $ perk = perk_manager.get(p["id"])
+                        text "[perk.name]" size 16 color "#ccc"
+                else:
+                    text "None" size 16 color "#666"
+                
+                text "Status Effects" size 22 color "#ffd700"
+                if pc.active_statuses:
+                    for s in pc.active_statuses:
+                        $ st = status_manager.get(s["id"])
+                        text "[st.name]" size 16 color "#ccc"
+                else:
+                    text "None" size 16 color "#666"
 
 screen journal_content():
     vbox:
@@ -484,16 +503,27 @@ screen char_interaction_menu(char):
             padding (40, 40)
             xsize 450
             
-            vbox:
-                spacing 30
-                
-                # Character Name
-                text "[char.name!u]" size 60 color "#ffd700" outlines [(2, "#000", 0, 0)]
-                
                 vbox:
-                    spacing 10
-                    text "ORIENTATION" size 24 color "#ffd700"
-                    text "[char.description]" size 22 italic True color "#bbbbbb"
+                    spacing 30
+                    
+                    # Character Name
+                    text "[char.name!u]" size 60 color "#ffd700" outlines [(2, "#000", 0, 0)]
+                    
+                    vbox:
+                        spacing 10
+                        text "ORIENTATION" size 24 color "#ffd700"
+                        text "[char.description]" size 22 italic True color "#bbbbbb"
+                        $ bond = bond_manager.get_between(pc.id, char.id)
+                        if bond:
+                            text "BOND" size 22 color "#ffd700"
+                            if bond.tags:
+                                $ tags_str = ", ".join(sorted(list(bond.tags)))
+                                text tags_str size 18 color "#aaa"
+                            if bond.stats:
+                                for sname, sval in bond.stats.items():
+                                    text "[sname!c]: [sval] ([bond_level(pc.id, char.id, sname)])" size 18 color "#ccc"
+                        else:
+                            text "No bond yet." size 18 color "#666"
                 
                 # Stats and Attributes
                 vbox:

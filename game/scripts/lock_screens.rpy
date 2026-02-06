@@ -33,45 +33,67 @@ screen lock_interaction_screen(lock_obj, item_name):
                 # 1. Use Key
                 # Check if player has any matching key
                 $ has_key = False
-                $ key_name = "Unknown Key"
+                $ key_name = "Missing Key"
+                $ key_id = None
                 python:
-                    for key_id in lock_obj.keys:
-                        # Check inventory for matching key by ID or name
+                    for k_id in lock_obj.keys:
                         for item in pc.items:
-                            # Safely get item ID, falling back to name for matching
                             item_id = getattr(item, 'id', None) or getattr(item, 'name', '').lower().replace(' ', '_')
-                            if item_id == key_id:
+                            if item_id == k_id:
                                 has_key = True
                                 key_name = item.name
+                                key_id = k_id
                                 break
-                        if has_key: break
+                        if has_key:
+                            break
                 
-                textbutton "Use [key_name]":
-                    action [
-                        Function(lock_obj.unlock, key_id if has_key else None),
-                        Show("notify", message="Unlocked!"),
-                        Hide("lock_interaction_screen")
-                    ]
-                    sensitive has_key
-                    xsize 200
+                vbox:
+                    spacing 6
+                    textbutton "Use [key_name]":
+                        action [
+                            Function(lock_obj.unlock, key_id if has_key else None),
+                            Show("notify", message="Unlocked!"),
+                            Hide("lock_interaction_screen")
+                        ]
+                        sensitive has_key
+                        xsize 200
+                    text ("Requires key." if not has_key else "Guaranteed unlock.") size 12 color "#888"
                 
                 # 2. Pick Lock
-                textbutton "Pick Lock":
-                    action [
-                        Function(attempt_lockpick, lock_obj),
-                        Hide("lock_interaction_screen")
-                    ]
-                    sensitive (lock_obj.type == 'physical')
-                    xsize 200
+                $ pick_skill = pc.get_stat_total("dexterity")
+                $ pick_target = lock_obj.difficulty * 3 + 5
+                $ pick_chance = check_chance(pick_skill, pick_target)
+                vbox:
+                    spacing 6
+                    textbutton "Pick Lock":
+                        action [
+                            Function(attempt_lockpick, lock_obj),
+                            Hide("lock_interaction_screen")
+                        ]
+                        sensitive (lock_obj.type == 'physical')
+                        xsize 200
+                    if lock_obj.type == 'physical':
+                        text "Chance: [pick_chance]%" size 12 color "#888"
+                    else:
+                        text "Only for physical locks." size 12 color "#888"
 
                 # 3. Hack
-                textbutton "Hack":
-                    action [
-                        Show("notify", message="Hacking tool required."),
-                        Hide("lock_interaction_screen")
-                    ]
-                    sensitive (lock_obj.type == 'electronic')
-                    xsize 200
+                $ hack_skill = pc.get_stat_total("intelligence")
+                $ hack_target = lock_obj.difficulty * 3 + 5
+                $ hack_chance = check_chance(hack_skill, hack_target)
+                vbox:
+                    spacing 6
+                    textbutton "Hack":
+                        action [
+                            Function(attempt_hack, lock_obj),
+                            Hide("lock_interaction_screen")
+                        ]
+                        sensitive (lock_obj.type == 'electronic')
+                        xsize 200
+                    if lock_obj.type == 'electronic':
+                        text "Chance: [hack_chance]%" size 12 color "#888"
+                    else:
+                        text "Only for electronic locks." size 12 color "#888"
 
                 # 4. Cancel
                 textbutton "Cancel":
@@ -79,17 +101,28 @@ screen lock_interaction_screen(lock_obj, item_name):
                     xsize 200
 
 init python:
-    def attempt_lockpick(lock_obj):
-        # Stat check: Dexterity + Random(1-20) vs Difficulty * 2 + 5?
-        # User requested skill level.
-        # Let's say difficulty 1-10.
-        # Check: Dex (1-20) + Roll(1-20) >= Difficulty * 3 + 10
+    def check_chance(skill, target):
+        needed = max(1, target - skill)
+        chance = (21 - needed) / 20.0
+        chance = max(0.05, min(0.95, chance))
+        return int(chance * 100)
+
+    def _attempt_check(skill, target, success_msg, fail_msg):
         roll = renpy.random.randint(1, 20)
-        dex = pc.stats.dexterity
+        if roll + skill >= target:
+            renpy.notify(success_msg)
+            return True
+        renpy.notify(fail_msg)
+        return False
+
+    def attempt_lockpick(lock_obj):
+        skill = pc.get_stat_total("dexterity")
         target = lock_obj.difficulty * 3 + 5
-        
-        if dex + roll >= target:
+        if _attempt_check(skill, target, "Lock picked.", "Lockpick failed."):
             lock_obj.locked = False
-            renpy.notify(f"Success! (Rolled {roll} + {dex} vs {target})")
-        else:
-            renpy.notify(f"Failed to pick lock. (Rolled {roll} + {dex} vs {target})")
+
+    def attempt_hack(lock_obj):
+        skill = pc.get_stat_total("intelligence")
+        target = lock_obj.difficulty * 3 + 5
+        if _attempt_check(skill, target, "Hack successful.", "Hack failed."):
+            lock_obj.locked = False

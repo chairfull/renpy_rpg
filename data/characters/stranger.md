@@ -1,22 +1,20 @@
 ---
 type: character
-name: Mysterious Stranger
+name: Drifter Ash
 id: stranger
-description: A cloaked figure who seems to know more than they let on.
+description: A quiet survivor with a map of places that no longer exist.
 location: tavern
 pos: 150,400
-factions:
-  - unknown
+factions: []
 tags:
   - mysterious
-  - quest_giver
+  - survivor
 affinity: -10
 ---
 
 # Talk
 ```flow
-stranger: ...
-stranger: You have a curious look about you.
-stranger: Perhaps we'll speak again when the time is right.
+stranger: The city moves when you find the right sound.
+stranger: If you go out, go light.
 $ stranger.mark_as_met()
 ```

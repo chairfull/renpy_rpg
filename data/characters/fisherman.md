@@ -1,20 +1,20 @@
 ---
 type: character
-name: Old Fisherman
+name: Dockworker Jace
 id: fisherman
-description: A weathered sailor with tales from the sea.
+description: A quiet worker who watches the harbor for lights.
 location: docks
 pos: 700,500
 factions: []
 tags:
   - commoner
-  - storyteller
+  - lookout
 affinity: 5
 ---
 
 # Talk
 ```flow
-fisherman: Ahoy there! Looking for fish or for stories?
-fisherman: Either way, I've got plenty of both!
+fisherman: No ships, just wind and rust.
+fisherman: If the sleepers turn, I ring the bell and we all move.
 $ fisherman.mark_as_met()
 ```

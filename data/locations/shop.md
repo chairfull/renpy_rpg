@@ -1,8 +1,8 @@
 ---
 type: location
 id: shop
-name: General Store
-description: A place to buy supplies.
+name: Supply Depot
+description: Shelves of ration tins and repair tools.
 entities:
   - id: market
     type: link

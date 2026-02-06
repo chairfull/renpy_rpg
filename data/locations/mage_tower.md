@@ -1,8 +1,8 @@
 ---
 type: location
 id: mage_tower
-name: Mage Tower
-description: A tall spire piercing the sky.
+name: Broadcast Tower
+description: A concrete spire that once blanketed the city with signal.
 map_type: structure
 map_x: 1200
 map_y: 800

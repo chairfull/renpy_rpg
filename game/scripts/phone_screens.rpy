@@ -73,6 +73,7 @@ screen phone_screen():
                         spacing 30
                         xalign 0.5
                         use phone_app_icon("🔍", "Search", "search")
+                        use phone_app_icon("👥", "Team", "companions")
             
             # Home button removed in favor of click-outside-to-close
             null height 20
@@ -147,28 +148,50 @@ screen phone_contacts_app():
             use phone_contact_list
 
 screen phone_contact_list():
-    viewport:
-        mousewheel True
-        scrollbars "vertical"
-        vbox:
-            spacing 5
-            for char_id, char in rpg_world.characters.items():
-                if char.name != "Player":
-                    button:
-                        action SetVariable("phone_selected_contact", char)
-                        xfill True
-                        background "#1a1a25"
-                        hover_background "#252535"
-                        padding (15, 12)
-                        
-                        hbox:
-                            spacing 15
-                            text "👤" size 30 yalign 0.5
-                            vbox:
-                                text char.name size 18 color "#fff"
-                                $ loc_name = rpg_world.locations.get(char.location_id, None)
-                                if loc_name:
-                                    text "📍 [loc_name.name]" size 12 color "#666"
+    default hovered_contact = None
+    vbox:
+        spacing 8
+        if hovered_contact:
+            $ bond = bond_manager.get_between(pc.id, hovered_contact.id)
+            frame:
+                background "#1a1a25"
+                xfill True
+                padding (10, 8)
+                vbox:
+                    text "Hover: [hovered_contact.name]" size 14 color "#ffd700"
+                    if bond:
+                        if bond.tags:
+                            $ tags_str = ", ".join(sorted(list(bond.tags)))
+                            text "Tags: [tags_str]" size 12 color "#aaa"
+                        if bond.stats:
+                            for sname, sval in bond.stats.items():
+                                text "[sname!c]: [sval] ([bond_level(pc.id, hovered_contact.id, sname)])" size 12 color "#ccc"
+                    else:
+                        text "No bond yet." size 12 color "#666"
+        viewport:
+            mousewheel True
+            scrollbars "vertical"
+            vbox:
+                spacing 5
+                for char_id, char in rpg_world.characters.items():
+                    if char.name != "Player":
+                        button:
+                            action SetVariable("phone_selected_contact", char)
+                            hovered SetVariable("hovered_contact", char)
+                            unhovered SetVariable("hovered_contact", None)
+                            xfill True
+                            background "#1a1a25"
+                            hover_background "#252535"
+                            padding (15, 12)
+                            
+                            hbox:
+                                spacing 15
+                                text "👤" size 30 yalign 0.5
+                                vbox:
+                                    text char.name size 18 color "#fff"
+                                    $ loc_name = rpg_world.locations.get(char.location_id, None)
+                                    if loc_name:
+                                        text "📍 [loc_name.name]" size 12 color "#666"
 
 screen phone_contact_detail():
     $ char = phone_selected_contact
@@ -207,6 +230,21 @@ screen phone_contact_detail():
                                 background "#333"
                                 padding (8, 4)
                                 text f size 12 color "#aaa"
+                
+                # Bond info
+                $ bond = bond_manager.get_between(pc.id, char.id)
+                if bond:
+                    null height 10
+                    text "BOND" size 14 color "#ffd700" xalign 0.5
+                    if bond.tags:
+                        $ tags_str = ", ".join(sorted(list(bond.tags)))
+                        text tags_str size 12 color "#aaa" xalign 0.5
+                    if bond.stats:
+                        for sname, sval in bond.stats.items():
+                            text "[sname!c]: [sval] ([bond_level(pc.id, char.id, sname)])" size 12 color "#ccc" xalign 0.5
+                else:
+                    null height 10
+                    text "No bond yet." size 12 color "#666" xalign 0.5
         
         # Actions
         hbox:
@@ -321,12 +359,12 @@ screen phone_health_app():
                     spacing 8
                     text "Attributes" size 18 color "#ffd700"
                     
-                    $ stat_list = [("💪", "STR", stats.strength), ("🏹", "DEX", stats.dexterity), ("🧠", "INT", stats.intelligence), ("✨", "CHA", stats.charisma)]
-                    for icon, name, val in stat_list:
+                    $ stat_list = [("💪", "STR", "strength"), ("🏹", "DEX", "dexterity"), ("🧠", "INT", "intelligence"), ("✨", "CHA", "charisma")]
+                    for icon, name, key in stat_list:
                         hbox:
                             xfill True
                             text "[icon] [name]" size 15 color "#aaa"
-                            text "[val]" size 15 color "#00bfff" xalign 1.0
+                            text "[pc.get_stat_total(key)]" size 15 color "#00bfff" xalign 1.0
             
             # Gold
             frame:
@@ -338,6 +376,29 @@ screen phone_health_app():
                     xfill True
                     text "💰 Gold" size 16 color "#ffd700"
                     text "[pc.gold]" size 16 color "#ffd700" xalign 1.0
+            
+            # Perks / Status
+            frame:
+                background "#1a1a25"
+                xfill True
+                padding (15, 15)
+                
+                vbox:
+                    spacing 6
+                    text "Perks" size 16 color "#ffd700"
+                    if pc.active_perks:
+                        for p in pc.active_perks:
+                            $ perk = perk_manager.get(p["id"])
+                            text "[perk.name]" size 14 color "#ccc"
+                    else:
+                        text "None" size 14 color "#666"
+                    text "Status" size 16 color "#ffd700"
+                    if pc.active_statuses:
+                        for s in pc.active_statuses:
+                            $ st = status_manager.get(s["id"])
+                            text "[st.name]" size 14 color "#ccc"
+                    else:
+                        text "None" size 14 color "#666"
             
             frame:
                 background "#1a1a25"
@@ -395,6 +456,30 @@ screen phone_scavenge_app():
                                         xfill True
                                         text name size 14 color "#ddd"
                                         text f"x{qty}" size 14 color "#888" xalign 1.0
+
+# --- COMPANIONS APP ---
+screen phone_companions_app():
+    use phone_app_container("Team"):
+        vbox:
+            spacing 10
+            if not party_manager.get_followers():
+                text "No companions following you." size 16 color "#888"
+            else:
+                for c in party_manager.get_followers():
+                    frame:
+                        background "#1a1a25"
+                        xfill True
+                        padding (10, 8)
+                        hbox:
+                            xfill True
+                            vbox:
+                                text c.name size 16 color "#fff"
+                                if c.companion_mods:
+                                    $ mods = ", ".join([f"{k}+{v}" for k, v in c.companion_mods.items()])
+                                    text mods size 12 color "#aaa"
+                            textbutton "Dismiss":
+                                action Function(companion_remove, c.id)
+                                text_size 14
 
 # --- WARDROBE APP ---
 screen phone_wardrobe_app():
@@ -531,6 +616,8 @@ screen phone_router():
             use phone_wardrobe_app
         elif phone_current_app == "search":
             use phone_scavenge_app
+        elif phone_current_app == "companions":
+            use phone_companions_app
         else:
             use phone_screen
         

@@ -1,21 +1,20 @@
 ---
 type: character
-name: Orphan Pip
+name: Lost Kid Nia
 id: orphan
-description: A scrappy street kid who knows every alley in town.
+description: A sharp eyed kid who knows every safe corner.
 location: market
 pos: 200,600
 factions: []
 tags:
   - child
-  - commoner
-  - thief
+  - runner
 affinity: 0
 ---
 
 # Talk
 ```flow
-orphan: Hey mister! Got any spare coins?
-orphan: I can show you secret places if you've got food!
+orphan: You look like you can move fast.
+orphan: If you ever need a shortcut, I know one.
 $ orphan.mark_as_met()
 ```

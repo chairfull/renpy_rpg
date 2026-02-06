@@ -1,43 +1,29 @@
 ---
 type: quest
 id: apple_hunt
-name: The Great Apple Hunt
-description: Gathering supplies for the journey.
+name: Ration Run
+description: Gather rations for the shelter.
 ---
 
 # Started
-```trigger
-event:LOCATION_VISITED
-location:square
-```
 ```flow
-I should look for some food before I leave.
-I heard the General Store sells apples.
+The pantry is low. The shelter needs rations for the sick.
+I should check the Supply Depot.
 ```
 
 # Goals
 
-## Visit the Shop
-```trigger
-event:LOCATION_VISITED
-location:shop
-```
+## Visit the Supply Depot
 ```flow
-Ah, this must be the place.
+This is the depot. If any rations remain, they will be here.
 ```
 
-## Buy Apples
-```trigger
-event:ITEM_GAINED
-item:Apple
-total:3
-```
+## Collect Rations
 ```flow
-That should be enough apples for now.
+That should be enough for today.
 ```
 
 # Passed
 ```flow
-Great! I am all set.
-$ achievements.unlock("found_food")
+The shelter will eat tonight.
 ```

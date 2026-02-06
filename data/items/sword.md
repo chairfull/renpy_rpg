@@ -1,22 +1,20 @@
 ---
 type: item
 id: sword
-name: Iron Sword
-description: A standard iron sword. Sharp and reliable.
+name: Utility Pry Bar
+description: A solid metal bar for lifting panels and opening jammed doors.
 weight: 2.0
 value: 50
 tags:
-  - weapon
+  - tool
   - metal
-  - melee
+  - utility
 equip_slots:
-  - right_hand
-  - left_hand
+  - main_hand
 ---
 
 # Inspect
 ```flow
-You hold the iron sword in your hand.
-It's heavy, well-balanced, and has a slight nick in the pommel.
-"This has seen some use," you mutter.
+Scuffed steel, a wrapped grip, and a few old paint flecks.
+It is built to endure.
 ```

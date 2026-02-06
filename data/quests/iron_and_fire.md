@@ -1,53 +1,33 @@
 ---
 type: quest
 id: iron_and_fire
-name: Iron and Fire
-description: Blacksmith Greta needs some materials to test your worth.
+name: Tools and Fire
+description: Mechanic Greta needs materials to build non-lethal tools and alarms.
 ---
 
 # Started
-```trigger
-event: CHAR_MET
-char: blacksmith
-```
 ```flow
-blacksmith: You look like you could use a real weapon.
-blacksmith: Bring me some wood and stone, and maybe I'll show you how it's done.
+Greta needs wood and stone for a signal baton.
 ```
 
 # Goals
 
 ## Collect Wood
-```trigger
-event: ITEM_GAINED
-item: Wood
-total: 2
-```
 ```flow
-pc: That should be enough wood.
+That should be enough wood.
 ```
 
 ## Collect Stone
-```trigger
-event: ITEM_GAINED
-item: Stone
-total: 2
-```
 ```flow
-pc: Got the stone. Now back to Greta.
+Got the stone. Back to Greta.
 ```
 
-## Craft a Wooden Club
-```trigger
-event: ITEM_CRAFTED
-recipe: club_recipe
-```
+## Craft a Signal Baton
 ```flow
-blacksmith: Not bad for a beginner. It's crude, but it'll smash things.
+Greta: Not a weapon. A tool. It can guide sleepers away from people.
 ```
 
 # Passed
 ```flow
-$ achievements.unlock("master_crafter")
-pc: I've learned the basics of crafting.
+I can help without harming anyone.
 ```

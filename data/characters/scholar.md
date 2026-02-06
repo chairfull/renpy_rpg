@@ -1,8 +1,8 @@
 ---
 type: character
 id: scholar
-name: Scholar Theo
-description: A seeker of truth and ancient knowledge.
+name: Archivist Theo
+description: Keeps records of signals, routes, and survivor logs.
 base_image: chars/male_thin.png
 location: city_center
 pos: 500,500
@@ -14,5 +14,5 @@ stats:
 ---
 # Talk
 ```flow
-You think about your next research project.
+scholar: If we can chart the patterns, we can predict the drift.
 ```

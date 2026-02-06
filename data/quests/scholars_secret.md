@@ -1,34 +1,24 @@
 ---
 type: quest
 id: scholars_secret
-name: The Scholar's Secret
-description: Scholar Theo is looking for an ancient text.
+name: Patient Zero
+description: Theo is searching for the first record of the sleepers.
 ---
 
 # Started
-```trigger
-event: CHAR_MET
-char: scholar
-```
 ```flow
-scholar: My research has stalled. I know there are records of an ancient history nearby...
-scholar: If you find anything, please bring word to me.
+Theo believes the first report was archived in a sealed record.
 ```
 
 # Goals
 
-## Find the Ancient Note
-```trigger
-event: NOTE_UNLOCKED
-note: note_ancient_history
-```
+## Find the Outbreak Note
 ```flow
-pc: This must be what Theo was talking about. It looks very old.
+This looks like the first entry. The handwriting is frantic.
 ```
 
 # Passed
 ```flow
-$ achievements.unlock("lore_keeper")
-scholar: Remarkable! This confirms my theories about the Great Migration.
-scholar: You have a keen eye for discovery.
+Theo: This confirms the first wave never turned violent.
+Theo: We can use this.
 ```

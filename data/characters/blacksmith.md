@@ -1,22 +1,21 @@
 ---
 type: character
-name: Blacksmith Greta
+name: Mechanic Greta
 id: blacksmith
-description: A muscular woman with arms like tree trunks and a fiery temper.
+description: Keeps alarms, doors, and rigs working with a steady hand.
 location: market
 pos: 400,500
 factions:
   - merchants
-  - craftsmen
 tags:
-  - merchant
   - crafter
+  - mechanic
 affinity: 0
 ---
 
 # Talk
 ```flow
-blacksmith: Need something forged? I make the best blades in the realm!
-blacksmith: Don't waste my time with small talk though.
+blacksmith: I can quiet a hinge or wake the block with one tap.
+blacksmith: Bring wood and stone if you want a signal baton.
 $ blacksmith.mark_as_met()
 ```

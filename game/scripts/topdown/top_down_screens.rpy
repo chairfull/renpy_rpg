@@ -165,6 +165,7 @@ transform char_idle_anim:
         repeat
 
 init python:
+    import math
     def _td_click_to_move():
         zoom = getattr(store, "td_zoom", 1.0)
         mx, my = renpy.get_mouse_pos()

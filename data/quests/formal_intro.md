@@ -1,51 +1,33 @@
 ---
 type: quest
 id: formal_intro
-name: Formal Introduction
-description: Meet the leaders of the town.
+name: Chain of Command
+description: Meet the leaders keeping the district steady.
 ---
 
 # Started
-```trigger
-event: LOCATION_VISITED
-location: market
-```
 ```flow
-pc: The Mayor told me to introduce myself to the Guard Captain.
-pc: I should head to the Guardhouse.
+Mara asked me to introduce myself to Captain Rafi at the Quarantine Gate.
 ```
 
 # Goals
 
-## Talk to the Mayor
-```trigger
-event: CHAR_MET
-char: mayor
-```
+## Speak with Coordinator Mara
 ```flow
-mayor: It is good to see you again. Have you met Captain Thorne yet?
+Mara knows the state of every street and every gate.
 ```
 
-## Visit the Guardhouse
-```trigger
-event: LOCATION_VISITED
-location: guardhouse
-```
+## Visit the Quarantine Gate
 ```flow
-pc: This must be the Guardhouse.
+This is where the lines are held and checked.
 ```
 
-## Talk to the Guard Captain
-```trigger
-event: CHAR_MET
-char: guard_captain
-```
+## Speak with Captain Rafi
 ```flow
-guard_captain: The Mayor mentioned you. We appreciate any law-abiding citizens here.
+Rafi will decide if I can pass the outer line.
 ```
 
 # Passed
 ```flow
-$ achievements.unlock("social_butterfly")
-pc: I've made some important connections today.
+I know who holds the line. Now I can move.
 ```

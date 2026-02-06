@@ -1,8 +1,8 @@
 ---
 type: story_origin
 id: scholar
-name: The Scholar
-description: A seeker of truth and ancient knowledge. Weaker in combat but highly intelligent and charismatic.
+name: The Medic
+description: A calm clinician who knows how to soothe panic and treat the sick.
 pc_id: scholar
 image: chars/male_thin.png
 intro_label: SCENE__scholar__intro
@@ -10,12 +10,12 @@ intro_label: SCENE__scholar__intro
 
 ```flow
 $ renpy.store.td_manager.setup(rpg_world.current_location)
-@flag set origin scholar
-@event GAME_STARTED origin=scholar
+FLAG SET origin medic
+EVENT GAME_STARTED origin=medic
 
-You wake up in your familiar study, surrounded by stacks of ancient parchment.
-The sunlight filters through the window, illuminating dust motes in the air.
-Today is the day you begin your grand research into the town's history.
+The clinic is already awake. You wash your hands and check the supplies.
+Outside, the sleepers drift past the window like a slow tide.
+Today you take the first steps toward a cure.
 $ renpy.jump("world_loop")
 ```
 ---

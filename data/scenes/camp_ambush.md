@@ -1,24 +1,26 @@
 ---
 type: scene
 id: camp_ambush
-name: Midnight Ambush
+name: Night Alarm
 ---
 
 # Start
 ```flow
-A rustle in the dark jerks you awake.
-$ contested_check("dexterity", 12, success_label="SCENE__camp_ambush__escape", fail_label="SCENE__camp_ambush__hurt")
+A soft shuffling outside your tarp.
+You hold your breath and listen.
+CHECK dexterity 12 SCENE__camp_ambush__steady SCENE__camp_ambush__panic
 ```
 
-# Escape
+# Steady
 ```flow
-You spring up and the shadow slips away into the brush.
-@event CAMP_AMBUSH outcome=escape
+You stay still. The sound fades.
+EVENT CAMP_AMBUSH outcome=steady
 ```
 
-# Hurt
+# Panic
 ```flow
-You stumble and take a hit in the dark.
-$ pc.stats.hp = max(1, pc.stats.hp - 10)
-@event CAMP_AMBUSH outcome=hurt
+You stumble in the dark and bang the kettle.
+NOTIFY "You strain your ankle."
+STATUS ADD flu 60
+EVENT CAMP_AMBUSH outcome=panic
 ```

@@ -1,8 +1,8 @@
 ---
 type: faction
 id: town_guard
-name: Town Guard
-description: Protectors of the city.
-allies: merchants, nobles
-enemies: thieves
+name: Civic Watch
+description: The quarantine line and patrols that keep the settlement secure.
+allies: [merchants]
+enemies: []
 ---

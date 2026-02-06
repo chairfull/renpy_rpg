@@ -1,14 +1,18 @@
 ---
 type: location
 id: market
-name: Grand Market
-description: The bustling heart of the town, filled with merchants hawking their wares.
+name: Relief Exchange
+description: Lines of crates and a steady flow of supplies.
 map_image: "#333"
 map_type: city
 map_x: 1100
 map_y: 900
 zoom_range: 0.5, 3.0
-obstacles: 10,10|10,11|11,10|11,11
+obstacles:
+  - [10, 10]
+  - [10, 11]
+  - [11, 10]
+  - [11, 11]
 entities:
   # Links
   - id: home
@@ -21,33 +25,27 @@ entities:
     x: 1600
     y: 540
     spawn: [960, 800]
-  # NPC IDs (from the old locations/market.md)
-  - mayor
-  - blacksmith
-  - orphan
-  - merchant_hakim
   # Objects
-  - id: dummy
+  - id: console
     type: object
-    name: Training Dummy
-    description: Looks tough.
+    name: Signal Console
+    description: A cracked screen with a faint repeating tone.
     label: test_minigame
     x: 400
     y: 300
     sprite: "images/topdown/chars/male_base.png"
 encounters:
-  - id: market_pickpocket
-    label: LOC__market__encounter_pickpocket
+  - id: market_swap
+    label: LOC__market__encounter_swap
     chance: 0.35
     once: true
-    cond: "not flag_get('market_pickpocket', False)"
+    cond: "not flag_get('market_swap', False)"
 ---
 
-# encounter_pickpocket
+# encounter_swap
 ```flow
-A sudden jostle. Someone bumps your shoulder and vanishes into the crowd.
-You check your belt pouch and find a bruised apple tucked inside.
-$ pc.add_item(item_manager.get("apple"))
-@event ITEM_GAINED item=apple total=1
-@flag set market_pickpocket true
+A volunteer presses a ration bar into your hand.
+"Take it," she says. "You look like you run far."
+EVENT ITEM_GAINED item=apple total=1
+FLAG SET market_swap true
 ```

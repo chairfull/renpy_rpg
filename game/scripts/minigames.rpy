@@ -10,7 +10,10 @@ init python:
     # Example minigame: A simple dice roll check
     def roll_dice_minigame(stat_name, difficulty):
         roll = random.randint(1, 20)
-        stat_value = getattr(rpg_world.actor.stats, stat_name)
+        try:
+            stat_value = rpg_world.actor.get_stat_total(stat_name)
+        except Exception:
+            stat_value = getattr(rpg_world.actor.stats, stat_name)
         total = roll + (stat_value - 10) // 2
         
         renpy.say(None, f"Rolling for {stat_name}... You rolled a {roll} + { (stat_value - 10) // 2 } bonus.")

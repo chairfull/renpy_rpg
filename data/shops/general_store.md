@@ -1,24 +1,23 @@
 ---
 type: shop
 id: general_store
-name: AI General Store
-description: The best place for supplies in the digital world.
-buy_mult: 1.2
+name: Relief Depot
+description: The main distribution point for rations and repair kits.
+buy_mult: 1.1
 sell_mult: 0.6
 items:
-  - sword
-  - sword
+  - apple
+  - apple
   - potion
   - potion
-  - apple
-  - apple
-  - apple
   - camp_kit
   - camp_kit
+  - sword
+  - club
 ---
 
 # Talk
 ```flow
-"Welcome to my shop! Take a look at my wares."
+"Check the crate tags before you take anything."
 $ renpy.store.general_store.interact()
 ```

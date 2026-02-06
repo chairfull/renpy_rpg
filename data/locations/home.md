@@ -1,8 +1,8 @@
 ---
 type: location
 id: home
-name: Your Home
-description: A cozy little house.
+name: Safehouse Room
+description: Your assigned bunk inside the quarantine block.
 map_image: "#1a1a2a"
 # Map Data
 map_type: structure
@@ -18,41 +18,38 @@ entities:
     spawn: [200, 540]
   - id: bed
     type: object
-    name: Bed
-    description: A comfortable-looking bed.
+    name: Cot
+    description: A narrow cot with a clean blanket.
     label: sleep_interaction
     x: 300
     y: 500
     sprite: "images/topdown/chars/male_base.png"
   - id: mirror
     type: object
-    name: Mirror
-    description: You look great today!
+    name: Small Mirror
+    description: Check your face and move on.
     label: mirror_interaction
     x: 1400
     y: 300
     sprite: "images/topdown/chars/male_base.png"
   - id: closet
     type: container
-    name: Bedroom Closet
-    description: A sturdy wooden closet for your belongings.
+    name: Supply Locker
+    description: A battered locker for your essentials.
     x: 0
     y: 0
-    items: [sword, potion]
-    lock:
-      type: physical
-      difficulty: 3
-      keys: [closet_key]
+    items: [camp_kit, apple, potion]
     sprite: "images/topdown/chars/male_base.png"
 ---
 
 # Bed
 ```flow
-$ rest(8)
-You wake up feeling refreshed.
+REST 8
+You wake to the soft hum of the wall speakers.
 ```
 
 # Mirror
 ```flow
-You look great today!
+You check for dust, bruises, and any new marks.
+All clear.
 ```

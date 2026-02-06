@@ -92,6 +92,124 @@ init -10 python:
             return it
         return None
 
+    class Bond(object):
+        def __init__(self, id, a_id, b_id, tags=None, stats=None):
+            self.id = id
+            self.a_id = a_id
+            self.b_id = b_id
+            self.tags = set(tags or [])
+            self.stats = stats or {}
+        
+        def other(self, cid):
+            return self.b_id if cid == self.a_id else self.a_id
+        
+        def get_stat(self, name, default=0):
+            try:
+                return int(self.stats.get(name, default))
+            except Exception:
+                return default
+        
+        def set_stat(self, name, value):
+            self.stats[name] = int(value)
+        
+        def add_stat(self, name, delta):
+            self.set_stat(name, self.get_stat(name, 0) + int(delta))
+        
+        def has_tag(self, tag):
+            return tag in self.tags
+        
+        def add_tag(self, tag):
+            self.tags.add(tag)
+        
+        def remove_tag(self, tag):
+            self.tags.discard(tag)
+
+    class BondManager:
+        def __init__(self):
+            self.bonds = {}
+        
+        def _key(self, a, b):
+            return tuple(sorted([a, b]))
+        
+        def register(self, bond):
+            self.bonds[self._key(bond.a_id, bond.b_id)] = bond
+        
+        def get_between(self, a, b):
+            if not a or not b or a == b:
+                return None
+            return self.bonds.get(self._key(a, b))
+        
+        def ensure(self, a, b):
+            if not a or not b or a == b:
+                return None
+            key = self._key(a, b)
+            if key not in self.bonds:
+                bid = f"{key[0]}__{key[1]}"
+                self.bonds[key] = Bond(bid, key[0], key[1])
+            return self.bonds[key]
+        
+        def get_for(self, cid):
+            res = []
+            for bond in self.bonds.values():
+                if bond.a_id == cid or bond.b_id == cid:
+                    res.append(bond)
+            return res
+
+    bond_manager = BondManager()
+
+    def bond_get_stat(a_id, b_id, stat, default=0):
+        b = bond_manager.get_between(a_id, b_id)
+        return b.get_stat(stat, default) if b else default
+
+    def bond_stat(other_id, stat, default=0):
+        return bond_get_stat(pc.id, other_id, stat, default)
+
+    def bond_set_stat(a_id, b_id, stat, value):
+        b = bond_manager.ensure(a_id, b_id)
+        if not b:
+            return False
+        b.set_stat(stat, value)
+        return True
+
+    def bond_add_stat(a_id, b_id, stat, delta):
+        b = bond_manager.ensure(a_id, b_id)
+        if not b:
+            return False
+        b.add_stat(stat, delta)
+        return True
+
+    def bond_has_tag(a_id, b_id, tag):
+        b = bond_manager.get_between(a_id, b_id)
+        return b.has_tag(tag) if b else False
+
+    def bond_add_tag(a_id, b_id, tag):
+        b = bond_manager.ensure(a_id, b_id)
+        if not b:
+            return False
+        b.add_tag(tag)
+        return True
+
+    def bond_remove_tag(a_id, b_id, tag):
+        b = bond_manager.get_between(a_id, b_id)
+        if not b:
+            return False
+        b.remove_tag(tag)
+        return True
+
+    def bond_tags(a_id, b_id):
+        b = bond_manager.get_between(a_id, b_id)
+        return list(b.tags) if b else []
+
+    def bond_level_from_value(val):
+        if val <= -50: return "Hostile"
+        if val <= -20: return "Cold"
+        if val < 20: return "Neutral"
+        if val < 50: return "Warm"
+        return "Allied"
+
+    def bond_level(a_id, b_id, stat):
+        return bond_level_from_value(bond_get_stat(a_id, b_id, stat, 0))
+
     def give_item(item_id, count=1):
         count = max(1, int(count))
         for _ in range(count):
@@ -116,12 +234,77 @@ init -10 python:
         return pc.gold
 
     def cond_jump(expr, label_true, label_false=None):
-        ok = safe_eval_bool(expr, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get})
+        ok = safe_eval_bool(expr, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level})
         if ok and label_true and renpy.has_label(label_true):
             renpy.jump(label_true)
         elif (not ok) and label_false and renpy.has_label(label_false):
             renpy.jump(label_false)
         return ok
+
+    def perk_add(perk_id, duration_minutes=None):
+        p = perk_manager.get(perk_id)
+        if not p:
+            renpy.notify("Unknown perk")
+            return False
+        duration = duration_minutes if duration_minutes is not None else p.duration_minutes
+        ok, msg = pc.add_perk(perk_id, duration)
+        renpy.notify(msg)
+        return ok
+
+    def perk_remove(perk_id):
+        ok = pc.remove_perk(perk_id)
+        if ok:
+            renpy.notify("Perk removed")
+        return ok
+
+    def status_add(status_id, duration_minutes=None):
+        s = status_manager.get(status_id)
+        if not s:
+            renpy.notify("Unknown status")
+            return False
+        duration = duration_minutes if duration_minutes is not None else s.duration_minutes
+        ok, msg = pc.add_status(status_id, duration)
+        renpy.notify(msg)
+        return ok
+
+    def status_remove(status_id):
+        ok = pc.remove_status(status_id)
+        if ok:
+            renpy.notify("Status removed")
+        return ok
+
+    class Perk(object):
+        def __init__(self, id, name, description="", mods=None, tags=None, duration_minutes=None):
+            self.id = id
+            self.name = name
+            self.description = description
+            self.mods = mods or {}
+            self.tags = set(tags or [])
+            self.duration_minutes = duration_minutes
+
+    class StatusEffect(object):
+        def __init__(self, id, name, description="", mods=None, tags=None, duration_minutes=None):
+            self.id = id
+            self.name = name
+            self.description = description
+            self.mods = mods or {}
+            self.tags = set(tags or [])
+            self.duration_minutes = duration_minutes
+
+    class PerkManager:
+        def __init__(self): self.registry = {}
+        def register(self, p): self.registry[p.id] = p
+        def get(self, pid): return self.registry.get(pid)
+        def get_all(self): return sorted(self.registry.values(), key=lambda x: x.name)
+
+    class StatusManager:
+        def __init__(self): self.registry = {}
+        def register(self, s): self.registry[s.id] = s
+        def get(self, sid): return self.registry.get(sid)
+        def get_all(self): return sorted(self.registry.values(), key=lambda x: x.name)
+
+    perk_manager = PerkManager()
+    status_manager = StatusManager()
 
     # --- BASE MIXINS (must be defined first) ---
     class SpatialObject(object):
@@ -271,6 +454,10 @@ init -10 python:
             elif 12 <= self.hour < 17: return "Afternoon"
             elif 17 <= self.hour < 21: return "Evening"
             else: return "Night"
+        
+        @property
+        def total_minutes(self):
+            return self.day * 1440 + self.hour * 60 + self.minute
 
         def advance(self, mins):
             self.minute += mins
@@ -283,6 +470,11 @@ init -10 python:
             
             # notify world of time change
             rpg_world.update_schedules()
+            # tick timed effects
+            try:
+                pc.tick_effects()
+            except Exception:
+                pass
 
     time_manager = TimeManager()
 
@@ -296,7 +488,7 @@ init -10 python:
             for k, v in self.trigger_data.items():
                 if k not in ["event", "cond", "total"] and str(kwargs.get(k)) != str(v): return False
             if self.trigger_data.get("cond"):
-                if not safe_eval_bool(self.trigger_data["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get}): 
+                if not safe_eval_bool(self.trigger_data["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level}): 
                     return False
             self.current_value = int(kwargs.get("total", self.current_value + 1))
             if self.current_value >= int(self.trigger_data.get("total", self.required_value)):
@@ -321,7 +513,7 @@ init -10 python:
             if self.chars and char.id not in self.chars and "*" not in self.chars:
                 return False
             if self.cond and str(self.cond).strip() and str(self.cond) != "True":
-                return safe_eval_bool(self.cond, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager, "flags": world_flags, "flag_get": flag_get})
+                return safe_eval_bool(self.cond, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level})
             return True
 
         def availability_status(self, char):
@@ -411,7 +603,7 @@ init -10 python:
             for k, v in t.items():
                 if k not in ["event", "cond"] and str(kwargs.get(k)) != str(v): return False
             if t.get("cond"):
-                return safe_eval_bool(t["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get})
+                return safe_eval_bool(t["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level})
             return True
 
     quest_manager = QuestManager()
@@ -589,7 +781,7 @@ init -10 python:
 
     # --- CHARACTER ---
     class RPGCharacter(Inventory):
-        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, affinity=0, schedule=None, **kwargs):
+        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, affinity=0, schedule=None, companion_mods=None, is_companion=False, **kwargs):
             super(RPGCharacter, self).__init__(id, name, **kwargs)
             self.stats = stats if isinstance(stats, StatBlock) else StatBlock(stats) if stats else StatBlock()
             self.factions = set(factions or [])
@@ -597,6 +789,9 @@ init -10 python:
             self.schedule = schedule or {}  # "HH:MM": "loc_id"
             self.body_type = body_type
             self.base_image = base_image
+            self.companion_mods = companion_mods or {}
+            self.is_companion = is_companion
+            self.following = False
             
             # Determine TD Sprite
             if td_sprite:
@@ -614,6 +809,8 @@ init -10 python:
             self.dialogue_history = set()
             # Legacy compatibility
             self.equipped_items = self.equipped_slots
+            self.active_perks = []
+            self.active_statuses = []
         
         def change_affinity(self, amount):
             self.affinity = max(-100, min(100, self.affinity + amount))
@@ -736,6 +933,81 @@ init -10 python:
         
         def get_equipped_in_slot(self, slot_id):
             return self.equipped_slots.get(slot_id)
+        
+        def tick_effects(self):
+            now = time_manager.total_minutes
+            for arr, manager, label in [
+                (self.active_perks, perk_manager, "Perk"),
+                (self.active_statuses, status_manager, "Status")
+            ]:
+                expired = []
+                for e in arr:
+                    if e.get("expires_at") is not None and now >= e["expires_at"]:
+                        expired.append(e["id"])
+                if expired:
+                    arr[:] = [e for e in arr if e["id"] not in expired]
+                    for eid in expired:
+                        obj = manager.get(eid)
+                        if obj:
+                            renpy.notify(f"{label} expired: {obj.name}")
+        
+        def add_perk(self, perk_id, duration_minutes=None):
+            p = perk_manager.get(perk_id)
+            if not p:
+                return False, "Unknown perk"
+            expires = None
+            if duration_minutes:
+                expires = time_manager.total_minutes + int(duration_minutes)
+            for e in self.active_perks:
+                if e["id"] == perk_id:
+                    e["expires_at"] = expires
+                    return True, "Perk refreshed"
+            self.active_perks.append({"id": perk_id, "expires_at": expires})
+            return True, "Perk added"
+        
+        def remove_perk(self, perk_id):
+            before = len(self.active_perks)
+            self.active_perks[:] = [e for e in self.active_perks if e["id"] != perk_id]
+            return len(self.active_perks) != before
+        
+        def add_status(self, status_id, duration_minutes=None):
+            s = status_manager.get(status_id)
+            if not s:
+                return False, "Unknown status"
+            expires = None
+            if duration_minutes:
+                expires = time_manager.total_minutes + int(duration_minutes)
+            for e in self.active_statuses:
+                if e["id"] == status_id:
+                    e["expires_at"] = expires
+                    return True, "Status refreshed"
+            self.active_statuses.append({"id": status_id, "expires_at": expires})
+            return True, "Status added"
+        
+        def remove_status(self, status_id):
+            before = len(self.active_statuses)
+            self.active_statuses[:] = [e for e in self.active_statuses if e["id"] != status_id]
+            return len(self.active_statuses) != before
+        
+        def get_stat_total(self, name):
+            base = self.stats.get(name, 0)
+            mod = 0
+            for e in self.active_perks:
+                p = perk_manager.get(e["id"])
+                if p:
+                    mod += int(p.mods.get(name, 0))
+            for e in self.active_statuses:
+                s = status_manager.get(e["id"])
+                if s:
+                    mod += int(s.mods.get(name, 0))
+            try:
+                mod += party_manager.get_stat_bonus(name)
+            except Exception:
+                pass
+            return base + mod
+        
+        def get_stat_mod(self, name):
+            return self.get_stat_total(name) - self.stats.get(name, 0)
 
     class Lock(object):
         def __init__(self, ltype="physical", difficulty=1, keys=None, locked=True):
@@ -925,7 +1197,9 @@ init -10 python:
         def update_schedules(self):
             for c in self.characters.values():
                 if c.id != "player":
-                    c.check_schedule()
+                    if not getattr(c, "following", False):
+                        c.check_schedule()
+            party_manager.sync_followers()
 
         def add_location(self, l):
             self.locations[l.id] = l
@@ -945,6 +1219,7 @@ init -10 python:
                     flag_set(f"discover_{lid}", True)
                 event_manager.dispatch("LOCATION_VISITED", location=lid)
                 self._maybe_trigger_encounter(self.locations[lid])
+                party_manager.sync_followers()
                 return True
             return False
 
@@ -962,8 +1237,8 @@ init -10 python:
                 if enc.get("once") and enc_id in encounter_history:
                     continue
                 cond = enc.get("cond")
-                if cond and not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get}):
-                    continue
+            if cond and not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level}):
+                continue
                 try:
                     chance = float(enc.get("chance", 1.0))
                 except Exception:
@@ -989,6 +1264,60 @@ init -10 python:
     rpg_world = GameWorld()
     pc = RPGCharacter("player", "Player", base_image="characters/male_fit.png")
     rpg_world.add_character(pc)
+
+    class PartyManager:
+        def __init__(self):
+            self.followers = []
+            self.max_followers = 2
+        
+        def add_follower(self, char_id):
+            c = rpg_world.characters.get(char_id)
+            if not c:
+                return False, "Unknown follower"
+            if c.id in self.followers:
+                return False, "Already following"
+            if len(self.followers) >= self.max_followers:
+                return False, "Party full"
+            c.following = True
+            c.location_id = pc.location_id
+            self.followers.append(c.id)
+            renpy.notify(f"{c.name} is now following you.")
+            return True, "Follower added"
+        
+        def remove_follower(self, char_id):
+            if char_id not in self.followers:
+                return False, "Not following"
+            c = rpg_world.characters.get(char_id)
+            if c:
+                c.following = False
+            self.followers.remove(char_id)
+            return True, "Follower removed"
+        
+        def get_followers(self):
+            return [rpg_world.characters[cid] for cid in self.followers if cid in rpg_world.characters]
+        
+        def get_stat_bonus(self, stat_name):
+            bonus = 0
+            for c in self.get_followers():
+                bonus += int(c.companion_mods.get(stat_name, 0))
+            return bonus
+        
+        def sync_followers(self):
+            for c in self.get_followers():
+                c.location_id = pc.location_id
+
+    party_manager = PartyManager()
+
+    def companion_add(char_id):
+        ok, msg = party_manager.add_follower(char_id)
+        renpy.notify(msg)
+        return ok
+
+    def companion_remove(char_id):
+        ok, msg = party_manager.remove_follower(char_id)
+        if ok:
+            renpy.notify(msg)
+        return ok
     
     # --- ACHIEVEMENT SYSTEM ---
     class Achievement(object):
@@ -1036,7 +1365,7 @@ init -10 python:
                     return False
             # Check condition if present
             if self.trigger.get("cond"):
-                if not safe_eval_bool(self.trigger["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get}):
+                if not safe_eval_bool(self.trigger["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level}):
                     return False
             return True
     
@@ -1142,10 +1471,10 @@ init -10 python:
         If success_label/fail_label are provided and exist, jump accordingly; otherwise returns bool.
         """
         roll = renpy.random.randint(1, 20)
-        actor_stat = getattr(pc.stats, stat_name, 0)
+        actor_stat = pc.get_stat_total(stat_name)
         target_dc = difficulty
         if target and hasattr(target, "stats"):
-            target_dc = getattr(target.stats, stat_name, difficulty)
+            target_dc = target.get_stat_total(stat_name) if hasattr(target, "get_stat_total") else getattr(target.stats, stat_name, difficulty)
         total = roll + (actor_stat - 10) // 2
         passed = total >= target_dc
         renpy.notify(f"Check {stat_name}: {total} vs {target_dc} ({'pass' if passed else 'fail'})")
@@ -1209,7 +1538,7 @@ init -10 python:
             if not isinstance(entry, dict):
                 continue
             cond = entry.get("cond")
-            if cond and not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get}):
+            if cond and not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level}):
                 continue
             try:
                 chance = float(entry.get("chance", 1.0))
@@ -1314,6 +1643,9 @@ init -10 python:
         quest_manager.quests.clear()
         quest_manager.start_triggers.clear()
         ach_mgr.registry.clear()
+        perk_manager.registry.clear()
+        status_manager.registry.clear()
+        bond_manager.bonds.clear()
         wiki_manager.entries.clear()
         wiki_manager.notes.clear()
         rpg_world.locations.clear()
@@ -1391,7 +1723,9 @@ init -10 python:
                 items=p.get('items', []),
                 tags=p.get('tags', []),
                 affinity=int(p.get('affinity', 0)),
-                schedule=p.get('schedule', {})
+                schedule=p.get('schedule', {}),
+                companion_mods=p.get('companion_mods', {}),
+                is_companion=bool(p.get('companion_mods'))
             )
             rpg_world.add_character(char)
                 
@@ -1472,6 +1806,51 @@ init -10 python:
                 trigger=p.get('trigger', {}),
                 ticks_required=p.get('ticks', 1)
             ))
+        
+        # Perks
+        for oid, p in data.get("perks", {}).items():
+            duration = p.get("duration")
+            try:
+                duration = int(duration) if duration is not None else None
+            except Exception:
+                duration = None
+            perk_manager.register(Perk(
+                oid,
+                p.get('name', oid),
+                p.get('description', ''),
+                mods=p.get('mods', {}),
+                tags=p.get('tags', []),
+                duration_minutes=duration
+            ))
+        
+        # Status Effects
+        for oid, p in data.get("status_effects", {}).items():
+            duration = p.get("duration")
+            try:
+                duration = int(duration) if duration is not None else None
+            except Exception:
+                duration = None
+            status_manager.register(StatusEffect(
+                oid,
+                p.get('name', oid),
+                p.get('description', ''),
+                mods=p.get('mods', {}),
+                tags=p.get('tags', []),
+                duration_minutes=duration
+            ))
+        
+        # Bonds
+        for oid, p in data.get("bonds", {}).items():
+            a = p.get("a")
+            b = p.get("b")
+            if a and b:
+                bond_manager.register(Bond(
+                    oid,
+                    a,
+                    b,
+                    tags=p.get("tags", []),
+                    stats=p.get("stats", {})
+                ))
 
     instantiate_all()
 

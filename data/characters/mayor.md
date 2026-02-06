@@ -1,7 +1,8 @@
 ---
 type: character
-name: Mayor
-description: The leader of our fine town.
+name: Coordinator Mara
+id: mayor
+description: The steady hand keeping the settlement running.
 base_image: chars/male_fit.png
 location: market
 pos: 800,600
@@ -10,53 +11,47 @@ factions:
   - merchants
 tags:
   - important
-  - noble
+  - leader
 ---
 
 # Talk
 ```flow
-mayor: Welcome to our town, traveler!
-mayor: I hope you find everything to your liking.
+mayor: You made it in. Good. We need fast legs and calm voices.
+mayor: The signal from the old tower keeps repeating.
 $ mayor.mark_as_met()
-$ mayor.items.append(Item("Town Map", "A map of the local area."))
 ```
 
 # Dialogue
 
-## Charisma Test
+## Offer Help
 ```yaml
-short: Compliment outfit
-long: You look very professional today, Mayor. (Requires Charisma 12)
-emoji: ✨
+short: Offer help
+long: If you need someone fast, I can run it.
 tags:
-  - Charisma
-memory: false
-cond: pc.stats.charisma >= 12
+  - Quest
+memory: true
+cond: true
 ```
 
 ```flow
-pc: You look professional today, Mayor.
-mayor: Thank you, you look great too!.
-pc: Where did you get that outfit?
-mayor: It's a gift from the king.
-pc: He has good taste.
+pc: If you need someone fast, I can run it.
+mayor: Then take this route map and head to the Broadcast Tower when ready.
+$ mayor.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
+FLAG SET long_dawn true
+BOND ADD mayor trust 5
 ```
 
-## History
+## Ask About The Signal
 ```yaml
-short: Ask about history
-long: This town has been here for a long time. I'd like to know how it all started.
-emoji: 📖
+short: Ask about the signal
+long: What do we know about the repeating tone?
 tags:
-  - History
   - Lore
 memory: true
 cond: true
 ```
 
 ```flow
-pc: This town has been here for a long time. I'd like to know how it all started.
-mayor: Well, it started a long time ago, when the first settlers arrived.
-mayor: They built this town to be a safe place for travelers.
-mayor: It's been here ever since.
+mayor: It started three nights ago. Same pattern, same hour.
+mayor: If we can shape it, we can move the sleepers away from the walls.
 ```

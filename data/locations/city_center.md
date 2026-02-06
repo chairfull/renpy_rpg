@@ -1,8 +1,8 @@
 ---
 type: location
 id: city_center
-name: City Center
-description: The bustling heart of the city.
+name: Civic Hub
+description: A sandbagged plaza with radios and posted routes.
 map_type: city
 map_x: 1000
 map_y: 1000

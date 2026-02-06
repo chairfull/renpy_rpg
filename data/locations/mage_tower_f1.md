@@ -1,8 +1,8 @@
 ---
 type: location
 id: mage_tower_f1
-name: Mage Tower (Floor 1)
-description: The lobby of the tower.
+name: Broadcast Tower Lobby
+description: Dusty consoles and a sealed control room.
 map_type: floor
 parent: mage_tower
 map_x: 1200

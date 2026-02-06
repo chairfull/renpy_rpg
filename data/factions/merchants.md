@@ -1,8 +1,8 @@
 ---
 type: faction
 id: merchants
-name: Merchants Guild
-description: A guild of traders and shopkeepers.
-allies: town_guard, nobles
-enemies:
+name: Relief Guild
+description: Supply runners, mechanics, and traders keeping people fed and equipped.
+allies: [town_guard]
+enemies: []
 ---

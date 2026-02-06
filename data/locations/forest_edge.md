@@ -1,13 +1,12 @@
 ---
 type: location
 id: forest_edge
-name: Forest Edge
-description: The border between civilization and the wild woods beyond.
+name: Outskirts Line
+description: The fence line where the city thins into overgrowth and silent lots.
 map_type: wilderness
 map_x: 600
 map_y: 500
 zoom_range: 0.5, 3.0
-entities: [ranger]
 scavenge:
   - item: wood
     chance: 0.8
@@ -18,15 +17,16 @@ scavenge:
     min: 1
     max: 2
 encounters:
-  - id: forest_rustle
-    label: LOC__forest_edge__encounter_rustle
+  - id: fence_rattle
+    label: LOC__forest_edge__encounter_rattle
     chance: 0.5
-    cond: "not flag_get('forest_rustle', False)"
+    cond: "not flag_get('fence_rattle', False)"
 ---
 
-# encounter_rustle
+# encounter_rattle
 ```flow
-The bushes tremble. You catch a glimpse of a shadow before it slips away.
-@event LOCATION_EVENT location=forest_edge tag=rustle
-@flag set forest_rustle true
+The fence gives a soft rattle.
+A sleeper drifts by, head tilted toward a far away tone.
+EVENT LOCATION_EVENT location=forest_edge tag=rattle
+FLAG SET fence_rattle true
 ```

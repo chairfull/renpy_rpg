@@ -1,18 +1,17 @@
 ---
 type: item
 id: apple
-name: Apple
-description: A juicy red apple. Restoration - 5 HP.
-weight: 0.1
+name: Ration Bar
+description: A compact calorie bar for quick energy.
+weight: 0.2
 value: 5
 tags:
   - food
-  - consumable
-  - health
+  - ration
 ---
 
 # Inspect
 ```flow
-It's a bright red apple, slightly bruised on one side.
-It smells sweet and fresh.
+Sealed, sweet, and a little chalky.
+It keeps you moving.
 ```

@@ -264,6 +264,17 @@ init -5 python:
                 self.player_entity.x = self.player_pos[0]
                 self.player_entity.y = self.player_pos[1]
                 self.player_entity.rotation = self.player_rotation
+            
+            # Keep followers near the player for snappy movement
+            try:
+                followers = party_manager.get_followers()
+                offsets = [(-60, 40), (60, 40), (-90, 70), (90, 70)]
+                for idx, c in enumerate(followers):
+                    ox, oy = offsets[idx % len(offsets)]
+                    c.x = int(self.player_pos[0] + ox)
+                    c.y = int(self.player_pos[1] + oy)
+            except Exception:
+                pass
 
         def check_interaction(self):
             if self.interaction_callback:
