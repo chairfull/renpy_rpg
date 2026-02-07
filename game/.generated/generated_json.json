@@ -94,6 +94,19 @@
             "equip_slots": [],
             "outfit_part": null
         },
+        "ancient_relic": {
+            "name": "Ancient Relic",
+            "description": "A pulsing obsidian cube pulsing with a low, rhythmic frequency.",
+            "weight": 1.0,
+            "value": 0,
+            "tags": [
+                "lore",
+                "quest_item"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null
+        },
         "stone": {
             "name": "Stone",
             "description": "A heavy rock.",
@@ -125,18 +138,92 @@
         }
     },
     "characters": {
-        "lady": {
-            "name": "Councilor Imani",
-            "description": "A policy lead who tracks routes, ration flow, and risk.",
+        "faye": {
+            "name": "Faye",
+            "description": "Manages the rationed cots and the only filtered-air room in the district.",
+            "location": "tavern",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 300,
+            "y": 350,
+            "tags": [
+                "host",
+                "friendly",
+                "logistics"
+            ],
+            "factions": [
+                "merchants"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 10,
+            "schedule": {},
+            "companion_mods": {},
+            "label": "CHAR__faye__talk"
+        },
+        "theo": {
+            "name": "Theo",
+            "description": "Dedicated to preserving pre-fall data logs and charting the decay of the global transmission grid.",
+            "location": "city_center",
+            "items": [],
+            "base_image": "chars/male_thin.png",
+            "td_sprite": null,
+            "x": 500,
+            "y": 500,
+            "tags": [
+                "archivist",
+                "lore",
+                "researcher"
+            ],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {
+                "strength": 8,
+                "dexterity": 10,
+                "intelligence": 16,
+                "charisma": 14
+            },
+            "affinity": 0,
+            "schedule": {},
+            "companion_mods": {},
+            "label": "CHAR__theo__talk"
+        },
+        "nia": {
+            "name": "Nia",
+            "description": "A sharp-eyed orphan who navigates the crawlspaces and service tunnels to avoid the 'Sleeper' drifts.",
             "location": "market",
             "items": [],
-            "base_image": "chars/female_fit.png",
+            "base_image": null,
             "td_sprite": null,
-            "x": 900,
+            "x": 200,
             "y": 600,
             "tags": [
-                "planner",
-                "important"
+                "child",
+                "scavenger",
+                "runner"
+            ],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 0,
+            "schedule": {},
+            "companion_mods": {},
+            "label": "CHAR__nia__talk"
+        },
+        "hakim": {
+            "name": "Hakim",
+            "description": "Manages the settlement's ration crates, medical supplies, and barter ledgers.",
+            "location": "market",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 600,
+            "y": 550,
+            "tags": [
+                "merchant",
+                "organizer",
+                "logistics"
             ],
             "factions": [
                 "merchants"
@@ -146,11 +233,56 @@
             "affinity": 0,
             "schedule": {},
             "companion_mods": {},
-            "label": "CHAR__lady__talk"
+            "label": "CHAR__hakim__talk"
         },
-        "ranger": {
-            "name": "Scout Lena",
-            "description": "A quiet scout who reads the outskirts like a map.",
+        "clerk": {
+            "name": "Clerk",
+            "description": "A no-nonsense clerk who manages the official settlement exchange and logbooks.",
+            "location": "shop",
+            "items": [],
+            "base_image": "chars/male_average.png",
+            "td_sprite": null,
+            "x": 0,
+            "y": 0,
+            "tags": [
+                "trader",
+                "logistics"
+            ],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 0,
+            "schedule": {},
+            "companion_mods": {},
+            "label": "CHAR__clerk__talk"
+        },
+        "greta": {
+            "name": "Greta",
+            "description": "Keeps the shelter's alarms, air filtration, and signal rigs working with scrap-tech.",
+            "location": "market",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 400,
+            "y": 500,
+            "tags": [
+                "crafter",
+                "mechanic",
+                "scraptech"
+            ],
+            "factions": [
+                "merchants"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 0,
+            "schedule": {},
+            "companion_mods": {},
+            "label": "CHAR__greta__talk"
+        },
+        "lena": {
+            "name": "Lena",
+            "description": "A veteran scout who reads the perimeter drifts like a topography map.",
             "location": "forest_edge",
             "items": [],
             "base_image": null,
@@ -159,7 +291,8 @@
             "y": 300,
             "tags": [
                 "outdoors",
-                "scout"
+                "scout",
+                "tracker"
             ],
             "factions": [
                 "town_guard"
@@ -169,34 +302,79 @@
             "affinity": -5,
             "schedule": {},
             "companion_mods": {},
-            "label": "CHAR__ranger__talk"
+            "label": "CHAR__lena__talk"
         },
-        "merchant_hakim": {
-            "name": "Quartermaster Hakim",
-            "description": "Manages the ration crates and barter ledgers.",
+        "mara": {
+            "name": "Mara",
+            "description": "The steady hand keeping the settlement's life-support and quarantine running.",
             "location": "market",
+            "items": [],
+            "base_image": "chars/male_fit.png",
+            "td_sprite": null,
+            "x": 800,
+            "y": 600,
+            "tags": [
+                "important",
+                "leader",
+                "coordinator"
+            ],
+            "factions": [
+                "town_guard",
+                "merchants"
+            ],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": 0,
+            "schedule": {},
+            "companion_mods": {},
+            "label": "CHAR__mara__talk"
+        },
+        "jace": {
+            "name": "Jace",
+            "description": "A lookout at the rusted harbor who watches for 'Drifter' anomalies in the fog.",
+            "location": "docks",
             "items": [],
             "base_image": null,
             "td_sprite": null,
-            "x": 600,
-            "y": 550,
+            "x": 700,
+            "y": 500,
             "tags": [
-                "merchant",
-                "organizer"
+                "lookout",
+                "worker"
             ],
-            "factions": [
-                "merchants"
-            ],
+            "factions": [],
             "body_type": "humanoid",
             "stats": {},
             "affinity": 5,
             "schedule": {},
             "companion_mods": {},
-            "label": "CHAR__merchant_hakim__talk"
+            "label": "CHAR__jace__talk"
         },
-        "guard_captain": {
-            "name": "Watch Captain Rafi",
-            "description": "The calm, firm voice at the quarantine gate.",
+        "ash": {
+            "name": "Ash",
+            "description": "A quiet survivor who claims to have walked from the Dead Zones without a signal baton.",
+            "location": "tavern",
+            "items": [],
+            "base_image": null,
+            "td_sprite": null,
+            "x": 150,
+            "y": 400,
+            "tags": [
+                "mysterious",
+                "survivor",
+                "drifter"
+            ],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {},
+            "affinity": -10,
+            "schedule": {},
+            "companion_mods": {},
+            "label": "CHAR__ash__talk"
+        },
+        "rafi": {
+            "name": "Rafi",
+            "description": "The firm voice at the quarantine gate, ensuring no 'Drift' enters the settlement.",
             "location": "guardhouse",
             "items": [],
             "base_image": null,
@@ -205,7 +383,8 @@
             "y": 400,
             "tags": [
                 "authority",
-                "watch"
+                "watch",
+                "guard"
             ],
             "factions": [
                 "town_guard"
@@ -215,108 +394,21 @@
             "affinity": 0,
             "schedule": {},
             "companion_mods": {},
-            "label": "CHAR__guard_captain__talk"
+            "label": "CHAR__rafi__talk"
         },
-        "bard": {
-            "name": "Signalist Jun",
-            "description": "A calm voice who keeps the shelter steady with tone and timing.",
-            "location": "tavern",
-            "items": [],
-            "base_image": null,
-            "td_sprite": null,
-            "x": 500,
-            "y": 300,
-            "tags": [
-                "signal",
-                "tech"
-            ],
-            "factions": [],
-            "body_type": "humanoid",
-            "stats": {},
-            "affinity": 10,
-            "schedule": {},
-            "companion_mods": {},
-            "label": "CHAR__bard__talk"
-        },
-        "stranger": {
-            "name": "Drifter Ash",
-            "description": "A quiet survivor with a map of places that no longer exist.",
-            "location": "tavern",
-            "items": [],
-            "base_image": null,
-            "td_sprite": null,
-            "x": 150,
-            "y": 400,
-            "tags": [
-                "mysterious",
-                "survivor"
-            ],
-            "factions": [],
-            "body_type": "humanoid",
-            "stats": {},
-            "affinity": -10,
-            "schedule": {},
-            "companion_mods": {},
-            "label": "CHAR__stranger__talk"
-        },
-        "warrior": {
-            "name": "Runner Kael",
-            "description": "A fast courier who knows which alleys still breathe.",
-            "location": "market",
-            "items": [
-                "sword"
-            ],
-            "base_image": "chars/male_fit.png",
-            "td_sprite": null,
-            "x": 0,
-            "y": 0,
-            "tags": [],
-            "factions": [],
-            "body_type": "humanoid",
-            "stats": {
-                "strength": 12,
-                "dexterity": 15,
-                "intelligence": 9,
-                "charisma": 8
-            },
-            "affinity": 0,
-            "schedule": {},
-            "companion_mods": {},
-            "label": "CHAR__warrior__talk"
-        },
-        "fisherman": {
-            "name": "Dockworker Jace",
-            "description": "A quiet worker who watches the harbor for lights.",
-            "location": "docks",
-            "items": [],
-            "base_image": null,
-            "td_sprite": null,
-            "x": 700,
-            "y": 500,
-            "tags": [
-                "commoner",
-                "lookout"
-            ],
-            "factions": [],
-            "body_type": "humanoid",
-            "stats": {},
-            "affinity": 5,
-            "schedule": {},
-            "companion_mods": {},
-            "label": "CHAR__fisherman__talk"
-        },
-        "blacksmith": {
-            "name": "Mechanic Greta",
-            "description": "Keeps alarms, doors, and rigs working with a steady hand.",
+        "imani": {
+            "name": "Imani",
+            "description": "A high-level policy lead tracking route safety, ration efficiency, and drift probability.",
             "location": "market",
             "items": [],
-            "base_image": null,
+            "base_image": "chars/female_fit.png",
             "td_sprite": null,
-            "x": 400,
-            "y": 500,
+            "x": 900,
+            "y": 600,
             "tags": [
-                "crafter",
-                "mechanic"
+                "planner",
+                "leader",
+                "logistics"
             ],
             "factions": [
                 "merchants"
@@ -326,36 +418,51 @@
             "affinity": 0,
             "schedule": {},
             "companion_mods": {},
-            "label": "CHAR__blacksmith__talk"
+            "label": "CHAR__imani__talk"
         },
-        "shopkeeper": {
-            "name": "Depot Clerk",
-            "description": "Keeps the shelves moving and the ledger clean.",
-            "location": "shop",
-            "items": [],
-            "base_image": "chars/male_average.png",
+        "kael": {
+            "name": "Kael",
+            "description": "A high-risk courier who uses kinetic force to clear 'Sleeper' blockades.",
+            "location": "market",
+            "items": [
+                "sword"
+            ],
+            "base_image": "chars/male_fit.png",
             "td_sprite": null,
             "x": 0,
             "y": 0,
-            "tags": [],
-            "factions": [],
+            "tags": [
+                "breacher",
+                "combat"
+            ],
+            "factions": [
+                "town_guard"
+            ],
             "body_type": "humanoid",
-            "stats": {},
+            "stats": {
+                "strength": 14,
+                "dexterity": 12,
+                "intelligence": 8,
+                "charisma": 10
+            },
             "affinity": 0,
             "schedule": {},
             "companion_mods": {},
-            "label": "CHAR__shopkeeper__talk"
+            "label": "CHAR__kael__talk"
         },
         "survivor": {
-            "name": "The Survivor",
-            "description": "A scout from the outskirts who knows the drift of the sleepers.",
+            "name": "Survivor",
+            "description": "A veteran of the Dead Zones who can hear the rhythm of the Silence.",
             "location": "market",
             "items": [],
             "base_image": "chars/male_fit.png",
             "td_sprite": null,
             "x": 960,
             "y": 800,
-            "tags": [],
+            "tags": [
+                "protagonist",
+                "survivor"
+            ],
             "factions": [],
             "body_type": "humanoid",
             "stats": {
@@ -369,32 +476,31 @@
             "companion_mods": {},
             "label": "CHAR__survivor__talk"
         },
-        "scholar": {
-            "name": "Archivist Theo",
-            "description": "Keeps records of signals, routes, and survivor logs.",
-            "location": "city_center",
+        "jun": {
+            "name": "Jun",
+            "description": "A calm voice who keeps the shelter steady with rhythmic cadence and signal-dampening tones.",
+            "location": "tavern",
             "items": [],
-            "base_image": "chars/male_thin.png",
+            "base_image": null,
             "td_sprite": null,
             "x": 500,
-            "y": 500,
-            "tags": [],
+            "y": 300,
+            "tags": [
+                "signal",
+                "tech",
+                "signalist"
+            ],
             "factions": [],
             "body_type": "humanoid",
-            "stats": {
-                "strength": 8,
-                "dexterity": 10,
-                "intelligence": 16,
-                "charisma": 14
-            },
-            "affinity": 0,
+            "stats": {},
+            "affinity": 10,
             "schedule": {},
             "companion_mods": {},
-            "label": "CHAR__scholar__talk"
+            "label": "CHAR__jun__talk"
         },
-        "priestess": {
-            "name": "Clinician Elena",
-            "description": "A careful medic who keeps panic low and recovery high.",
+        "elena": {
+            "name": "Elena",
+            "description": "A high-tension combat medic who specializes in frequency-induced trauma and Sleeper-bite stabilization.",
             "location": "temple",
             "items": [],
             "base_image": null,
@@ -402,8 +508,9 @@
             "x": 500,
             "y": 300,
             "tags": [
-                "healer",
-                "medic"
+                "medic",
+                "clinician",
+                "healer"
             ],
             "factions": [],
             "body_type": "humanoid",
@@ -411,75 +518,7 @@
             "affinity": 20,
             "schedule": {},
             "companion_mods": {},
-            "label": "CHAR__priestess__talk"
-        },
-        "orphan": {
-            "name": "Lost Kid Nia",
-            "description": "A sharp eyed kid who knows every safe corner.",
-            "location": "market",
-            "items": [],
-            "base_image": null,
-            "td_sprite": null,
-            "x": 200,
-            "y": 600,
-            "tags": [
-                "child",
-                "runner"
-            ],
-            "factions": [],
-            "body_type": "humanoid",
-            "stats": {},
-            "affinity": 0,
-            "schedule": {},
-            "companion_mods": {},
-            "label": "CHAR__orphan__talk"
-        },
-        "mayor": {
-            "name": "Coordinator Mara",
-            "description": "The steady hand keeping the settlement running.",
-            "location": "market",
-            "items": [],
-            "base_image": "chars/male_fit.png",
-            "td_sprite": null,
-            "x": 800,
-            "y": 600,
-            "tags": [
-                "important",
-                "leader"
-            ],
-            "factions": [
-                "town_guard",
-                "merchants"
-            ],
-            "body_type": "humanoid",
-            "stats": {},
-            "affinity": 0,
-            "schedule": {},
-            "companion_mods": {},
-            "label": "CHAR__mayor__talk"
-        },
-        "innkeeper": {
-            "name": "Shelter Host Faye",
-            "description": "Keeps cots, soup, and rumors in the same warm room.",
-            "location": "tavern",
-            "items": [],
-            "base_image": null,
-            "td_sprite": null,
-            "x": 300,
-            "y": 350,
-            "tags": [
-                "host",
-                "friendly"
-            ],
-            "factions": [
-                "merchants"
-            ],
-            "body_type": "humanoid",
-            "stats": {},
-            "affinity": 10,
-            "schedule": {},
-            "companion_mods": {},
-            "label": "CHAR__innkeeper__talk"
+            "label": "CHAR__elena__talk"
         }
     },
     "locations": {
@@ -862,7 +901,7 @@
                     "name": "Call to Adventure",
                     "trigger": {
                         "event": "CHAR_MET",
-                        "char": "mayor"
+                        "char": "mara"
                     },
                     "label": "QUEST__long_dawn__call_to_adventure"
                 },
@@ -881,7 +920,7 @@
                     "name": "Meeting the Mentor",
                     "trigger": {
                         "event": "CHAR_MET",
-                        "char": "priestess"
+                        "char": "elena"
                     },
                     "label": "QUEST__long_dawn__meeting_the_mentor"
                 },
@@ -899,7 +938,7 @@
                     "name": "Tests and Allies",
                     "trigger": {
                         "event": "CHAR_MET",
-                        "char": "ranger"
+                        "char": "lena"
                     },
                     "label": "QUEST__long_dawn__tests_and_allies"
                 },
@@ -943,19 +982,116 @@
                     "id": "resurrection",
                     "name": "Resurrection",
                     "trigger": {
-                        "event": "CHAR_MET",
-                        "char": "mayor"
+                        "event": "ITEM_GAINED",
+                        "item": "protocol_deciphered"
                     },
                     "label": "QUEST__long_dawn__resurrection"
+                }
+            ]
+        },
+        "silent_tide": {
+            "name": "The Silent Tide",
+            "description": "A mysterious signal from the depths calls you to the edge of the world.",
+            "ticks": [
+                {
+                    "id": "call_to_adventure",
+                    "name": "Call to Adventure",
+                    "trigger": {
+                        "event": "CHAR_MET",
+                        "char": "jace"
+                    },
+                    "label": "QUEST__silent_tide__call_to_adventure"
                 },
                 {
-                    "id": "master_of_two_worlds",
-                    "name": "Master of Two Worlds",
+                    "id": "refusal_of_the_call",
+                    "name": "Refusal of the Call",
+                    "trigger": {
+                        "event": "ITEM_GAINED",
+                        "item": "stone",
+                        "total": 3
+                    },
+                    "label": "QUEST__silent_tide__refusal_of_the_call"
+                },
+                {
+                    "id": "meeting_the_mentor",
+                    "name": "Meeting the Mentor",
+                    "trigger": {
+                        "event": "CHAR_MET",
+                        "char": "theo"
+                    },
+                    "label": "QUEST__silent_tide__meeting_the_mentor"
+                },
+                {
+                    "id": "crossing_the_threshold",
+                    "name": "Crossing the Threshold",
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "forest_edge"
+                    },
+                    "label": "QUEST__silent_tide__crossing_the_threshold"
+                },
+                {
+                    "id": "tests_and_allies",
+                    "name": "Tests and Allies",
+                    "trigger": {
+                        "event": "CHAR_MET",
+                        "char": "hakim"
+                    },
+                    "label": "QUEST__silent_tide__tests_and_allies"
+                },
+                {
+                    "id": "approach_to_the_inmost_cave",
+                    "name": "Approach to the Inmost Cave",
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "mage_tower"
+                    },
+                    "label": "QUEST__silent_tide__approach_to_the_inmost_cave"
+                },
+                {
+                    "id": "the_ordeal",
+                    "name": "The Ordeal",
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "mage_tower_f1"
+                    },
+                    "label": "QUEST__silent_tide__the_ordeal"
+                },
+                {
+                    "id": "the_reward",
+                    "name": "The Reward",
+                    "trigger": {
+                        "event": "ITEM_GAINED",
+                        "item": "ancient_relic"
+                    },
+                    "label": "QUEST__silent_tide__the_reward"
+                },
+                {
+                    "id": "the_road_back",
+                    "name": "The Road Back",
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "docks"
+                    },
+                    "label": "QUEST__silent_tide__the_road_back"
+                },
+                {
+                    "id": "resurrection",
+                    "name": "Resurrection",
+                    "trigger": {
+                        "event": "CHAR_MET",
+                        "char": "mara"
+                    },
+                    "label": "QUEST__silent_tide__resurrection"
+                },
+                {
+                    "id": "return_with_the_elixir",
+                    "name": "Return with the Elixir",
                     "trigger": {
                         "event": "ITEM_GAINED",
                         "item": "protocol_deciphered"
                     },
-                    "label": "QUEST__long_dawn__master_of_two_worlds"
+                    "label": "QUEST__silent_tide__return_with_the_elixir"
                 }
             ]
         },
@@ -1001,6 +1137,18 @@
                 }
             ]
         },
+        "theo_secret": {
+            "name": "Patient Zero",
+            "description": "Theo is searching for the first record of the sleepers.",
+            "ticks": [
+                {
+                    "id": "find_the_outbreak_note",
+                    "name": "Find the Outbreak Note",
+                    "trigger": {},
+                    "label": "QUEST__theo_secret__find_the_outbreak_note"
+                }
+            ]
+        },
         "formal_intro": {
             "name": "Chain of Command",
             "description": "Meet the leaders keeping the district steady.",
@@ -1022,18 +1170,6 @@
                     "name": "Speak with Captain Rafi",
                     "trigger": {},
                     "label": "QUEST__formal_intro__speak_with_captain_rafi"
-                }
-            ]
-        },
-        "scholars_secret": {
-            "name": "Patient Zero",
-            "description": "Theo is searching for the first record of the sleepers.",
-            "ticks": [
-                {
-                    "id": "find_the_outbreak_note",
-                    "name": "Find the Outbreak Note",
-                    "trigger": {},
-                    "label": "QUEST__scholars_secret__find_the_outbreak_note"
                 }
             ]
         }
@@ -1163,12 +1299,12 @@
         }
     },
     "dialogue": {
-        "ranger_ask_for_a_guide": {
+        "lena_ask_for_a_guide": {
             "short": "Ask for a guide",
-            "long": "I could use a scout. Walk with me.",
+            "long": "I could use a scout who knows the frequency dead-spots. Walk with me.",
             "emoji": "",
             "chars": [
-                "ranger"
+                "lena"
             ],
             "tags": [
                 "Companion"
@@ -1176,14 +1312,14 @@
             "memory": true,
             "reason": "Already traveling with you.",
             "cond": "not flag_get('scout_joined', False)",
-            "label": "CHOICE__ranger_ask_for_a_guide"
+            "label": "CHOICE__lena_ask_for_a_guide"
         },
-        "ranger_ask_to_part_ways": {
+        "lena_ask_to_part_ways": {
             "short": "Ask to part ways",
-            "long": "Head back. I will manage from here.",
+            "long": "Head back to the settlement. I'll handle the rest of this signal run.",
             "emoji": "",
             "chars": [
-                "ranger"
+                "lena"
             ],
             "tags": [
                 "Companion"
@@ -1191,74 +1327,14 @@
             "memory": true,
             "reason": "Not traveling with you.",
             "cond": "flag_get('scout_joined', False)",
-            "label": "CHOICE__ranger_ask_to_part_ways"
+            "label": "CHOICE__lena_ask_to_part_ways"
         },
-        "guard_captain_request_gate_pass": {
-            "short": "Request gate pass",
-            "long": "I need access beyond the fence. (Requires Charisma 10)",
-            "emoji": "",
-            "chars": [
-                "guard_captain"
-            ],
-            "tags": [
-                "Gate"
-            ],
-            "memory": true,
-            "reason": "Needs Charisma 10.",
-            "cond": "pc.stats.charisma >= 10",
-            "label": "CHOICE__guard_captain_request_gate_pass"
-        },
-        "guard_captain_report_a_quiet_route": {
-            "short": "Report quiet route",
-            "long": "I found a path with less noise and fewer sleepers.",
-            "emoji": "",
-            "chars": [
-                "guard_captain"
-            ],
-            "tags": [
-                "Patrol"
-            ],
-            "memory": true,
-            "reason": null,
-            "cond": "True",
-            "label": "CHOICE__guard_captain_report_a_quiet_route"
-        },
-        "bard_learn_cadence": {
-            "short": "Learn cadence",
-            "long": "Teach me a calming signal pattern.",
-            "emoji": "",
-            "chars": [
-                "bard"
-            ],
-            "tags": [
-                "Signal"
-            ],
-            "memory": true,
-            "reason": "You already learned it.",
-            "cond": "not flag_get('cadence_learned', False)",
-            "label": "CHOICE__bard_learn_cadence"
-        },
-        "priestess_checkup": {
-            "short": "Ask for a checkup",
-            "long": "Can you take a quick look at me?",
-            "emoji": "",
-            "chars": [
-                "priestess"
-            ],
-            "tags": [
-                "Medical"
-            ],
-            "memory": true,
-            "reason": null,
-            "cond": "True",
-            "label": "CHOICE__priestess_checkup"
-        },
-        "mayor_offer_help": {
+        "mara_offer_help": {
             "short": "Offer help",
-            "long": "If you need someone fast, I can run it.",
+            "long": "If you need someone to run the outskirts, I'm your person.",
             "emoji": "",
             "chars": [
-                "mayor"
+                "mara"
             ],
             "tags": [
                 "Quest"
@@ -1266,14 +1342,14 @@
             "memory": true,
             "reason": null,
             "cond": "True",
-            "label": "CHOICE__mayor_offer_help"
+            "label": "CHOICE__mara_offer_help"
         },
-        "mayor_ask_about_the_signal": {
+        "mara_ask_about_the_signal": {
             "short": "Ask about the signal",
-            "long": "What do we know about the repeating tone?",
+            "long": "What's the latest on the Spire's transmission?",
             "emoji": "",
             "chars": [
-                "mayor"
+                "mara"
             ],
             "tags": [
                 "Lore"
@@ -1281,15 +1357,112 @@
             "memory": true,
             "reason": null,
             "cond": "True",
-            "label": "CHOICE__mayor_ask_about_the_signal"
+            "label": "CHOICE__mara_ask_about_the_signal"
+        },
+        "mara_report_on_spire": {
+            "short": "Report on Spire",
+            "long": "I have the protocol drive from the Spire.",
+            "emoji": "",
+            "chars": [
+                "mara"
+            ],
+            "tags": [
+                "Quest"
+            ],
+            "memory": false,
+            "reason": null,
+            "cond": "flag_get('protocol_recovered', False) and not flag_get('protocol_deciphered', False)",
+            "label": "CHOICE__mara_report_on_spire"
+        },
+        "rafi_request_gate_pass": {
+            "short": "Request gate pass",
+            "long": "I need a clearance pass for the Dead Zone fence. (Requires Charisma 10)",
+            "emoji": "",
+            "chars": [
+                "rafi"
+            ],
+            "tags": [
+                "Gate"
+            ],
+            "memory": true,
+            "reason": "Needs Charisma 10.",
+            "cond": "pc.stats.charisma >= 10",
+            "label": "CHOICE__rafi_request_gate_pass"
+        },
+        "rafi_report_a_quiet_route": {
+            "short": "Report quiet route",
+            "long": "I've mapped a path with significantly lower Sleeper density.",
+            "emoji": "",
+            "chars": [
+                "rafi"
+            ],
+            "tags": [
+                "Patrol"
+            ],
+            "memory": true,
+            "reason": null,
+            "cond": "True",
+            "label": "CHOICE__rafi_report_a_quiet_route"
+        },
+        "kael_ask_about_breaching": {
+            "short": "Ask about breaching",
+            "long": "How do you clear a block of Sleepers?",
+            "emoji": "",
+            "chars": [
+                "kael"
+            ],
+            "tags": [
+                "Lore"
+            ],
+            "memory": true,
+            "reason": null,
+            "cond": "True",
+            "label": "CHOICE__kael_ask_about_breaching"
+        },
+        "jun_learn_cadence": {
+            "short": "Learn cadence",
+            "long": "Teach me a dampening signal pattern to keep the sleepers at bay.",
+            "emoji": "",
+            "chars": [
+                "jun"
+            ],
+            "tags": [
+                "Signal"
+            ],
+            "memory": true,
+            "reason": "You already learned it.",
+            "cond": "not flag_get('cadence_learned', False)",
+            "label": "CHOICE__jun_learn_cadence"
+        },
+        "elena_checkup": {
+            "short": "Ask for a checkup",
+            "long": "I've been hearing a low hum... can you check my resonance levels?",
+            "emoji": "",
+            "chars": [
+                "elena"
+            ],
+            "tags": [
+                "Medical"
+            ],
+            "memory": true,
+            "reason": null,
+            "cond": "True",
+            "label": "CHOICE__elena_checkup"
         }
     },
     "story_origins": {
         "long_dawn": {
             "name": "The Long Dawn",
             "description": "A journey to find the signal and lead the sleepers home.",
-            "pc_id": "survivor",
+            "pc_id": null,
             "intro_label": "QUEST__long_dawn__started",
+            "image": "chars/male_fit.png"
+        },
+        "silent_tide": {
+            "name": "The Silent Tide",
+            "description": "A mysterious signal from the depths calls you to the edge of the world.",
+            "pc_id": null,
+            "intro_label": "QUEST__silent_tide__started",
             "image": "chars/male_fit.png"
         }
     },
@@ -1434,17 +1607,15 @@
         }
     },
     "bonds": {
-        "mayor_guard_captain": {
-            "a": "mayor",
-            "b": "guard_captain",
+        "unknown": {
+            "a": "mara",
+            "b": "rafi",
             "tags": [
-                "coordinator",
-                "watch",
-                "chain_of_command"
+                "professional"
             ],
             "stats": {
-                "trust": 40,
-                "strain": 10
+                "respect": 5,
+                "trust": 5
             }
         }
     }

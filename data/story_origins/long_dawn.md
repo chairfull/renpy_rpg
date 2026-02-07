@@ -9,8 +9,8 @@ image: chars/male_fit.png
 # Started
 ```flow
 The settlement is a cage of routine and fear. You've walked the perimeter until every stone is a familiar face.
- Coordinator Mara is watching the horizon again. The signal from the Spire is changing.
-Mara: If you're looking for a way out, Survivor, this is it. Go to the Spire.
+ Mara is watching the horizon again. The signal from the Spire is changing.
+mara: If you're looking for a way out, Survivor, this is it. Go to the Spire.
 
 GOAL SHOW call_to_adventure
 ```
@@ -20,7 +20,7 @@ GOAL SHOW call_to_adventure
 ## Call to Adventure
 ```trigger
 event: CHAR_MET
-char: mayor
+char: mara
 ```
 ```flow
 mara: We need to know what that signal is before the peace breaks. You know the outskirts.
@@ -39,7 +39,7 @@ pc: I'll need more than just hope to survive the night out there. I should gathe
 ## Meeting the Mentor
 ```trigger
 event: CHAR_MET
-char: priestess
+char: elena
 ```
 ```flow
 elena: If you seek the Spire, seek the silence first. The sleepers don't hunt; they drift. Use the rhythm, don't break it.
@@ -57,7 +57,7 @@ pc: The district gates are behind me. The air here tastes like static and old ra
 ## Tests and Allies
 ```trigger
 event: CHAR_MET
-char: ranger
+char: lena
 ```
 ```flow
 lena: You're either brave or desperate. Keep your light low and your breathing steady.
