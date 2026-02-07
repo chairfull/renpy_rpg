@@ -6,12 +6,37 @@ description: A veteran scout who reads the perimeter drifts like a topography ma
 location: forest_edge
 pos: 400,300
 factions:
-  - town_guard
+  - perimeter_watch
 tags:
   - outdoors
   - scout
   - tracker
 affinity: -5
+gender: female
+age: 33
+height: 176 cm
+weight: 66 kg
+hair_color: black
+hair_style: braided ponytail
+eye_color: amber
+face_shape: diamond
+skin_tone: olive
+build: athletic
+body_type: humanoid
+breast_size: small
+dick_size: n/a
+foot_size: 39
+distinctive_feature: sun-faded freckles
+equipment:
+  head: watch_cap
+  torso: utility_jacket
+  pants: cargo_pants
+  feet: trail_boots
+items:
+  - map_fragment
+  - compass
+  - protein_bar
+  - water_flask
 ---
 
 # Talk

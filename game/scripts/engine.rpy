@@ -1122,7 +1122,7 @@ init -10 python:
 
     # --- CHARACTER ---
     class RPGCharacter(Inventory):
-        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, affinity=0, schedule=None, companion_mods=None, is_companion=False, owner_id=None, **kwargs):
+        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, affinity=0, schedule=None, companion_mods=None, is_companion=False, owner_id=None, gender=None, age=None, height=None, weight=None, hair_color=None, eye_color=None, hair_style=None, face_shape=None, breast_size=None, dick_size=None, foot_size=None, skin_tone=None, build=None, distinctive_feature=None, equipment=None, **kwargs):
             super(RPGCharacter, self).__init__(id, name, owner_id=(owner_id or id), **kwargs)
             self.stats = stats if isinstance(stats, StatBlock) else StatBlock(stats) if stats else StatBlock()
             if self.max_weight is None:
@@ -1159,6 +1159,155 @@ init -10 python:
             self.equipped_items = self.equipped_slots
             self.active_perks = []
             self.active_statuses = []
+            # Appearance metadata
+            self.gender = gender
+            self.age = age
+            self.height = height
+            self.weight = weight
+            self.height_in = self._parse_height_to_inches(height)
+            self.weight_lbs = self._parse_weight_to_lbs(weight)
+            self.hair_color = hair_color
+            self.hair_style = hair_style
+            self.eye_color = eye_color
+            self.face_shape = face_shape
+            self.breast_size = breast_size
+            self.dick_size = dick_size
+            self.foot_size = foot_size
+            self.skin_tone = skin_tone
+            self.build = build
+            self.distinctive_feature = distinctive_feature
+            self.appearance = {
+                "gender": gender,
+                "age": age,
+                "height": height,
+                "weight": weight,
+                "height_in": self.height_in,
+                "weight_lbs": self.weight_lbs,
+                "hair_color": hair_color,
+                "hair_style": hair_style,
+                "eye_color": eye_color,
+                "face_shape": face_shape,
+                "breast_size": breast_size,
+                "dick_size": dick_size,
+                "foot_size": foot_size,
+                "skin_tone": skin_tone,
+                "build": build,
+                "distinctive_feature": distinctive_feature,
+            }
+            self.equipment_template = equipment or {}
+            if self.equipment_template:
+                self.apply_equipment(self.equipment_template)
+
+        def _parse_height_to_inches(self, value):
+            if value is None:
+                return None
+            if isinstance(value, (int, float)):
+                return float(value)
+            s = str(value).strip().lower()
+            if not s:
+                return None
+            # 5'10" or 5 ft 10 in
+            if "'" in s or "ft" in s:
+                ft = 0.0
+                inch = 0.0
+                # normalize separators
+                s = s.replace("feet", "ft").replace("foot", "ft").replace("inches", "in").replace("inch", "in").replace("\"", "in")
+                parts = s.replace("ft", " ft ").replace("in", " in ").replace("'", " ft ").split()
+                for i in range(len(parts)):
+                    token = parts[i]
+                    if token.replace(".", "", 1).isdigit():
+                        num = float(token)
+                        unit = parts[i + 1] if i + 1 < len(parts) else ""
+                        if unit == "ft":
+                            ft = num
+                        elif unit == "in":
+                            inch = num
+                return ft * 12.0 + inch
+            if "cm" in s:
+                try:
+                    num = float(s.replace("cm", "").strip())
+                    return num / 2.54
+                except Exception:
+                    return None
+            if "m" in s:
+                try:
+                    num = float(s.replace("m", "").strip())
+                    return (num * 100.0) / 2.54
+                except Exception:
+                    return None
+            if "in" in s:
+                try:
+                    return float(s.replace("in", "").strip())
+                except Exception:
+                    return None
+            try:
+                return float(s)
+            except Exception:
+                return None
+
+        def _parse_weight_to_lbs(self, value):
+            if value is None:
+                return None
+            if isinstance(value, (int, float)):
+                return float(value)
+            s = str(value).strip().lower()
+            if not s:
+                return None
+            if "kg" in s:
+                try:
+                    num = float(s.replace("kg", "").strip())
+                    return num * 2.20462
+                except Exception:
+                    return None
+            if "g" in s and "kg" not in s:
+                try:
+                    num = float(s.replace("g", "").strip())
+                    return num * 0.00220462
+                except Exception:
+                    return None
+            if "lb" in s or "lbs" in s:
+                try:
+                    return float(s.replace("lbs", "").replace("lb", "").strip())
+                except Exception:
+                    return None
+            try:
+                return float(s)
+            except Exception:
+                return None
+
+        def apply_equipment(self, equipment):
+            """Seed and equip a character from a slot -> item_id map."""
+            if not equipment:
+                return
+            if not isinstance(equipment, dict):
+                return
+            for slot_id, item_id in equipment.items():
+                if not item_id:
+                    continue
+                target_id = str(item_id).lower()
+                itm = None
+                for owned in self.items:
+                    if self._item_id(owned) == target_id and owned not in self.equipped_slots.values():
+                        itm = owned
+                        break
+                if itm is None:
+                    itm = item_manager.get(item_id)
+                    if not itm:
+                        continue
+                    if getattr(itm, "owner_id", None) is None:
+                        itm.owner_id = self.id
+                    # Seed into inventory so equip removes it cleanly
+                    self.add_item(itm, count=1, force=True, reason="equip_seed")
+                    if itm not in self.items:
+                        for owned in self.items:
+                            if self._item_id(owned) == target_id and owned not in self.equipped_slots.values():
+                                itm = owned
+                                break
+                ok, _msg = self.equip(itm, slot_id)
+                if not ok:
+                    # Fall back to inventory if equip fails (invalid slot or tag mismatch)
+                    if itm not in self.items:
+                        self.add_item(itm, count=1, force=True, reason="equip_seed")
         
         def change_affinity(self, amount):
             self.affinity = max(-100, min(100, self.affinity + amount))
@@ -2071,6 +2220,21 @@ init -10 python:
                 label=p.get('label'),
                 factions=p.get('factions', []),
                 body_type=p.get('body_type', 'humanoid'),
+                gender=p.get('gender'),
+                age=p.get('age'),
+                height=p.get('height'),
+                weight=p.get('weight'),
+                hair_color=p.get('hair_color'),
+                hair_style=p.get('hair_style'),
+                eye_color=p.get('eye_color'),
+                face_shape=p.get('face_shape'),
+                breast_size=p.get('breast_size'),
+                dick_size=p.get('dick_size'),
+                foot_size=p.get('foot_size'),
+                skin_tone=p.get('skin_tone'),
+                build=p.get('build'),
+                distinctive_feature=p.get('distinctive_feature'),
+                equipment=p.get('equipment', {}),
                 items=p.get('items', []),
                 tags=p.get('tags', []),
                 affinity=int(p.get('affinity', 0)),

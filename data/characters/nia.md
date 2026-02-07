@@ -11,6 +11,31 @@ tags:
   - scavenger
   - runner
 affinity: 0
+gender: female
+age: 12
+height: 145 cm
+weight: 38 kg
+hair_color: black
+hair_style: short curls
+eye_color: brown
+face_shape: round
+skin_tone: medium
+build: slight
+body_type: humanoid
+breast_size: n/a
+dick_size: n/a
+foot_size: 35
+distinctive_feature: scuffed knees
+equipment:
+  head: knit_cap
+  torso: signal_hoodie
+  pants: track_pants
+  feet: sneakers
+items:
+  - glow_stick
+  - protein_bar
+  - water_flask
+  - note_card
 ---
 
 # Talk

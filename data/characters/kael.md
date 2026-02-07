@@ -7,16 +7,41 @@ base_image: chars/male_fit.png
 location: market
 items:
   - sword
+  - protein_bar
+  - water_flask
+  - multitool
+  - lockpick_set
 stats:
   - strength: 14
   - dexterity: 12
   - intelligence: 8
   - charisma: 10
 factions:
-  - town_guard
+  - perimeter_watch
 tags:
   - breacher
   - combat
+gender: male
+age: 30
+height: 185 cm
+weight: 85 kg
+hair_color: dark brown
+hair_style: cropped
+eye_color: hazel
+face_shape: angular
+skin_tone: tan
+build: muscular
+body_type: humanoid
+breast_size: n/a
+dick_size: average
+foot_size: 44
+distinctive_feature: scarred knuckles
+equipment:
+  head: watch_cap
+  torso: patrol_jacket
+  pants: patrol_pants
+  feet: patrol_boots
+  main_hand: sword
 ---
 
 # Talk

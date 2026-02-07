@@ -7,11 +7,36 @@ base_image: chars/female_fit.png
 location: market
 pos: 900,600
 factions:
-  - merchants
+  - supply_union
 tags:
   - planner
   - leader
   - logistics
+gender: female
+age: 36
+height: 168 cm
+weight: 60 kg
+hair_color: black
+hair_style: short twists
+eye_color: brown
+face_shape: oval
+skin_tone: dark
+build: fit
+body_type: humanoid
+breast_size: small
+dick_size: n/a
+foot_size: 38
+distinctive_feature: sharp cheekbones
+equipment:
+  head: ball_cap
+  torso: logistics_coat
+  pants: slacks
+  feet: sneakers
+items:
+  - map_fragment
+  - note_card
+  - compass
+  - water_flask
 ---
 # Talk
 ```flow

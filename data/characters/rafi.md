@@ -6,12 +6,37 @@ description: The firm voice at the quarantine gate, ensuring no 'Drift' enters t
 location: guardhouse
 pos: 600,400
 factions:
-  - town_guard
+  - perimeter_watch
 tags:
   - authority
   - watch
   - guard
 affinity: 0
+gender: male
+age: 39
+height: 183 cm
+weight: 86 kg
+hair_color: black
+hair_style: buzzed
+eye_color: brown
+face_shape: square
+skin_tone: medium-dark
+build: muscular
+body_type: humanoid
+breast_size: n/a
+dick_size: average
+foot_size: 44
+distinctive_feature: scar along jaw
+equipment:
+  head: watch_cap
+  torso: patrol_jacket
+  pants: patrol_pants
+  feet: patrol_boots
+items:
+  - keycard
+  - multitool
+  - water_flask
+  - ration_pack
 ---
 
 # Talk

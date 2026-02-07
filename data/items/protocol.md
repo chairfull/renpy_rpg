@@ -5,5 +5,7 @@ name: Broadcast Protocol
 description: A fragile data drive salvaged from the spire. Its signal could lead the sleepers home.
 value: 0
 weight: 0.1
-tags: [lore, quest_item]
+tags:
+  - lore
+  - quest_item
 ---

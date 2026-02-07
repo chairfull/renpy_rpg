@@ -10,6 +10,31 @@ tags:
   - lookout
   - worker
 affinity: 5
+gender: male
+age: 28
+height: 182 cm
+weight: 76 kg
+hair_color: sandy blond
+hair_style: messy
+eye_color: gray-blue
+face_shape: long
+skin_tone: light
+build: lean
+body_type: humanoid
+breast_size: n/a
+dick_size: average
+foot_size: 44
+distinctive_feature: weathered hands
+equipment:
+  head: watch_cap
+  torso: rain_shell
+  pants: cargo_pants
+  feet: rubber_boots
+items:
+  - signal_chalk
+  - glow_stick
+  - water_flask
+  - protein_bar
 ---
 
 # Talk

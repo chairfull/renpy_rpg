@@ -14,6 +14,33 @@ stats:
 tags:
   - protagonist
   - survivor
+gender: male
+age: 32
+height: 179 cm
+weight: 76 kg
+hair_color: brown
+hair_style: shaggy
+eye_color: gray
+face_shape: angular
+skin_tone: light
+build: lean
+body_type: humanoid
+breast_size: n/a
+dick_size: average
+foot_size: 42
+distinctive_feature: sunburned nose
+equipment:
+  head: knit_cap
+  torso: utility_jacket
+  pants: cargo_pants
+  feet: trail_boots
+  main_hand: club
+items:
+  - camp_kit
+  - water_flask
+  - ration_pack
+  - compass
+  - protein_bar
 ---
 # Talk
 ```flow

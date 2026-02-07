@@ -573,6 +573,19 @@ def compile(lint_only=False):
                 }
             elif otype == 'character':
                 pos = props.get('pos', '0,0').split(',')
+                # Parse equipment block
+                equipment_raw = parse_yaml_block(props.get('equipment'), {})
+                equipment = {}
+                if isinstance(equipment_raw, list):
+                    for entry in equipment_raw:
+                        if isinstance(entry, dict):
+                            for k, v in entry.items():
+                                if v is not None and str(v).strip():
+                                    equipment[str(k).strip()] = str(v).strip()
+                elif isinstance(equipment_raw, dict):
+                    for k, v in equipment_raw.items():
+                        if v is not None and str(v).strip():
+                            equipment[str(k).strip()] = str(v).strip()
                 # Parse stats block if present
                 stats_raw = props.get('stats', {})
                 stats_dict = {}
@@ -613,6 +626,21 @@ def compile(lint_only=False):
                     "tags": parse_csv(props.get('tags', '')),
                     "factions": parse_csv(props.get('factions', '')),
                     "body_type": props.get('body_type', 'humanoid'),
+                    "gender": props.get('gender'),
+                    "age": props.get('age'),
+                    "height": props.get('height'),
+                    "weight": props.get('weight'),
+                    "hair_color": props.get('hair_color'),
+                    "hair_style": props.get('hair_style'),
+                    "eye_color": props.get('eye_color'),
+                    "face_shape": props.get('face_shape'),
+                    "breast_size": props.get('breast_size'),
+                    "dick_size": props.get('dick_size'),
+                    "foot_size": props.get('foot_size'),
+                    "skin_tone": props.get('skin_tone'),
+                    "build": props.get('build'),
+                    "distinctive_feature": props.get('distinctive_feature'),
+                    "equipment": equipment,
                     "stats": stats_dict,
                     "affinity": int(props.get('affinity', 0)),
                     "schedule": schedule,
@@ -953,6 +981,13 @@ def compile(lint_only=False):
         for itm in c.get("items", []):
             if itm not in item_ids:
                 errors.append(f"character {cid}: unknown item '{itm}'")
+        equip = c.get("equipment", {})
+        if isinstance(equip, dict):
+            for slot_id, item_id in equip.items():
+                if slot_id not in slot_ids:
+                    warnings.append(f"character {cid}: unknown slot '{slot_id}' in equipment")
+                if item_id and item_id not in item_ids:
+                    errors.append(f"character {cid}: unknown equipment item '{item_id}'")
     for lid, l in data_consolidated["locations"].items():
         ents = l.get("entities", []) or []
         for ent in ents:

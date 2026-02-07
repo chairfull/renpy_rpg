@@ -8,6 +8,31 @@ location: shop
 tags:
   - trader
   - logistics
+gender: male
+age: 38
+height: 175 cm
+weight: 78 kg
+hair_color: brown
+hair_style: neat short
+eye_color: hazel
+face_shape: square
+skin_tone: light
+build: average
+body_type: humanoid
+breast_size: n/a
+dick_size: average
+foot_size: 42
+distinctive_feature: ink-stained fingertips
+equipment:
+  head: ball_cap
+  torso: logistics_coat
+  pants: slacks
+  feet: sneakers
+items:
+  - keycard
+  - note_card
+  - ration_pack
+  - battery_cell
 ---
 # Talk
 ```flow

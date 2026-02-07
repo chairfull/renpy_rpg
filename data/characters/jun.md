@@ -11,6 +11,31 @@ tags:
   - tech
   - signalist
 affinity: 10
+gender: male
+age: 26
+height: 171 cm
+weight: 63 kg
+hair_color: black
+hair_style: straight medium
+eye_color: brown
+face_shape: oval
+skin_tone: light-medium
+build: slender
+body_type: humanoid
+breast_size: n/a
+dick_size: average
+foot_size: 41
+distinctive_feature: inked signal lines on wrist
+equipment:
+  head: knit_cap
+  torso: signal_hoodie
+  pants: track_pants
+  feet: sneakers
+items:
+  - radio_receiver
+  - battery_cell
+  - signal_chalk
+  - water_flask
 ---
 
 # Talk

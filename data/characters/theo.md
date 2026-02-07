@@ -15,6 +15,31 @@ tags:
   - archivist
   - lore
   - researcher
+gender: male
+age: 27
+height: 172 cm
+weight: 60 kg
+hair_color: dark brown
+hair_style: messy
+eye_color: green
+face_shape: oval
+skin_tone: light
+build: slim
+body_type: humanoid
+breast_size: n/a
+dick_size: average
+foot_size: 41
+distinctive_feature: ink-smudged collar
+equipment:
+  head: knit_cap
+  torso: archivist_coat
+  pants: slacks
+  feet: sneakers
+items:
+  - note_card
+  - map_fragment
+  - radio_receiver
+  - battery_cell
 ---
 # Talk
 ```flow

@@ -7,12 +7,37 @@ base_image: chars/male_fit.png
 location: market
 pos: 800,600
 factions:
-  - town_guard
-  - merchants
+  - perimeter_watch
+  - supply_union
 tags:
   - important
   - leader
   - coordinator
+gender: male
+age: 42
+height: 178 cm
+weight: 80 kg
+hair_color: black
+hair_style: short
+eye_color: brown
+face_shape: square
+skin_tone: medium
+build: sturdy
+body_type: humanoid
+breast_size: n/a
+dick_size: average
+foot_size: 42
+distinctive_feature: deep laugh lines
+equipment:
+  head: watch_cap
+  torso: logistics_coat
+  pants: slacks
+  feet: work_boots
+items:
+  - keycard
+  - note_card
+  - compass
+  - water_flask
 ---
 
 # Talk
