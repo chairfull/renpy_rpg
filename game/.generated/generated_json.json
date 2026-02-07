@@ -13,6 +13,19 @@
             "equip_slots": [],
             "outfit_part": null
         },
+        "protocol_deciphered": {
+            "name": "Deciphered Protocol",
+            "description": "The original frequency patterns, now fully understood. It is a bridge between the city and the silence.",
+            "weight": 0.1,
+            "value": 0,
+            "tags": [
+                "lore",
+                "quest_item"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null
+        },
         "camp_kit": {
             "name": "Camp Kit",
             "description": "A light bundle for resting outdoors.",
@@ -34,6 +47,19 @@
             "tags": [
                 "food",
                 "ration"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null
+        },
+        "broadcast_protocol": {
+            "name": "Broadcast Protocol",
+            "description": "A fragile data drive salvaged from the spire. Its signal could lead the sleepers home.",
+            "weight": 0.1,
+            "value": 0,
+            "tags": [
+                "lore",
+                "quest_item"
             ],
             "factions": [],
             "equip_slots": [],
@@ -319,6 +345,29 @@
             "schedule": {},
             "companion_mods": {},
             "label": "CHAR__shopkeeper__talk"
+        },
+        "survivor": {
+            "name": "The Survivor",
+            "description": "A scout from the outskirts who knows the drift of the sleepers.",
+            "location": "market",
+            "items": [],
+            "base_image": "chars/male_fit.png",
+            "td_sprite": null,
+            "x": 960,
+            "y": 800,
+            "tags": [],
+            "factions": [],
+            "body_type": "humanoid",
+            "stats": {
+                "strength": 14,
+                "dexterity": 12,
+                "intelligence": 10,
+                "charisma": 8
+            },
+            "affinity": 0,
+            "schedule": {},
+            "companion_mods": {},
+            "label": "CHAR__survivor__talk"
         },
         "scholar": {
             "name": "Archivist Theo",
@@ -725,7 +774,18 @@
             "description": "Dusty consoles and a sealed control room.",
             "map_image": null,
             "obstacles": [],
-            "entities": [],
+            "entities": [
+                {
+                    "id": "signal_console",
+                    "type": "object",
+                    "name": "Signal Console",
+                    "description": "A flickering screen covered in grime. It hums with a steady rhythm.",
+                    "label": "console_interaction",
+                    "x": 800,
+                    "y": 400,
+                    "sprite": "images/topdown/chars/male_base.png"
+                }
+            ],
             "encounters": [],
             "scavenge": [],
             "parent": "mage_tower",
@@ -793,25 +853,189 @@
         }
     },
     "quests": {
+        "long_dawn": {
+            "name": "The Long Dawn",
+            "description": "A journey to find the signal and lead the sleepers home.",
+            "ticks": [
+                {
+                    "id": "call_to_adventure",
+                    "name": "Call to Adventure",
+                    "trigger": {
+                        "event": "CHAR_MET",
+                        "char": "mayor"
+                    },
+                    "label": "QUEST__long_dawn__call_to_adventure"
+                },
+                {
+                    "id": "refusal_of_the_call",
+                    "name": "Refusal of the Call",
+                    "trigger": {
+                        "event": "ITEM_GAINED",
+                        "item": "Wood",
+                        "total": 5
+                    },
+                    "label": "QUEST__long_dawn__refusal_of_the_call"
+                },
+                {
+                    "id": "meeting_the_mentor",
+                    "name": "Meeting the Mentor",
+                    "trigger": {
+                        "event": "CHAR_MET",
+                        "char": "priestess"
+                    },
+                    "label": "QUEST__long_dawn__meeting_the_mentor"
+                },
+                {
+                    "id": "crossing_the_threshold",
+                    "name": "Crossing the Threshold",
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "forest_edge"
+                    },
+                    "label": "QUEST__long_dawn__crossing_the_threshold"
+                },
+                {
+                    "id": "tests_and_allies",
+                    "name": "Tests and Allies",
+                    "trigger": {
+                        "event": "CHAR_MET",
+                        "char": "ranger"
+                    },
+                    "label": "QUEST__long_dawn__tests_and_allies"
+                },
+                {
+                    "id": "approach_to_the_inmost_cave",
+                    "name": "Approach to the Inmost Cave",
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "mage_tower"
+                    },
+                    "label": "QUEST__long_dawn__approach_to_the_inmost_cave"
+                },
+                {
+                    "id": "the_ordeal",
+                    "name": "The Ordeal",
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "mage_tower_f1"
+                    },
+                    "label": "QUEST__long_dawn__the_ordeal"
+                },
+                {
+                    "id": "the_reward",
+                    "name": "The Reward",
+                    "trigger": {
+                        "event": "ITEM_GAINED",
+                        "item": "broadcast_protocol"
+                    },
+                    "label": "QUEST__long_dawn__the_reward"
+                },
+                {
+                    "id": "the_road_back",
+                    "name": "The Road Back",
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "forest_edge"
+                    },
+                    "label": "QUEST__long_dawn__the_road_back"
+                },
+                {
+                    "id": "resurrection",
+                    "name": "Resurrection",
+                    "trigger": {
+                        "event": "CHAR_MET",
+                        "char": "mayor"
+                    },
+                    "label": "QUEST__long_dawn__resurrection"
+                },
+                {
+                    "id": "master_of_two_worlds",
+                    "name": "Master of Two Worlds",
+                    "trigger": {
+                        "event": "ITEM_GAINED",
+                        "item": "protocol_deciphered"
+                    },
+                    "label": "QUEST__long_dawn__master_of_two_worlds"
+                }
+            ]
+        },
         "iron_and_fire": {
             "name": "Tools and Fire",
-            "description": "Mechanic Greta needs materials to build non-lethal tools and alarms."
+            "description": "Mechanic Greta needs materials to build non-lethal tools and alarms.",
+            "ticks": [
+                {
+                    "id": "collect_wood",
+                    "name": "Collect Wood",
+                    "trigger": {},
+                    "label": "QUEST__iron_and_fire__collect_wood"
+                },
+                {
+                    "id": "collect_stone",
+                    "name": "Collect Stone",
+                    "trigger": {},
+                    "label": "QUEST__iron_and_fire__collect_stone"
+                },
+                {
+                    "id": "craft_a_signal_baton",
+                    "name": "Craft a Signal Baton",
+                    "trigger": {},
+                    "label": "QUEST__iron_and_fire__craft_a_signal_baton"
+                }
+            ]
         },
         "apple_hunt": {
             "name": "Ration Run",
-            "description": "Gather rations for the shelter."
+            "description": "Gather rations for the shelter.",
+            "ticks": [
+                {
+                    "id": "visit_the_supply_depot",
+                    "name": "Visit the Supply Depot",
+                    "trigger": {},
+                    "label": "QUEST__apple_hunt__visit_the_supply_depot"
+                },
+                {
+                    "id": "collect_rations",
+                    "name": "Collect Rations",
+                    "trigger": {},
+                    "label": "QUEST__apple_hunt__collect_rations"
+                }
+            ]
         },
         "formal_intro": {
             "name": "Chain of Command",
-            "description": "Meet the leaders keeping the district steady."
-        },
-        "long_dawn": {
-            "name": "The Long Dawn",
-            "description": "A non-violent journey to restore hope and a cure in a world of sleepers."
+            "description": "Meet the leaders keeping the district steady.",
+            "ticks": [
+                {
+                    "id": "speak_with_coordinator_mara",
+                    "name": "Speak with Coordinator Mara",
+                    "trigger": {},
+                    "label": "QUEST__formal_intro__speak_with_coordinator_mara"
+                },
+                {
+                    "id": "visit_the_quarantine_gate",
+                    "name": "Visit the Quarantine Gate",
+                    "trigger": {},
+                    "label": "QUEST__formal_intro__visit_the_quarantine_gate"
+                },
+                {
+                    "id": "speak_with_captain_rafi",
+                    "name": "Speak with Captain Rafi",
+                    "trigger": {},
+                    "label": "QUEST__formal_intro__speak_with_captain_rafi"
+                }
+            ]
         },
         "scholars_secret": {
             "name": "Patient Zero",
-            "description": "Theo is searching for the first record of the sleepers."
+            "description": "Theo is searching for the first record of the sleepers.",
+            "ticks": [
+                {
+                    "id": "find_the_outbreak_note",
+                    "name": "Find the Outbreak Note",
+                    "trigger": {},
+                    "label": "QUEST__scholars_secret__find_the_outbreak_note"
+                }
+            ]
         }
     },
     "containers": {},
@@ -1061,19 +1285,12 @@
         }
     },
     "story_origins": {
-        "warrior": {
-            "name": "The Courier",
-            "description": "A fast runner trusted with dangerous routes and fragile messages.",
-            "pc_id": "warrior",
-            "intro_label": "SCENE__warrior__intro",
+        "long_dawn": {
+            "name": "The Long Dawn",
+            "description": "A journey to find the signal and lead the sleepers home.",
+            "pc_id": "survivor",
+            "intro_label": "QUEST__long_dawn__started",
             "image": "chars/male_fit.png"
-        },
-        "scholar": {
-            "name": "The Medic",
-            "description": "A calm clinician who knows how to soothe panic and treat the sick.",
-            "pc_id": "scholar",
-            "intro_label": "SCENE__scholar__intro",
-            "image": "chars/male_thin.png"
         }
     },
     "shops": {

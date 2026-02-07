@@ -2,6 +2,12 @@
 
 The **Renpy Odyssey Framework** is a data-driven content system designed to separate narrative and world data from game logic. It uses **Markdown** files to define characters, locations, items, and dialogue flows, which are then compiled into Ren'Py scripts and JSON data.
 
+## 📖 Documentation
+
+-   Detailed guides and references are located in the [README/](file:///home/sh/Documents/renpy_stories/ai_rpg/README/) directory.
+-   [Quest System Guide](file:///home/sh/Documents/renpy_stories/ai_rpg/README/quests.md)
+-   [Event & Trigger Reference](file:///home/sh/Documents/renpy_stories/ai_rpg/README/events.md)
+
 ## 📁 File Structure
 
 All data files are located in the `data/` directory:

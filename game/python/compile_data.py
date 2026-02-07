@@ -120,6 +120,8 @@ FLOW_COMMANDS = {
     "jump",
     "call",
     "cond",
+    "quest",
+    "goal",
     "check",
     "notify",
     "companion",
@@ -227,6 +229,22 @@ def directive_to_python(line):
             return None
         label = parts[1]
         return f"renpy.call({label!r})"
+    if cmd == "quest":
+        if len(parts) < 3: return None
+        sub = parts[1].lower()
+        qid = parts[2]
+        if sub == "start": return f"quest_manager.start_quest({qid!r})"
+        if sub == "complete": return f"quest_manager.complete_quest({qid!r})"
+    if cmd == "goal":
+        if len(parts) < 3: return None
+        sub = parts[1].lower()
+        if len(parts) > 3:
+            qid, gid = parts[2], parts[3]
+        else:
+            qid, gid = "None", parts[2]
+        
+        status = {"show": "active", "hide": "hidden", "complete": "complete", "active": "active"}.get(sub, "active")
+        return f"quest_manager.update_goal({qid!r} if {qid!r} != 'None' else None, {gid!r}, {status!r})"
     if cmd == "cond":
         if len(parts) < 3:
             return None
@@ -347,6 +365,32 @@ def compile(lint_only=False):
         "bonds": {}
     }
     
+    def parse_quest_ticks(body, qid):
+        def slug(s): return s.lower().replace(' ', '_')
+        ticks = []
+        sections = re.split(r'(?m)^##\s*', body)
+        for sec in sections[1:]: # Skip intro
+            lines = sec.split('\n', 1)
+            name = lines[0].strip()
+            sid = slug(name)
+            content = lines[1] if len(lines) > 1 else ""
+            
+            trigger = {}
+            trig_match = re.search(r'```trigger\s*\n(.*?)\n```', content, re.DOTALL)
+            if trig_match:
+                try:
+                    trigger = yaml.safe_load(trig_match.group(1))
+                except:
+                    print(f"Error parsing trigger for {qid}:{sid}")
+            
+            ticks.append({
+                "id": sid,
+                "name": name,
+                "trigger": trigger,
+                "label": f"QUEST__{qid}__{sid}"
+            })
+        return ticks
+
     for root, dirs, files in os.walk(data_dir):
         for f in files:
             if not f.endswith(".md"):
@@ -496,7 +540,8 @@ def compile(lint_only=False):
             elif otype == 'quest':
                 data_consolidated["quests"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', '')
+                    "description": props.get('description', ''),
+                    "ticks": parse_quest_ticks(body, obj_id)
                 }
             elif otype == 'container':
                 pos = props.get('pos', '0,0').split(',')
@@ -556,9 +601,15 @@ def compile(lint_only=False):
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
                     "pc_id": props.get('pc_id'),
-                    "intro_label": props.get('intro_label', f"SCENE__{obj_id}__intro"),
+                    "intro_label": props.get('intro_label', f"QUEST__{obj_id}__started"),
                     "image": props.get('image'),
                     "body": body
+                }
+                # Also register as a quest
+                data_consolidated["quests"][obj_id] = {
+                    "name": props.get('name', obj_id),
+                    "description": props.get('description', ''),
+                    "ticks": parse_quest_ticks(body, obj_id)
                 }
             elif otype == 'recipe':
                 def parse_counts(val):
@@ -685,7 +736,7 @@ def compile(lint_only=False):
         for oid, data in data_consolidated[collection].items():
             if 'body' not in data: continue
             body = data.pop('body')
-            prefix = {"character":"CHAR", "scene":"SCENE", "quest":"QUEST", "container":"CONT", "item":"ITEM", "shop":"SHOP"}.get(otype, "LOC")
+            prefix = {"character":"CHAR", "scene":"SCENE", "quest":"QUEST", "container":"CONT", "item":"ITEM", "shop":"SHOP", "story_origin":"QUEST"}.get(otype, "LOC")
             
             # Check for flow blocks in ALL types, but specifically handle naming for Dialogue, StoryOrigin, and Character
             flows = re.findall(r'```flow.*?\s*\n(.*?)\n```', body, re.DOTALL)
@@ -698,7 +749,7 @@ def compile(lint_only=False):
                     label_name = f"CHOICE__{oid}"
                     if not data.get('label'): data['label'] = label_name
                 elif otype == 'story_origin':
-                    label_name = f"SCENE__{oid}__intro"
+                    label_name = f"QUEST__{oid}__started"
                     # We might update data['intro_label'] if not present, but usually explicit or convention
                 elif otype == 'character':
                     label_name = f"CHAR__{oid}"
@@ -720,7 +771,7 @@ def compile(lint_only=False):
                 # If specific types, we might skip the old section loop or mix it?
                 # User preference "minimise labels generated outside of markdown" -> prefer flows.
                 # We can continue to process sections if present, but flow usually replaces main body logic.
-                if otype in ['dialogue', 'story_origin']:
+                if otype in ['dialogue']:
                     continue
 
             sections = re.split(r'(?m)^#+\s*', body)

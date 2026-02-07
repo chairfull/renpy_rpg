@@ -44,6 +44,22 @@ label LOC__forest_edge__encounter_rattle:
     $ flag_set('fence_rattle', True)
     return
 
+label LOC__mage_tower_f1__flow:
+    pc "The screen is asking for an override."
+    pc "If I can pull the data now, maybe I can make it back before the sleepers shift."
+    $ renpy.notify('Recovering protocol...')
+    $ give_item('broadcast_protocol', 1)
+    $ flag_set('protocol_recovered', True)
+    return
+
+label LOC__mage_tower_f1__console:
+    pc "The screen is asking for an override."
+    pc "If I can pull the data now, maybe I can make it back before the sleepers shift."
+    $ renpy.notify('Recovering protocol...')
+    $ give_item('broadcast_protocol', 1)
+    $ flag_set('protocol_recovered', True)
+    return
+
 label CHAR__lady:
     lady "We keep people moving and the sleepers drifting."
     lady "If you hear a new pattern, report it fast."
@@ -203,6 +219,14 @@ label CHAR__shopkeeper__talk:
     $ renpy.store.general_store.interact()
     return
 
+label CHAR__survivor:
+    pc "I've walked these roads since the first pattern broke."
+    return
+
+label CHAR__survivor__talk:
+    pc "I've walked these roads since the first pattern broke."
+    return
+
 label CHAR__scholar:
     scholar "If we can chart the patterns, we can predict the drift."
     return
@@ -251,7 +275,7 @@ label CHAR__mayor:
     pc "If you need someone fast, I can run it."
     mayor "Then take this route map and head to the Broadcast Tower when ready."
     $ mayor.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
-    $ flag_set('long_dawn', True)
+    $ quest_manager.start_quest("long_dawn")
     $ bond_add_stat(pc.id, 'mayor', 'trust', 5)
     mayor "It started three nights ago. Same pattern, same hour."
     mayor "If we can shape it, we can move the sleepers away from the walls."
@@ -267,7 +291,7 @@ label CHAR__mayor__offer_help:
     pc "If you need someone fast, I can run it."
     mayor "Then take this route map and head to the Broadcast Tower when ready."
     $ mayor.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
-    $ flag_set('long_dawn', True)
+    $ quest_manager.start_quest("long_dawn")
     $ bond_add_stat(pc.id, 'mayor', 'trust', 5)
     return
 
@@ -329,7 +353,7 @@ label CHOICE__mayor_offer_help:
     pc "If you need someone fast, I can run it."
     mayor "Then take this route map and head to the Broadcast Tower when ready."
     $ mayor.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
-    $ flag_set('long_dawn', True)
+    $ quest_manager.start_quest("long_dawn")
     $ bond_add_stat(pc.id, 'mayor', 'trust', 5)
     return
 
@@ -338,24 +362,79 @@ label CHOICE__mayor_ask_about_the_signal:
     mayor "If we can shape it, we can move the sleepers away from the walls."
     return
 
-label SCENE__warrior__intro:
+label QUEST__long_dawn__started:
     $ renpy.store.td_manager.setup(rpg_world.current_location)
-    $ flag_set('origin', 'courier')
-    $ event_manager.dispatch('GAME_STARTED', origin='courier')
-    "You arrive at the Relief Exchange, breath steady, pack light."
-    "The settlement needs a runner more than a fighter."
-    "Today you carry a message that could change everything."
+    $ flag_set('origin', 'survivor')
+    $ event_manager.dispatch('GAME_STARTED', origin='survivor')
+    "The settlement is a cage of routine and fear. You've walked the perimeter until every stone is a familiar face."
+    "Coordinator Mara is watching the horizon again. The signal from the Spire is changing."
+    mara "If you're looking for a way out, Survivor, this is it. Go to the Spire."
+    $ quest_manager.update_goal('None' if 'None' != 'None' else None, 'call_to_adventure', 'active')
     $ renpy.jump("world_loop")
+    mara "We need to know what that signal is before the peace breaks. You know the outskirts."
+    pc "I'll need more than just hope to survive the night out there. I should gather wood for markers and heat."
+    elena "If you seek the Spire, seek the silence first. The sleepers don't hunt; they drift. Use the rhythm, don't break it."
+    pc "The district gates are behind me. The air here tastes like static and old rain. No turning back."
+    lena "You're either brave or desperate. Keep your light low and your breathing steady."
+    pc "The Spire. It looms over the city like a rusted needle. The signal is deafening here."
+    pc "The lobby is full of them. Dozens of sleepers, swaying to the tone. I have to move through without waking the storm."
+    pc "The drive is humming in my hand. Years of data, frequencies, the heartbeat of the city."
+    pc "I have to get this back to Mara. The signal is shifting again—I can hear them stirring behind me."
+    mara "You survived. But the signal... it's not just a message. It's a choice. We can guide them, or we can silence them forever."
+    pc "I see it now. The city and the silence aren't separate. We just forgot how to listen."
+    "The settlement broadcasts the bridge signal."
+    "The sleepers don't vanish, but they find peace. They move toward the plains, away from the walls."
+    "The Survivor stands at the gate, no longer a scout, but the guide of a new dawn."
     return
 
-label SCENE__scholar__intro:
-    $ renpy.store.td_manager.setup(rpg_world.current_location)
-    $ flag_set('origin', 'medic')
-    $ event_manager.dispatch('GAME_STARTED', origin='medic')
-    "The clinic is already awake. You wash your hands and check the supplies."
-    "Outside, the sleepers drift past the window like a slow tide."
-    "Today you take the first steps toward a cure."
-    $ renpy.jump("world_loop")
+label QUEST__long_dawn__call_to_adventure:
+    mara "We need to know what that signal is before the peace breaks. You know the outskirts."
+    return
+
+label QUEST__long_dawn__refusal_of_the_call:
+    pc "I'll need more than just hope to survive the night out there. I should gather wood for markers and heat."
+    return
+
+label QUEST__long_dawn__meeting_the_mentor:
+    elena "If you seek the Spire, seek the silence first. The sleepers don't hunt; they drift. Use the rhythm, don't break it."
+    return
+
+label QUEST__long_dawn__crossing_the_threshold:
+    pc "The district gates are behind me. The air here tastes like static and old rain. No turning back."
+    return
+
+label QUEST__long_dawn__tests_and_allies:
+    lena "You're either brave or desperate. Keep your light low and your breathing steady."
+    return
+
+label QUEST__long_dawn__approach_to_the_inmost_cave:
+    pc "The Spire. It looms over the city like a rusted needle. The signal is deafening here."
+    return
+
+label QUEST__long_dawn__the_ordeal:
+    pc "The lobby is full of them. Dozens of sleepers, swaying to the tone. I have to move through without waking the storm."
+    return
+
+label QUEST__long_dawn__the_reward:
+    pc "The drive is humming in my hand. Years of data, frequencies, the heartbeat of the city."
+    return
+
+label QUEST__long_dawn__the_road_back:
+    pc "I have to get this back to Mara. The signal is shifting again—I can hear them stirring behind me."
+    return
+
+label QUEST__long_dawn__resurrection:
+    mara "You survived. But the signal... it's not just a message. It's a choice. We can guide them, or we can silence them forever."
+    return
+
+label QUEST__long_dawn__master_of_two_worlds:
+    pc "I see it now. The city and the silence aren't separate. We just forgot how to listen."
+    return
+
+label QUEST__long_dawn__passed:
+    "The settlement broadcasts the bridge signal."
+    "The sleepers don't vanish, but they find peace. They move toward the plains, away from the walls."
+    "The Survivor stands at the gate, no longer a scout, but the guide of a new dawn."
     return
 
 label SHOP__general_store__flow:

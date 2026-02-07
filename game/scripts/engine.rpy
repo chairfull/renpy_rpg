@@ -578,6 +578,29 @@ init -10 python:
     class QuestManager:
         def __init__(self): self.quests, self.start_triggers = {}, {}
         def add_quest(self, q): self.quests[q.id] = q
+        def start_quest(self, qid):
+            q = self.quests.get(qid)
+            if q: q.start()
+        def complete_quest(self, qid):
+            q = self.quests.get(qid)
+            if q: q.complete()
+        def update_goal(self, qid, gid, status="active"):
+            target_quests = [self.quests[qid]] if qid and qid in self.quests else self.quests.values()
+            
+            for q in target_quests:
+                for t in q.ticks:
+                    if t.id == gid:
+                        t.state = status
+                        if status == "complete":
+                            t.current_value = t.required_value
+                # Check for quest completion if manual update
+                if status == "complete":
+                    all_c = True
+                    for t in q.ticks:
+                        if t.state != "complete":
+                            all_c = False
+                            break
+                    if all_c: q.complete()
         def register_start_trigger(self, qid, data): self.start_triggers[qid] = data
         def handle_event(self, etype, **kwargs):
             for qid, trigger in self.start_triggers.items():
@@ -1792,7 +1815,15 @@ init -10 python:
 
         # Quests
         for oid, p in data.get("quests", {}).items():
-            quest_manager.add_quest(Quest(oid, p['name'], p['description']))
+            q = Quest(oid, p['name'], p.get('description', ''))
+            for t_idx, tp in enumerate(p.get('ticks', [])):
+                tick = QuestTick(tp['id'], tp['name'])
+                tick.trigger_data = tp.get('trigger', {})
+                tick.flow_label = tp.get('label')
+                # Optional: if it's the first tick and quest is autostart, it might be active
+                # But we handle state changes via commands/triggers
+                q.add_tick(tick)
+            quest_manager.add_quest(q)
 
         # Achievements
         for oid, p in data.get("achievements", {}).items():

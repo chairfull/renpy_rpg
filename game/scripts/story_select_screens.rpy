@@ -14,6 +14,10 @@ init python:
                     rpg_world.current_location_id = renpy.store.pc.location_id
         
         renpy.hide_screen("story_select_screen")
+        # Auto-start quest if ID matches origin
+        if origin.id in quest_manager.quests:
+            quest_manager.start_quest(origin.id)
+        
         renpy.transition(fade)
         renpy.jump(origin.intro_label)
 
