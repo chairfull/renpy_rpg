@@ -252,6 +252,32 @@ def directive_to_python(line):
         label_true = parts[2]
         label_false = parts[3] if len(parts) > 3 else None
         return f"cond_jump({expr!r}, {label_true!r}, {label_false!r})"
+    if cmd == "quest":
+        if len(parts) < 3:
+            return None
+        op = parts[1].lower()
+        qid = parts[2]
+        if op == "start":
+            return f"quest_manager.start_quest({qid!r})"
+        if op == "complete":
+            return f"quest_manager.complete_quest({qid!r})"
+    if cmd == "goal":
+        if len(parts) < 3:
+            return None
+        op = parts[1].lower()
+        if len(parts) >= 4:
+            qid = parts[2]
+            gid = parts[3]
+        else:
+            qid = None
+            gid = parts[2]
+        qid_expr = repr(qid) if qid is not None else "None"
+        if op in ["show", "active"]:
+            return f"quest_manager.update_goal({qid_expr}, {gid!r}, status='active')"
+        if op == "hide":
+            return f"quest_manager.update_goal({qid_expr}, {gid!r}, status='hidden')"
+        if op == "complete":
+            return f"quest_manager.update_goal({qid_expr}, {gid!r}, status='complete')"
     if cmd == "check":
         if len(parts) < 4:
             return None
@@ -364,6 +390,12 @@ def compile(lint_only=False):
         "status_effects": {},
         "bonds": {}
     }
+    errors = []
+    warnings = []
+
+    def _is_origin_path(rel_path):
+        rel_norm = rel_path.replace(os.sep, "/")
+        return rel_norm.startswith("quests/origins/")
     
     def parse_quest_ticks(body, qid):
         def slug(s): return s.lower().replace(' ', '_')
@@ -404,7 +436,12 @@ def compile(lint_only=False):
                 continue
             
             obj_id = props.get('id', props.get('name', 'unknown')).lower()
-            otype = props.get('type', 'location')
+            otype = str(props.get('type', 'location')).strip().lower()
+            if otype == "origin":
+                otype = "story_origin"
+            if otype == "story_origin" and not _is_origin_path(rel_path):
+                warnings.append(f"story_origin {obj_id}: move to data/quests/origins/ (ignored)")
+                continue
             
             # Store in JSON data
             if otype == 'item':
@@ -601,15 +638,9 @@ def compile(lint_only=False):
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
                     "pc_id": props.get('pc_id'),
-                    "intro_label": props.get('intro_label', f"QUEST__{obj_id}__started"),
+                    "intro_label": props.get('intro_label', f"SCENE__{obj_id}__intro"),
                     "image": props.get('image'),
                     "body": body
-                }
-                # Also register as a quest
-                data_consolidated["quests"][obj_id] = {
-                    "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
-                    "ticks": parse_quest_ticks(body, obj_id)
                 }
             elif otype == 'recipe':
                 def parse_counts(val):

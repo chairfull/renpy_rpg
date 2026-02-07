@@ -892,209 +892,6 @@
         }
     },
     "quests": {
-        "long_dawn": {
-            "name": "The Long Dawn",
-            "description": "A journey to find the signal and lead the sleepers home.",
-            "ticks": [
-                {
-                    "id": "call_to_adventure",
-                    "name": "Call to Adventure",
-                    "trigger": {
-                        "event": "CHAR_MET",
-                        "char": "mara"
-                    },
-                    "label": "QUEST__long_dawn__call_to_adventure"
-                },
-                {
-                    "id": "refusal_of_the_call",
-                    "name": "Refusal of the Call",
-                    "trigger": {
-                        "event": "ITEM_GAINED",
-                        "item": "Wood",
-                        "total": 5
-                    },
-                    "label": "QUEST__long_dawn__refusal_of_the_call"
-                },
-                {
-                    "id": "meeting_the_mentor",
-                    "name": "Meeting the Mentor",
-                    "trigger": {
-                        "event": "CHAR_MET",
-                        "char": "elena"
-                    },
-                    "label": "QUEST__long_dawn__meeting_the_mentor"
-                },
-                {
-                    "id": "crossing_the_threshold",
-                    "name": "Crossing the Threshold",
-                    "trigger": {
-                        "event": "LOCATION_VISITED",
-                        "location": "forest_edge"
-                    },
-                    "label": "QUEST__long_dawn__crossing_the_threshold"
-                },
-                {
-                    "id": "tests_and_allies",
-                    "name": "Tests and Allies",
-                    "trigger": {
-                        "event": "CHAR_MET",
-                        "char": "lena"
-                    },
-                    "label": "QUEST__long_dawn__tests_and_allies"
-                },
-                {
-                    "id": "approach_to_the_inmost_cave",
-                    "name": "Approach to the Inmost Cave",
-                    "trigger": {
-                        "event": "LOCATION_VISITED",
-                        "location": "mage_tower"
-                    },
-                    "label": "QUEST__long_dawn__approach_to_the_inmost_cave"
-                },
-                {
-                    "id": "the_ordeal",
-                    "name": "The Ordeal",
-                    "trigger": {
-                        "event": "LOCATION_VISITED",
-                        "location": "mage_tower_f1"
-                    },
-                    "label": "QUEST__long_dawn__the_ordeal"
-                },
-                {
-                    "id": "the_reward",
-                    "name": "The Reward",
-                    "trigger": {
-                        "event": "ITEM_GAINED",
-                        "item": "broadcast_protocol"
-                    },
-                    "label": "QUEST__long_dawn__the_reward"
-                },
-                {
-                    "id": "the_road_back",
-                    "name": "The Road Back",
-                    "trigger": {
-                        "event": "LOCATION_VISITED",
-                        "location": "forest_edge"
-                    },
-                    "label": "QUEST__long_dawn__the_road_back"
-                },
-                {
-                    "id": "resurrection",
-                    "name": "Resurrection",
-                    "trigger": {
-                        "event": "ITEM_GAINED",
-                        "item": "protocol_deciphered"
-                    },
-                    "label": "QUEST__long_dawn__resurrection"
-                }
-            ]
-        },
-        "silent_tide": {
-            "name": "The Silent Tide",
-            "description": "A mysterious signal from the depths calls you to the edge of the world.",
-            "ticks": [
-                {
-                    "id": "call_to_adventure",
-                    "name": "Call to Adventure",
-                    "trigger": {
-                        "event": "CHAR_MET",
-                        "char": "jace"
-                    },
-                    "label": "QUEST__silent_tide__call_to_adventure"
-                },
-                {
-                    "id": "refusal_of_the_call",
-                    "name": "Refusal of the Call",
-                    "trigger": {
-                        "event": "ITEM_GAINED",
-                        "item": "stone",
-                        "total": 3
-                    },
-                    "label": "QUEST__silent_tide__refusal_of_the_call"
-                },
-                {
-                    "id": "meeting_the_mentor",
-                    "name": "Meeting the Mentor",
-                    "trigger": {
-                        "event": "CHAR_MET",
-                        "char": "theo"
-                    },
-                    "label": "QUEST__silent_tide__meeting_the_mentor"
-                },
-                {
-                    "id": "crossing_the_threshold",
-                    "name": "Crossing the Threshold",
-                    "trigger": {
-                        "event": "LOCATION_VISITED",
-                        "location": "forest_edge"
-                    },
-                    "label": "QUEST__silent_tide__crossing_the_threshold"
-                },
-                {
-                    "id": "tests_and_allies",
-                    "name": "Tests and Allies",
-                    "trigger": {
-                        "event": "CHAR_MET",
-                        "char": "hakim"
-                    },
-                    "label": "QUEST__silent_tide__tests_and_allies"
-                },
-                {
-                    "id": "approach_to_the_inmost_cave",
-                    "name": "Approach to the Inmost Cave",
-                    "trigger": {
-                        "event": "LOCATION_VISITED",
-                        "location": "mage_tower"
-                    },
-                    "label": "QUEST__silent_tide__approach_to_the_inmost_cave"
-                },
-                {
-                    "id": "the_ordeal",
-                    "name": "The Ordeal",
-                    "trigger": {
-                        "event": "LOCATION_VISITED",
-                        "location": "mage_tower_f1"
-                    },
-                    "label": "QUEST__silent_tide__the_ordeal"
-                },
-                {
-                    "id": "the_reward",
-                    "name": "The Reward",
-                    "trigger": {
-                        "event": "ITEM_GAINED",
-                        "item": "ancient_relic"
-                    },
-                    "label": "QUEST__silent_tide__the_reward"
-                },
-                {
-                    "id": "the_road_back",
-                    "name": "The Road Back",
-                    "trigger": {
-                        "event": "LOCATION_VISITED",
-                        "location": "docks"
-                    },
-                    "label": "QUEST__silent_tide__the_road_back"
-                },
-                {
-                    "id": "resurrection",
-                    "name": "Resurrection",
-                    "trigger": {
-                        "event": "CHAR_MET",
-                        "char": "mara"
-                    },
-                    "label": "QUEST__silent_tide__resurrection"
-                },
-                {
-                    "id": "return_with_the_elixir",
-                    "name": "Return with the Elixir",
-                    "trigger": {
-                        "event": "ITEM_GAINED",
-                        "item": "protocol_deciphered"
-                    },
-                    "label": "QUEST__silent_tide__return_with_the_elixir"
-                }
-            ]
-        },
         "iron_and_fire": {
             "name": "Tools and Fire",
             "description": "Mechanic Greta needs materials to build non-lethal tools and alarms.",
@@ -1453,17 +1250,17 @@
     "story_origins": {
         "long_dawn": {
             "name": "The Long Dawn",
-            "description": "A journey to find the signal and lead the sleepers home.",
-            "pc_id": null,
-            "intro_label": "QUEST__long_dawn__started",
+            "description": "A runner's start at the quarantine line, chasing a signal of hope.",
+            "pc_id": "warrior",
+            "intro_label": "SCENE__long_dawn__intro",
             "image": "chars/male_fit.png"
         },
         "silent_tide": {
             "name": "The Silent Tide",
-            "description": "A mysterious signal from the depths calls you to the edge of the world.",
-            "pc_id": null,
-            "intro_label": "QUEST__silent_tide__started",
-            "image": "chars/male_fit.png"
+            "description": "An archivist hears the sleepers' rhythm and follows it to the source.",
+            "pc_id": "scholar",
+            "intro_label": "SCENE__silent_tide__intro",
+            "image": "chars/male_thin.png"
         }
     },
     "shops": {

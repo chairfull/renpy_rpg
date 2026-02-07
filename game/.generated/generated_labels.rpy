@@ -414,140 +414,22 @@ label CHOICE__elena_checkup:
     return
 
 label QUEST__long_dawn__started:
-    "The settlement is a cage of routine and fear. You've walked the perimeter until every stone is a familiar face."
-    "Mara is watching the horizon again. The signal from the Spire is changing."
-    mara "If you're looking for a way out, Survivor, this is it. Go to the Spire."
-    $ quest_manager.update_goal('None' if 'None' != 'None' else None, 'call_to_adventure', 'active')
-    mara "We need to know what that signal is before the peace breaks. You know the outskirts."
-    pc "I'll need more than just hope to survive the night out there. I should gather wood for markers and heat."
-    elena "If you seek the Spire, seek the silence first. The sleepers don't hunt; they drift. Use the rhythm, don't break it."
-    pc "The district gates are behind me. The air here tastes like static and old rain. No turning back."
-    lena "You're either brave or desperate. Keep your light low and your breathing steady."
-    pc "The Spire. It looms over the city like a rusted needle. The signal is deafening here."
-    pc "The lobby is full of them. Dozens of sleepers, swaying to the tone. I have to move through without waking the storm."
-    pc "The drive is humming in my hand. Years of data, frequencies, the heartbeat of the city."
-    pc "I have to get this back to Mara. The signal is shifting again—I can hear them stirring behind me."
-    pc "I see it now. The city and the silence aren't separate. We just forgot how to listen."
-    "The settlement broadcasts the bridge signal."
-    "The sleepers don't vanish, but they find peace. They move toward the plains, away from the walls."
-    "The Survivor stands at the gate, no longer a scout, but the guide of a new dawn."
-    return
-
-label QUEST__long_dawn__call_to_adventure:
-    mara "We need to know what that signal is before the peace breaks. You know the outskirts."
-    return
-
-label QUEST__long_dawn__refusal_of_the_call:
-    pc "I'll need more than just hope to survive the night out there. I should gather wood for markers and heat."
-    return
-
-label QUEST__long_dawn__meeting_the_mentor:
-    elena "If you seek the Spire, seek the silence first. The sleepers don't hunt; they drift. Use the rhythm, don't break it."
-    return
-
-label QUEST__long_dawn__crossing_the_threshold:
-    pc "The district gates are behind me. The air here tastes like static and old rain. No turning back."
-    return
-
-label QUEST__long_dawn__tests_and_allies:
-    lena "You're either brave or desperate. Keep your light low and your breathing steady."
-    return
-
-label QUEST__long_dawn__approach_to_the_inmost_cave:
-    pc "The Spire. It looms over the city like a rusted needle. The signal is deafening here."
-    return
-
-label QUEST__long_dawn__the_ordeal:
-    pc "The lobby is full of them. Dozens of sleepers, swaying to the tone. I have to move through without waking the storm."
-    return
-
-label QUEST__long_dawn__the_reward:
-    pc "The drive is humming in my hand. Years of data, frequencies, the heartbeat of the city."
-    return
-
-label QUEST__long_dawn__the_road_back:
-    pc "I have to get this back to Mara. The signal is shifting again—I can hear them stirring behind me."
-    return
-
-label QUEST__long_dawn__resurrection:
-    pc "I see it now. The city and the silence aren't separate. We just forgot how to listen."
-    return
-
-label QUEST__long_dawn__passed:
-    "The settlement broadcasts the bridge signal."
-    "The sleepers don't vanish, but they find peace. They move toward the plains, away from the walls."
-    "The Survivor stands at the gate, no longer a scout, but the guide of a new dawn."
+    $ renpy.store.td_manager.setup(rpg_world.current_location)
+    $ flag_set('origin', 'long_dawn')
+    $ event_manager.dispatch('GAME_STARTED', origin='long_dawn')
+    "You check your route map and count the turns to the Broadcast Tower."
+    mayor "The signal shifted again. Bring back anything you learn."
+    $ renpy.jump('world_loop')
     return
 
 label QUEST__silent_tide__started:
-    "The docks are slick with salt and memories. You've spent your life watching the waves, but today, they're watching back."
-    "A strange, rhythmic humming is vibrating through the wooden piers. It's coming from the deep."
-    jace "You feel that too, don't you? The tide is changing."
-    $ quest_manager.update_goal('None' if 'None' != 'None' else None, 'call_to_adventure', 'active')
-    jace "Beyond the reef, there's a chime that shouldn't be there. I'm too old to chase ghosts, but you... you have the look of someone with nothing to lose."
-    pc "I should probably just stick to the nets. I'll need some weights if I'm going to brace the hull against the swell."
-    theo "The deep doesn't just hold water, boy. It holds the echoes of what we were. If you follow the chime, listen for the gaps between the notes."
-    pc "The salt spray is a mile behind me now. The air is thick with the scent of damp earth and something older. Step by step, the shore fades."
-    hakim "Looking for shiny things in dark places? You'll need more than just a sturdy boat for where you're headed."
-    pc "The tower stands like a spear thrust into the sky. The humming from the docks is a roar here, vibrating in my very bones."
-    pc "Shadows flicker in the corners of my vision. The 'Sleepers' are here, but they aren't sleeping. They're waiting. I must be silent as the tide."
-    pc "It's cold, so cold it burns. The relic pulses in rhythm with my own heart. The signal... it's coming from within this."
-    pc "The sea is tumultuous, reflecting the storm within the relic. I have to get this to someone who understands what it's whispering."
-    mara "You brought it back. I haven't seen one of these since I was a child. The tide isn't coming for us—it's coming *through* us."
-    pc "The silence of the deep is no longer a void. It's a bridge. We are the architects of the new world."
-    "The Silent Tide has reached its peak."
-    "The light from the relic bathes the docks in a soft, blue glow."
-    "The Survivor stands by the water, no longer just a watcher of the waves, but their master."
-    return
-
-label QUEST__silent_tide__call_to_adventure:
-    jace "Beyond the reef, there's a chime that shouldn't be there. I'm too old to chase ghosts, but you... you have the look of someone with nothing to lose."
-    return
-
-label QUEST__silent_tide__refusal_of_the_call:
-    pc "I should probably just stick to the nets. I'll need some weights if I'm going to brace the hull against the swell."
-    return
-
-label QUEST__silent_tide__meeting_the_mentor:
-    theo "The deep doesn't just hold water, boy. It holds the echoes of what we were. If you follow the chime, listen for the gaps between the notes."
-    return
-
-label QUEST__silent_tide__crossing_the_threshold:
-    pc "The salt spray is a mile behind me now. The air is thick with the scent of damp earth and something older. Step by step, the shore fades."
-    return
-
-label QUEST__silent_tide__tests_and_allies:
-    hakim "Looking for shiny things in dark places? You'll need more than just a sturdy boat for where you're headed."
-    return
-
-label QUEST__silent_tide__approach_to_the_inmost_cave:
-    pc "The tower stands like a spear thrust into the sky. The humming from the docks is a roar here, vibrating in my very bones."
-    return
-
-label QUEST__silent_tide__the_ordeal:
-    pc "Shadows flicker in the corners of my vision. The 'Sleepers' are here, but they aren't sleeping. They're waiting. I must be silent as the tide."
-    return
-
-label QUEST__silent_tide__the_reward:
-    pc "It's cold, so cold it burns. The relic pulses in rhythm with my own heart. The signal... it's coming from within this."
-    return
-
-label QUEST__silent_tide__the_road_back:
-    pc "The sea is tumultuous, reflecting the storm within the relic. I have to get this to someone who understands what it's whispering."
-    return
-
-label QUEST__silent_tide__resurrection:
-    mara "You brought it back. I haven't seen one of these since I was a child. The tide isn't coming for us—it's coming *through* us."
-    return
-
-label QUEST__silent_tide__return_with_the_elixir:
-    pc "The silence of the deep is no longer a void. It's a bridge. We are the architects of the new world."
-    return
-
-label QUEST__silent_tide__passed:
-    "The Silent Tide has reached its peak."
-    "The light from the relic bathes the docks in a soft, blue glow."
-    "The Survivor stands by the water, no longer just a watcher of the waves, but their master."
+    $ renpy.store.td_manager.setup(rpg_world.current_location)
+    $ flag_set('origin', 'silent_tide')
+    $ event_manager.dispatch('GAME_STARTED', origin='silent_tide')
+    "Your logbook is full of patterns. The sleepers drift to the same pulse each night."
+    priestess "Keep your steps soft and your breaths even. We can guide them."
+    $ quest_manager.start_quest('long_dawn')
+    $ renpy.jump('world_loop')
     return
 
 label SHOP__general_store__flow:

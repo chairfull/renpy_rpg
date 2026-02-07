@@ -14,7 +14,7 @@ All data files are located in the `data/` directory:
 - `data/locations/`: Map areas and world structure.
 - `data/characters/`: NPCs, their stats, and interaction flows.
 - `data/items/`: Equipment and consumable definitions.
-- `data/story_origins/`: Player background choices.
+- `data/quests/origins/`: Player background choices.
 
 ## 📝 Markdown Format
 
@@ -87,6 +87,8 @@ TAKE potion 1
 GOLD 10
 REST 8
 SCAVENGE
+QUEST START long_dawn
+GOAL SHOW call_to_adventure
 PERK ADD silver_tongue
 STATUS ADD flu 120
 COMPANION ADD bard
