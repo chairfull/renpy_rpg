@@ -1,8 +1,8 @@
 ---
 type: location
 id: home
-name: Safehouse Room
-description: Your assigned bunk inside the quarantine block.
+name: Safehouse
+description: A quiet multi-level safehouse assigned to you within the quarantine block.
 map_image: "#1a1a2a"
 # Map Data
 map_type: structure
@@ -16,11 +16,37 @@ entities:
     x: 200
     y: 540
     spawn: [200, 540]
+---
+
+# Locations
+## Attic
+```yaml
+name: Attic
+description: A cramped attic full of stored crates and old insulation.
+map_type: floor
+floor_idx: 3
+tags: [storage]
+```
+
+## Top Floor
+```yaml
+name: Top Floor
+description: Quiet sleeping quarters and the bathroom.
+map_type: floor
+floor_idx: 2
+tags: [residential]
+```
+
+### Main Bedroom
+```yaml
+description: Your assigned room with a narrow cot and a small mirror.
+map_type: room
+entities:
   - id: bed
     type: object
     name: Cot
     description: A narrow cot with a clean blanket.
-    label: sleep_interaction
+    label: LOC__home__bed
     x: 300
     y: 500
     sprite: "images/topdown/chars/male_base.png"
@@ -28,7 +54,7 @@ entities:
     type: object
     name: Small Mirror
     description: Check your face and move on.
-    label: mirror_interaction
+    label: LOC__home__mirror
     x: 1400
     y: 300
     sprite: "images/topdown/chars/male_base.png"
@@ -40,7 +66,78 @@ entities:
     y: 0
     items: [camp_kit, apple, potion]
     sprite: "images/topdown/chars/male_base.png"
----
+```
+
+### Guest Bedroom
+```yaml
+description: A spare room kept ready for visitors or injured runners.
+map_type: room
+```
+
+### Kids Bedroom
+```yaml
+description: A small room with mismatched blankets and hand-drawn maps.
+map_type: room
+```
+
+### Bathroom
+```yaml
+description: A compact washroom with a trickling filter line.
+map_type: room
+```
+
+## Main Floor
+```yaml
+name: Main Floor
+description: The day-to-day living space, with work areas and a garage.
+map_type: floor
+floor_idx: 1
+```
+
+### Garage
+```yaml
+description: A converted bay for carts, tools, and quiet repairs.
+map_type: room
+```
+
+### Kitchen
+```yaml
+description: A narrow galley for ration prep and shared meals.
+map_type: room
+```
+
+### Living Room
+```yaml
+description: A low-lit common area with patched couches and old screens.
+map_type: room
+```
+
+### Office
+```yaml
+description: A cramped desk space for logs, maps, and comms.
+map_type: room
+```
+
+## Basement
+```yaml
+name: Basement
+description: Utility space with old ducting and supply cages.
+map_type: floor
+floor_idx: 0
+tags: [utility]
+```
+
+### Furnace Room
+```yaml
+description: The heat hub, lined with filters and rumbling vents.
+map_type: room
+```
+
+### Supply Room
+```yaml
+description: Locked shelves of spare parts and emergency stocks.
+map_type: room
+```
 
 # Bed
 ```flow
