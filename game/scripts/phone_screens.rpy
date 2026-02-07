@@ -529,7 +529,18 @@ screen phone_wardrobe_app():
                         yfill True
                         vbox:
                             spacing 4
-                            for item in pc.items:
+                            python:
+                                grouped = {}
+                                for itm in pc.items:
+                                    item_id = item_manager.get_id_of(itm)
+                                    key = (item_id, getattr(itm, "owner_id", None), bool(getattr(itm, "stolen", False)))
+                                    if key not in grouped:
+                                        label = itm.name + (" [stolen]" if getattr(itm, "stolen", False) else "")
+                                        grouped[key] = {"item": itm, "qty": 0, "label": label}
+                                    grouped[key]["qty"] += max(1, int(getattr(itm, "quantity", 1)))
+                            for key, entry in grouped.items():
+                                $ item = entry["item"]
+                                $ count = entry["qty"]
                                 button:
                                     xfill True
                                     background "#252535"
@@ -544,7 +555,7 @@ screen phone_wardrobe_app():
                                     
                                     hbox:
                                         xfill True
-                                        text item.name size 14 color "#fff"
+                                        text "[entry['label']] (x[count])" size 14 color "#fff"
                                         if item.equip_slots:
                                             text "⚔" size 14 color "#4af" xalign 1.0
 

@@ -38,7 +38,8 @@ init -5 python:
                 inv_id = f"inv_{obj.get('id', 'anon')}"
                 items = obj.get('items', [])
                 # Create the inventory and store it back in the object
-                obj['inventory'] = Inventory(inv_id, obj.get('name', 'Container'), items=items)
+                owner_id = obj.get('owner_id') or obj.get('owner')
+                obj['inventory'] = Inventory(inv_id, obj.get('name', 'Container'), items=items, owner_id=owner_id)
             
             # Check for Lock
             lock = obj.get('lock_obj')

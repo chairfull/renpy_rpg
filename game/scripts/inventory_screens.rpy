@@ -5,7 +5,8 @@ default selected_recipe = None
 default journal_tab = "quests"
 default selected_note = None
 default selected_person = None
-default quick_loot_tags = ["consumable", "food", "health", "ammo", "credits", "component", "material"]
+default quick_loot_tags = ["consumable", "food", "medical", "ammo", "currency", "component", "material"]
+default quest_filter = "active"
 
 init python:
     def _equip_item_quick(itm):
@@ -98,25 +99,40 @@ screen inventory_content():
             background "#222"
             xsize 400
             ysize 600
-            viewport:
-                scrollbars "vertical"
-                mousewheel True
-                vbox:
-                    spacing 5
-                    python:
-                        grouped_items = {}
-                        for item in pc.items:
-                            if item.name not in grouped_items:
-                                grouped_items[item.name] = []
-                            grouped_items[item.name].append(item)
-                    
-                    for name, item_list in grouped_items.items():
-                        $ first_item = item_list[0]
-                        textbutton "[name] (x[len(item_list)])":
-                            action SetVariable("selected_inventory_item", first_item)
-                            xfill True
-                            background ("#333" if globals().get("selected_inventory_item") == first_item else "#111")
-                            text_style "inventory_item_text"
+            vbox:
+                spacing 6
+                xfill True
+                $ inv_weight = pc.get_total_weight()
+                $ weight_max = pc.max_weight
+                $ slots_used = pc.get_used_slots()
+                $ slots_max = pc.max_slots
+                if weight_max is not None:
+                    text "Weight: [inv_weight:.1f] / [weight_max:.1f]" size 16 color "#999" xalign 0.5
+                if slots_max is not None:
+                    text "Slots: [slots_used] / [slots_max]" size 16 color "#999" xalign 0.5
+                viewport:
+                    scrollbars "vertical"
+                    mousewheel True
+                    vbox:
+                        spacing 5
+                        python:
+                            grouped_items = {}
+                            for item in pc.items:
+                                item_id = item_manager.get_id_of(item)
+                                key = (item_id, getattr(item, "owner_id", None), bool(getattr(item, "stolen", False)))
+                                if key not in grouped_items:
+                                    label = item.name + (" [stolen]" if getattr(item, "stolen", False) else "")
+                                    grouped_items[key] = {"item": item, "qty": 0, "label": label}
+                                grouped_items[key]["qty"] += max(1, int(getattr(item, "quantity", 1)))
+                        
+                        for key, entry in grouped_items.items():
+                            $ first_item = entry["item"]
+                            $ count = entry["qty"]
+                            textbutton "[entry['label']] (x[count])":
+                                action SetVariable("selected_inventory_item", first_item)
+                                xfill True
+                                background ("#333" if globals().get("selected_inventory_item") == first_item else "#111")
+                                text_style "inventory_item_text"
 
         # Item Details
         frame:
@@ -134,8 +150,16 @@ screen inventory_content():
                     text "[itm.description]" size 20
                     
                     null height 10
-                    text "Weight: [itm.weight] kg" size 18 color "#cccccc"
+                    $ qty = pc.get_item_count(item_id=i_id)
+                    text "Quantity: [qty]" size 18 color "#cccccc"
+                    text "Weight: [itm.weight] kg (Total [itm.weight * qty:.1f] kg)" size 18 color "#cccccc"
                     text "Value: [itm.value] gold" size 18 color "#cccccc"
+                    if getattr(itm, "stackable", False):
+                        text "Stack Size: [itm.stack_size]" size 16 color "#888"
+                    if getattr(itm, "owner_id", None):
+                        text "Owner: [itm.owner_id]" size 16 color "#888"
+                    if getattr(itm, "stolen", False):
+                        text "Stolen" size 16 color "#ff7777"
                     
                     if itm.equip_slots:
                         $ slots_for_body = slot_registry.get_slots_for_body(pc.body_type)
@@ -264,48 +288,103 @@ screen journal_content():
              use people_sub_content
 
 screen quest_sub_content():
-    hbox:
-        spacing 20
-        # Quest List
-        frame:
-            background "#222"
-            xsize 350
-            ysize 600
-            viewport:
-                scrollbars "vertical"
-                mousewheel True
-                vbox:
-                    spacing 5
-                    for q in sorted(quest_manager.quests.values(), key=lambda x: x.state):
-                        if q.state != "unknown":
-                             textbutton "[q.name]":
+    vbox:
+        spacing 10
+        hbox:
+            spacing 8
+            xalign 0.5
+            textbutton "Active":
+                action SetVariable("quest_filter", "active")
+                style "tab_button"
+                text_style "tab_button_text"
+                selected (quest_filter == "active")
+            textbutton "Completed":
+                action SetVariable("quest_filter", "passed")
+                style "tab_button"
+                text_style "tab_button_text"
+                selected (quest_filter == "passed")
+            textbutton "Failed":
+                action SetVariable("quest_filter", "failed")
+                style "tab_button"
+                text_style "tab_button_text"
+                selected (quest_filter == "failed")
+            textbutton "All":
+                action SetVariable("quest_filter", "all")
+                style "tab_button"
+                text_style "tab_button_text"
+                selected (quest_filter == "all")
+
+        hbox:
+            spacing 20
+            # Quest List
+            frame:
+                background "#222"
+                xsize 350
+                ysize 600
+                viewport:
+                    scrollbars "vertical"
+                    mousewheel True
+                    vbox:
+                        spacing 5
+                        python:
+                            quests = []
+                            for q in quest_manager.quests.values():
+                                if q.state == "unknown":
+                                    continue
+                                if quest_filter == "all" or q.state == quest_filter:
+                                    quests.append(q)
+                            quests = sorted(quests, key=lambda x: (x.category, x.name))
+                        for q in quests:
+                             $ cat = (q.category or "side").upper()
+                             textbutton "[q.name] ([cat])":
                                  action SetVariable("selected_quest", q)
                                  xfill True
                                  background ("#333" if globals().get("selected_quest") == q else "#111")
                                  text_style "quest_list_text"
 
-        # Quest Details
-        frame:
-            background "#222"
-            xsize 670
-            ysize 600
-            padding (20, 20)
-            if globals().get("selected_quest"):
-                $ q = selected_quest
-                vbox:
-                    spacing 10
-                    text "[q.name]" size 30 color "#ffd700"
-                    text "[q.description]" size 18 italic True
-                    null height 10
-                    text "Objectives" size 24 color "#ffffff"
-                    for tick in q.ticks:
-                        if tick.state != "hidden":
-                            hbox:
-                                spacing 10
-                                text ("✅" if tick.state == "complete" else "⭕") size 18
-                                text "[tick.name]" size 18 color ("#888" if tick.state == "complete" else "#eee")
-            else:
-                text "Select a quest to see details." align (0.5, 0.5) color "#666666"
+            # Quest Details
+            frame:
+                background "#222"
+                xsize 670
+                ysize 600
+                padding (20, 20)
+                if globals().get("selected_quest"):
+                    $ q = selected_quest
+                    vbox:
+                        spacing 8
+                        text "[q.name]" size 30 color "#ffd700"
+                        text "[q.description]" size 18 italic True
+                        text "State: [q.state]" size 16 color "#888"
+                        if q.giver:
+                            text "Giver: [q.giver]" size 16 color "#888"
+                        if q.location:
+                            text "Location: [q.location]" size 16 color "#888"
+                        null height 6
+                        if q.rewards and (q.rewards.get("gold") or q.rewards.get("items") or q.rewards.get("flags")):
+                            text "Rewards" size 20 color "#ffffff"
+                            if q.rewards.get("gold"):
+                                text "• Gold: [q.rewards['gold']]" size 16 color "#ddd"
+                            for item_id, count in (q.rewards.get("items", {}) or {}).items():
+                                $ itm = item_manager.get(item_id)
+                                $ itm_name = itm.name if itm else item_id
+                                text "• [itm_name] x[count]" size 16 color "#ddd"
+                            for flag in (q.rewards.get("flags", []) or []):
+                                text "• Flag: [flag]" size 16 color "#888"
+                        null height 6
+                        text "Objectives" size 22 color "#ffffff"
+                        for tick in q.ticks:
+                            if tick.state != "hidden":
+                                hbox:
+                                    spacing 10
+                                    python:
+                                        done = (tick.state == "complete")
+                                        prog = ""
+                                        if tick.required_value and tick.required_value > 1:
+                                            prog = " ({}/{})".format(tick.current_value, tick.required_value)
+                                    text ("✅" if done else "⭕") size 18
+                                    text "[tick.name][prog]" size 18 color ("#888" if done else "#eee")
+                else:
+                    text "Select a quest to see details." align (0.5, 0.5) color "#666666"
 
 screen notes_sub_content():
     hbox:
@@ -421,11 +500,7 @@ screen crafting_content():
                         $ itm = item_manager.get(i_id)
                         $ itm_name = itm.name if itm else i_id
                         # Check count in inventory
-                        $ have = 0
-                        python:
-                            have = 0
-                            for itm in pc.items:
-                                if item_manager.get_id_of(itm) == i_id: have += 1
+                        $ have = pc.get_item_count(item_id=i_id)
                         
                         hbox:
                             text "• [itm_name] x[count]" size 20 color ("#50fa7b" if have >= count else "#ff5555")
@@ -599,17 +674,17 @@ screen char_interaction_menu(char):
 # --- CONTAINER TRANSFER SCREEN ---
 init python:
     def transfer_item(item, source_inv, target_inv):
-        if item in source_inv.items:
-            source_inv.items.remove(item)
-            target_inv.items.append(item)
+        reason = "loot" if target_inv == pc else "deposit"
+        if source_inv.transfer_to(item, target_inv, count=1, reason=reason):
             renpy.restart_interaction()
 
     def transfer_all(source_inv, target_inv):
         if not source_inv.items:
             return
         for itm in list(source_inv.items):
-            source_inv.items.remove(itm)
-            target_inv.items.append(itm)
+            qty = max(1, int(getattr(itm, "quantity", 1)))
+            reason = "loot" if target_inv == pc else "deposit"
+            source_inv.transfer_to(itm, target_inv, count=qty, reason=reason)
         renpy.restart_interaction()
 
     def transfer_by_tags(source_inv, target_inv, tags):
@@ -620,8 +695,9 @@ init python:
         for itm in list(source_inv.items):
             it_tags = getattr(itm, 'tags', set())
             if it_tags & tag_set:
-                source_inv.items.remove(itm)
-                target_inv.items.append(itm)
+                qty = max(1, int(getattr(itm, "quantity", 1)))
+                reason = "loot" if target_inv == pc else "deposit"
+                source_inv.transfer_to(itm, target_inv, count=qty, reason=reason)
                 moved = True
         if moved:
             renpy.restart_interaction()
@@ -704,15 +780,19 @@ screen inventory_column(title, source_inv, target_inv, bulk_label=None, bulk_act
                         # Group items for cleaner display
                         grouped = {}
                         for itm in source_inv.items:
-                            if itm.name not in grouped: grouped[itm.name] = []
-                            grouped[itm.name].append(itm)
+                            item_id = item_manager.get_id_of(itm)
+                            key = (item_id, getattr(itm, "owner_id", None), bool(getattr(itm, "stolen", False)))
+                            if key not in grouped:
+                                label = itm.name + (" [stolen]" if getattr(itm, "stolen", False) else "")
+                                grouped[key] = {"item": itm, "qty": 0, "label": label}
+                            grouped[key]["qty"] += max(1, int(getattr(itm, "quantity", 1)))
                     
                     if not source_inv.items:
                         text "Empty" italic True color "#666" align (0.5, 0.2)
                     
-                    for name, item_list in grouped.items():
-                        $ first_item = item_list[0]
-                        $ count = len(item_list)
+                    for key, entry in grouped.items():
+                        $ first_item = entry["item"]
+                        $ count = entry["qty"]
                         
                         button:
                             action Function(transfer_item, first_item, source_inv, target_inv)
@@ -723,7 +803,7 @@ screen inventory_column(title, source_inv, target_inv, bulk_label=None, bulk_act
                             
                             hbox:
                                 spacing 10
-                                text "[name]" size 22 color "#eee"
+                                text "[entry['label']]" size 22 color "#eee"
                                 if count > 1:
                                     text "x[count]" size 18 color "#ffd700" yalign 0.5
                                 
@@ -754,9 +834,20 @@ screen char_give_screen(char):
                 mousewheel True
                 vbox:
                     spacing 5
-                    for item in pc.items:
-                        textbutton "[item.name]":
-                            action [Function(pc.transfer_to, item, char), Notify(f"Gave {item.name} to {char.name}"), Hide("char_give_screen")]
+                    python:
+                        grouped = {}
+                        for itm in pc.items:
+                            item_id = item_manager.get_id_of(itm)
+                            key = (item_id, getattr(itm, "owner_id", None), bool(getattr(itm, "stolen", False)))
+                            if key not in grouped:
+                                label = itm.name + (" [stolen]" if getattr(itm, "stolen", False) else "")
+                                grouped[key] = {"item": itm, "qty": 0, "label": label}
+                            grouped[key]["qty"] += max(1, int(getattr(itm, "quantity", 1)))
+                    for key, entry in grouped.items():
+                        $ item = entry["item"]
+                        $ count = entry["qty"]
+                        textbutton "[entry['label']] (x[count])":
+                            action [Function(pc.transfer_to, item, char, 1, "gift", True), Notify(f"Gave {item.name} to {char.name}"), Hide("char_give_screen")]
                             xfill True
                             background "#222"
             
@@ -801,17 +892,28 @@ screen shop_screen(shop):
                         mousewheel True
                         vbox:
                             spacing 5
-                            for item in shop.items:
+                            python:
+                                shop_grouped = {}
+                                for itm in shop.items:
+                                    item_id = item_manager.get_id_of(itm)
+                                    key = (item_id, getattr(itm, "owner_id", None), bool(getattr(itm, "stolen", False)))
+                                    if key not in shop_grouped:
+                                        label = itm.name + (" [stolen]" if getattr(itm, "stolen", False) else "")
+                                        shop_grouped[key] = {"item": itm, "qty": 0, "label": label}
+                                    shop_grouped[key]["qty"] += max(1, int(getattr(itm, "quantity", 1)))
+                            for key, entry in shop_grouped.items():
+                                $ item = entry["item"]
+                                $ count = entry["qty"]
                                 $ price = shop.get_buy_price(item)
                                 hbox:
                                     xfill True
-                                    textbutton "[item.name]":
+                                    textbutton "[entry['label']] (x[count])":
                                         action SetVariable("selected_shop_item", item)
                                         background ("#333" if globals().get("selected_shop_item") == item else "#222")
                                     text "[price]G" color "#ffd700" yalign 0.5 xalign 1.0
                                     if pc.gold >= price:
                                         textbutton "Buy":
-                                            action [Function(shop.transfer_to, item, pc), SetField(pc, "gold", pc.gold - price), Notify(f"Bought {item.name}")]
+                                            action [Function(shop.transfer_to, item, pc, 1, "purchase", True), SetField(pc, "gold", pc.gold - price), Notify(f"Bought {item.name}")]
                                             xalign 1.0
                                     else:
                                         text "Poor" size 14 color "#666" yalign 0.5 xalign 1.0
@@ -827,16 +929,27 @@ screen shop_screen(shop):
                         mousewheel True
                         vbox:
                             spacing 5
-                            for item in pc.items:
+                            python:
+                                inv_grouped = {}
+                                for itm in pc.items:
+                                    item_id = item_manager.get_id_of(itm)
+                                    key = (item_id, getattr(itm, "owner_id", None), bool(getattr(itm, "stolen", False)))
+                                    if key not in inv_grouped:
+                                        label = itm.name + (" [stolen]" if getattr(itm, "stolen", False) else "")
+                                        inv_grouped[key] = {"item": itm, "qty": 0, "label": label}
+                                    inv_grouped[key]["qty"] += max(1, int(getattr(itm, "quantity", 1)))
+                            for key, entry in inv_grouped.items():
+                                $ item = entry["item"]
+                                $ count = entry["qty"]
                                 $ price = shop.get_sell_price(item)
                                 hbox:
                                     xfill True
-                                    textbutton "[item.name]":
+                                    textbutton "[entry['label']] (x[count])":
                                         action SetVariable("selected_shop_item", item)
                                         background ("#333" if globals().get("selected_shop_item") == item else "#222")
                                     text "[price]G" color "#ffd700" yalign 0.5 xalign 1.0
                                     textbutton "Sell":
-                                        action [Function(pc.transfer_to, item, shop), SetField(pc, "gold", pc.gold + price), Notify(f"Sold {item.name}")]
+                                        action [Function(pc.transfer_to, item, shop, 1, "sell", True), SetField(pc, "gold", pc.gold + price), Notify(f"Sold {item.name}")]
                                         xalign 1.0
         textbutton "Close Shop":
             align (0.5, 1.0)
@@ -883,14 +996,25 @@ screen container_screen(container):
                         mousewheel True
                         vbox:
                             spacing 5
-                            for item in container.items:
+                            python:
+                                cont_grouped = {}
+                                for itm in container.items:
+                                    item_id = item_manager.get_id_of(itm)
+                                    key = (item_id, getattr(itm, "owner_id", None), bool(getattr(itm, "stolen", False)))
+                                    if key not in cont_grouped:
+                                        label = itm.name + (" [stolen]" if getattr(itm, "stolen", False) else "")
+                                        cont_grouped[key] = {"item": itm, "qty": 0, "label": label}
+                                    cont_grouped[key]["qty"] += max(1, int(getattr(itm, "quantity", 1)))
+                            for key, entry in cont_grouped.items():
+                                $ item = entry["item"]
+                                $ count = entry["qty"]
                                 hbox:
                                     xfill True
-                                    textbutton "[item.name]":
+                                    textbutton "[entry['label']] (x[count])":
                                         action SetVariable("selected_cont_item", item)
                                         background ("#333" if globals().get("selected_cont_item") == item else "#222")
                                     textbutton "Take":
-                                        action [Function(container.transfer_to, item, pc), Notify(f"Took {item.name}")]
+                                        action [Function(container.transfer_to, item, pc, 1, "loot", False), Notify(f"Took {item.name}")]
                                         xalign 1.0
             vbox:
                 spacing 10
@@ -904,14 +1028,25 @@ screen container_screen(container):
                         mousewheel True
                         vbox:
                             spacing 5
-                            for item in pc.items:
+                            python:
+                                inv_grouped = {}
+                                for itm in pc.items:
+                                    item_id = item_manager.get_id_of(itm)
+                                    key = (item_id, getattr(itm, "owner_id", None), bool(getattr(itm, "stolen", False)))
+                                    if key not in inv_grouped:
+                                        label = itm.name + (" [stolen]" if getattr(itm, "stolen", False) else "")
+                                        inv_grouped[key] = {"item": itm, "qty": 0, "label": label}
+                                    inv_grouped[key]["qty"] += max(1, int(getattr(itm, "quantity", 1)))
+                            for key, entry in inv_grouped.items():
+                                $ item = entry["item"]
+                                $ count = entry["qty"]
                                 hbox:
                                     xfill True
-                                    textbutton "[item.name]":
+                                    textbutton "[entry['label']] (x[count])":
                                         action SetVariable("selected_cont_item", item)
                                         background ("#333" if globals().get("selected_cont_item") == item else "#222")
                                     textbutton "Deposit":
-                                        action [Function(pc.transfer_to, item, container), Notify(f"Stored {item.name}")]
+                                        action [Function(pc.transfer_to, item, container, 1, "deposit", False), Notify(f"Stored {item.name}")]
                                         xalign 1.0
         textbutton "Close":
             align (0.5, 1.0)

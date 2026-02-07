@@ -3,6 +3,7 @@ type: quest
 id: silent_tide
 name: The Silent Tide
 description: Follow the sleepers' rhythm to craft a non-violent way to guide them away from the city.
+category: main
 ---
 
 # Started

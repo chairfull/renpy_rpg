@@ -3,6 +3,7 @@ type: quest
 id: long_dawn
 name: The Long Dawn
 description: Track the Spire's shifting signal and protect the settlement through calm, non-violent guidance.
+category: main
 ---
 
 # Started

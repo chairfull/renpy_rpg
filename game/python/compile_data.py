@@ -64,6 +64,53 @@ def parse_yaml_list(lines):
         print(f"Error parsing YAML list block: {e}")
         return []
 
+def parse_yaml_block(value, default=None):
+    """Safely parse a block of YAML lines into a dict or list."""
+    if value is None:
+        return default if default is not None else {}
+    if isinstance(value, (dict, list)):
+        return value
+    if isinstance(value, str):
+        try:
+            data = yaml.safe_load(value)
+            return data if data is not None else (default if default is not None else {})
+        except Exception as e:
+            print(f"Error parsing YAML block: {e}")
+            return default if default is not None else {}
+    if isinstance(value, list):
+        try:
+            data = yaml.safe_load("\n".join(value))
+            return data if data is not None else (default if default is not None else {})
+        except Exception as e:
+            print(f"Error parsing YAML block: {e}")
+            return default if default is not None else {}
+    return default if default is not None else {}
+
+def parse_counts(val):
+    """Parse a YAML list/dict of counts into a {id: count} dict."""
+    res = {}
+    if isinstance(val, list):
+        for item in val:
+            if isinstance(item, dict):
+                for k, v in item.items():
+                    try:
+                        res[str(k).strip()] = int(v)
+                    except Exception:
+                        continue
+            elif isinstance(item, str) and ':' in item:
+                k, v = item.split(':', 1)
+                try:
+                    res[k.strip()] = int(v.strip())
+                except Exception:
+                    continue
+    elif isinstance(val, dict):
+        for k, v in val.items():
+            try:
+                res[str(k).strip()] = int(v)
+            except Exception:
+                continue
+    return res
+
 def parse_csv(value):
     """Safely parse a comma-separated value that might be a string, list, or empty."""
     if not value:
@@ -89,6 +136,29 @@ def parse_csv(value):
             cleaned = cleaned[1:-1]
         return [x.strip() for x in cleaned.split(',') if x.strip()]
     return []
+
+def parse_bool(value, default=False):
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in ("1", "true", "yes", "y", "on")
+
+def parse_int(value, default=None):
+    if value is None or value == "":
+        return default
+    try:
+        return int(value)
+    except Exception:
+        return default
+
+def parse_float(value, default=None):
+    if value is None or value == "":
+        return default
+    try:
+        return float(value)
+    except Exception:
+        return default
 
 def parse_kv_block(lines):
     result = {}
@@ -235,6 +305,7 @@ def directive_to_python(line):
         qid = parts[2]
         if sub == "start": return f"quest_manager.start_quest({qid!r})"
         if sub == "complete": return f"quest_manager.complete_quest({qid!r})"
+        if sub == "fail": return f"quest_manager.fail_quest({qid!r})"
     if cmd == "goal":
         if len(parts) < 3: return None
         sub = parts[1].lower()
@@ -261,6 +332,8 @@ def directive_to_python(line):
             return f"quest_manager.start_quest({qid!r})"
         if op == "complete":
             return f"quest_manager.complete_quest({qid!r})"
+        if op == "fail":
+            return f"quest_manager.fail_quest({qid!r})"
     if cmd == "goal":
         if len(parts) < 3:
             return None
@@ -445,15 +518,19 @@ def compile(lint_only=False):
             
             # Store in JSON data
             if otype == 'item':
+                stack_size = parse_int(props.get('stack_size'), 1) or 1
                 data_consolidated["items"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
                     "weight": float(props.get('weight', 0)),
+                    "volume": float(props.get('volume', 0) or 0),
                     "value": int(props.get('value', 0)),
                     "tags": parse_csv(props.get('tags', '')),
                     "factions": parse_csv(props.get('factions', '')),
                     "equip_slots": parse_csv(props.get('equip_slots', '')),
-                    "outfit_part": props.get('outfit_part')
+                    "outfit_part": props.get('outfit_part'),
+                    "stackable": parse_bool(props.get('stackable', False)) or stack_size > 1,
+                    "stack_size": stack_size
                 }
             elif otype == 'location':
                 # Parse list of entities/links
@@ -539,6 +616,8 @@ def compile(lint_only=False):
                     "stats": stats_dict,
                     "affinity": int(props.get('affinity', 0)),
                     "schedule": schedule,
+                    "max_weight": parse_float(props.get('max_weight')),
+                    "max_slots": parse_int(props.get('max_slots')),
                     "companion_mods": parse_kv_block(props.get('companion_mods', [])) if isinstance(props.get('companion_mods', []), list) else {},
                     "body": body
                 }
@@ -575,9 +654,34 @@ def compile(lint_only=False):
                             "body": f"```flow\n{flow_content}\n```"
                         }
             elif otype == 'quest':
+                rewards_raw = parse_yaml_block(props.get('rewards'), {})
+                prereqs_raw = parse_yaml_block(props.get('prereqs'), {})
+                start_trigger = parse_yaml_block(props.get('start_trigger'), {})
+                reward_items = parse_counts(rewards_raw.get('items', {})) if isinstance(rewards_raw, dict) else {}
+                reward_flags = rewards_raw.get('flags', []) if isinstance(rewards_raw, dict) else []
+                if isinstance(reward_flags, list):
+                    reward_flags = [str(f).strip() for f in reward_flags if str(f).strip()]
+                else:
+                    reward_flags = parse_csv(reward_flags)
                 data_consolidated["quests"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
+                    "category": props.get('category', 'side'),
+                    "giver": props.get('giver'),
+                    "location": props.get('location'),
+                    "tags": parse_csv(props.get('tags', '')),
+                    "prereqs": {
+                        "quests": parse_csv(prereqs_raw.get('quests', [])) if isinstance(prereqs_raw, dict) else [],
+                        "flags": parse_csv(prereqs_raw.get('flags', [])) if isinstance(prereqs_raw, dict) else [],
+                        "not_flags": parse_csv(prereqs_raw.get('not_flags', [])) if isinstance(prereqs_raw, dict) else [],
+                        "cond": (prereqs_raw.get('cond') if isinstance(prereqs_raw, dict) else None),
+                    },
+                    "rewards": {
+                        "gold": int(rewards_raw.get('gold', 0)) if isinstance(rewards_raw, dict) and rewards_raw.get('gold') is not None else 0,
+                        "items": reward_items,
+                        "flags": reward_flags,
+                    },
+                    "start_trigger": start_trigger if isinstance(start_trigger, dict) else {},
                     "ticks": parse_quest_ticks(body, obj_id)
                 }
             elif otype == 'container':
@@ -593,6 +697,8 @@ def compile(lint_only=False):
                     "allowed_tags": parse_csv(props.get('allowed_tags', '')),
                     "tags": parse_csv(props.get('tags', '')),
                     "factions": parse_csv(props.get('factions', '')),
+                    "max_weight": parse_float(props.get('max_weight')),
+                    "max_slots": parse_int(props.get('max_slots')),
                     "body": body
                 }
             elif otype == 'stat':
@@ -643,20 +749,6 @@ def compile(lint_only=False):
                     "body": body
                 }
             elif otype == 'recipe':
-                def parse_counts(val):
-                    res = {}
-                    if isinstance(val, list):
-                        for item in val: 
-                             if isinstance(item, dict):
-                                 res.update(item)
-                             elif isinstance(item, str) and ':' in item:
-                                 k, v = item.split(':', 1)
-                                 try: res[k.strip()] = int(v.strip())
-                                 except: pass
-                    elif isinstance(val, dict):
-                        res = val
-                    return res
-                
                 req_skill = {}
                 rs_raw = props.get('req_skill')
                 # If req_skill is a dict (from markdown) or list
@@ -734,9 +826,6 @@ def compile(lint_only=False):
                     "stats": stats
                 }
             
-    errors = []
-    warnings = []
-
     def _emit_flow(flow_body, script_parts):
         for line in flow_body.split('\n'):
             line = line.strip()

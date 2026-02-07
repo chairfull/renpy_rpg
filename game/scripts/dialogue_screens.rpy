@@ -126,21 +126,32 @@ screen give_item_screen(target_char):
                     spacing 8
                     
                     if pc.items:
-                        for item in pc.items:
+                        python:
+                            grouped = {}
+                            for itm in pc.items:
+                                item_id = item_manager.get_id_of(itm)
+                                key = (item_id, getattr(itm, "owner_id", None), bool(getattr(itm, "stolen", False)))
+                                if key not in grouped:
+                                    label = itm.name + (" [stolen]" if getattr(itm, "stolen", False) else "")
+                                    grouped[key] = {"item": itm, "qty": 0, "label": label}
+                                grouped[key]["qty"] += max(1, int(getattr(itm, "quantity", 1)))
+                        for key, entry in grouped.items():
+                            $ item = entry["item"]
+                            $ count = entry["qty"]
                             button:
                                 xfill True
                                 background "#2a3a2a"
                                 hover_background "#3a4a3a"
                                 padding (15, 10)
                                 action [
-                                    Function(pc.transfer_to, item, target_char),
+                                    Function(pc.transfer_to, item, target_char, 1, "gift", True),
                                     Return(),
                                     Notify(f"Gave {item.name} to {target_char.name}")
                                 ]
                                 
                                 hbox:
                                     spacing 20
-                                    text "[item.name]" size 20 color "#ffffff"
+                                    text "[entry['label']] (x[count])" size 20 color "#ffffff"
                                     text "[item.description]" size 16 color "#888888" yalign 0.5
                     else:
                         text "No items in inventory" size 20 color "#666666" xalign 0.5 yalign 0.5

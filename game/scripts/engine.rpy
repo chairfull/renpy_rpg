@@ -16,6 +16,7 @@ init -10 python:
     import random
     import copy
     import ast
+    import math
 
     SAFE_FUNC_NAMES = {"len", "int", "float", "str", "max", "min"}
 
@@ -81,14 +82,14 @@ init -10 python:
 
     def find_item_by_tag(tag):
         for it in pc.items:
-            if tag in getattr(it, "tags", set()):
+            if it.has_tag(tag):
                 return it
         return None
 
     def consume_item_by_tag(tag):
         it = find_item_by_tag(tag)
         if it:
-            pc.remove_item(it)
+            pc.remove_item(it, count=1, reason="consume")
             return it
         return None
 
@@ -212,22 +213,14 @@ init -10 python:
 
     def give_item(item_id, count=1):
         count = max(1, int(count))
-        for _ in range(count):
-            it = item_manager.get(item_id)
-            if it:
-                pc.add_item(it)
-        return True
+        it = item_manager.get(item_id)
+        if it:
+            return pc.add_item(it, count=count, reason="give")
+        return False
 
     def take_item(item_id, count=1):
         count = max(1, int(count))
-        removed = 0
-        for it in list(pc.items):
-            if item_manager.get_id_of(it) == item_id:
-                pc.remove_item(it)
-                removed += 1
-                if removed >= count:
-                    break
-        return removed
+        return pc.remove_items_by_id(item_id, count=count, reason="take")
 
     def add_gold(amount):
         pc.gold = max(0, int(pc.gold + amount))
@@ -318,33 +311,69 @@ init -10 python:
         def move_to(self, x, y):
             self.x, self.y = x, y
 
+    TAG_TAXONOMY = {
+        "type": {"weapon", "armor", "consumable", "tool", "material", "quest", "key", "currency", "container"},
+        "consumable": {"food", "drink", "medical", "buff", "ammo"},
+        "rarity": {"common", "uncommon", "rare", "epic", "legendary"},
+        "damage": {"melee", "ranged", "magic", "thrown"},
+        "utility": {"light", "lockpick", "repair", "crafting"},
+    }
+    TAG_ALIASES = {
+        "quest_item": "quest",
+        "credits": "currency",
+        "coin": "currency",
+        "coins": "currency",
+        "health": "medical",
+        "med": "medical",
+        "meds": "medical",
+        "ammo_pack": "ammo",
+        "mats": "material",
+    }
+
+    def _canonical_tag(tag):
+        if tag is None:
+            return None
+        t = str(tag).strip().lower().replace(" ", "_")
+        return TAG_ALIASES.get(t, t)
+
+    def _normalize_tags(tags):
+        if not tags:
+            return set()
+        return set(_canonical_tag(t) for t in tags if str(t).strip())
+
     class TaggedObject(object):
         """Mixin for objects with tags for filtering"""
         def __init__(self, tags=None, **kwargs):
-            self.tags = set(tags or [])
+            self.tags = _normalize_tags(tags)
         
         def has_tag(self, tag):
-            return tag in self.tags
+            return _canonical_tag(tag) in self.tags
         
         def has_any_tag(self, tags):
-            return bool(self.tags & set(tags))
+            return bool(self.tags & _normalize_tags(tags))
         
         def has_all_tags(self, tags):
-            return set(tags) <= self.tags
+            return _normalize_tags(tags) <= self.tags
         
         def add_tag(self, tag):
-            self.tags.add(tag)
+            self.tags.add(_canonical_tag(tag))
         
         def remove_tag(self, tag):
-            self.tags.discard(tag)
+            self.tags.discard(_canonical_tag(tag))
 
     # --- ITEM SYSTEM ---
     class Item(TaggedObject):
-        def __init__(self, name="Unknown", description="", weight=0, value=0, tags=None, factions=None, equip_slots=None, outfit_part=None, id=None, **kwargs):
+        def __init__(self, name="Unknown", description="", weight=0, value=0, volume=0, tags=None, factions=None, equip_slots=None, outfit_part=None, stackable=False, stack_size=1, quantity=1, owner_id=None, stolen=False, id=None, **kwargs):
             TaggedObject.__init__(self, tags)
             self.id = id
             self.factions = set(factions or [])
             self.name, self.description, self.weight, self.value = name, description, weight, value
+            self.volume = float(volume) if volume is not None else 0
+            self.stack_size = max(1, int(stack_size or 1))
+            self.stackable = bool(stackable) or self.stack_size > 1
+            self.quantity = max(1, int(quantity or 1))
+            self.owner_id = owner_id
+            self.stolen = bool(stolen)
             self.equip_slots = equip_slots or []
             # Legacy compatibility - map outfit_part to equip_slots if provided
             if outfit_part and not equip_slots:
@@ -359,8 +388,12 @@ init -10 python:
             return copy.copy(base) if base else None
         def get_id_of(self, obj):
             if not obj: return "unknown"
+            if getattr(obj, "id", None):
+                return str(obj.id).lower()
             for k, v in self.registry.items():
                 if v.name == obj.name: return k
+            if getattr(obj, "name", None):
+                return str(obj.name).lower().replace(" ", "_")
             return "unknown"
 
     item_manager = ItemManager()
@@ -386,12 +419,7 @@ init -10 python:
 
         def can_craft(self, recipe, inventory):
             for item_id, count in recipe.inputs.items():
-                current_count = 0
-                for itm in inventory.items:
-                    # Helper to match ID
-                    if item_manager.get_id_of(itm) == item_id:
-                        current_count += 1
-                
+                current_count = inventory.get_item_count(item_id=item_id)
                 if current_count < count:
                     return False, f"Missing {item_id}"
             
@@ -410,22 +438,13 @@ init -10 python:
             
             # Consume inputs
             for item_id, count in recipe.inputs.items():
-                items_to_remove = []
-                found = 0
-                for itm in inventory.items:
-                    if item_manager.get_id_of(itm) == item_id:
-                        items_to_remove.append(itm)
-                        found += 1
-                        if found >= count:
-                            break
-                for itm in items_to_remove:
-                    inventory.remove_item(itm)
+                inventory.remove_items_by_id(item_id, count=count, reason="craft")
             
             # Grant outputs
             for item_id, count in recipe.output.items():
-                for _ in range(count):
-                    new_item = item_manager.get(item_id)
-                    inventory.add_item(new_item, force=True)
+                new_item = item_manager.get(item_id)
+                if new_item:
+                    inventory.add_item(new_item, count=count, force=True, reason="craft")
             
             renpy.notify(f"Crafted {recipe.name}")
             event_manager.dispatch("ITEM_CRAFTED", item=recipe.output, recipe=recipe.id)
@@ -434,9 +453,24 @@ init -10 python:
     crafting_manager = CraftingManager()
 
     class EventManager:
-        def dispatch(self, etype, **kwargs): 
+        def __init__(self):
+            self.listeners = {}
+
+        def subscribe(self, etype, fn):
+            self.listeners.setdefault(etype, set()).add(fn)
+
+        def unsubscribe(self, etype, fn):
+            if etype in self.listeners and fn in self.listeners[etype]:
+                self.listeners[etype].remove(fn)
+
+        def dispatch(self, etype, **kwargs):
             quest_manager.handle_event(etype, **kwargs)
             ach_mgr.handle_event(etype, **kwargs)
+            for fn in list(self.listeners.get(etype, [])):
+                try:
+                    fn(etype, **kwargs)
+                except Exception:
+                    pass
 
     event_manager = EventManager()
 
@@ -561,29 +595,90 @@ init -10 python:
     story_origin_manager = StoryOriginManager()
 
     class Quest:
-        def __init__(self, id, name, description=""):
-            self.id, self.name, self.description, self.state, self.ticks = id, name, description, "unknown", []
+        def __init__(self, id, name, description="", category="side", giver=None, location=None, tags=None, prereqs=None, rewards=None, start_trigger=None):
+            self.id = id
+            self.name = name
+            self.description = description
+            self.category = category or "side"
+            self.giver = giver
+            self.location = location
+            self.tags = set(tags or [])
+            self.prereqs = prereqs or {}
+            self.rewards = rewards or {}
+            self.start_trigger = start_trigger or {}
+            self.state = "unknown"
+            self.ticks = []
+            self.rewards_applied = False
         def add_tick(self, t): self.ticks.append(t)
+        def can_start(self):
+            # Quest prereqs: quests passed + flags set + optional condition.
+            req = self.prereqs or {}
+            for qid in req.get("quests", []) or []:
+                q = quest_manager.quests.get(qid)
+                if not q or q.state != "passed":
+                    return False
+            for flag in req.get("flags", []) or []:
+                if not flag_get(flag, False):
+                    return False
+            for flag in req.get("not_flags", []) or []:
+                if flag_get(flag, False):
+                    return False
+            cond = req.get("cond")
+            if cond and str(cond).strip():
+                if not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "quest_manager": quest_manager}):
+                    return False
+            return True
         def start(self):
             if self.state in ["unknown", "known"]:
+                if not self.can_start():
+                    renpy.notify(f"Quest Locked: {self.name}")
+                    event_manager.dispatch("QUEST_START_BLOCKED", quest=self.id)
+                    return False
                 self.state = "active"
-                if self.ticks: self.ticks[0].state = "active"
+                if self.ticks:
+                    self.ticks[0].state = "active"
                 renpy.notify(f"Quest Started: {self.name}")
+                event_manager.dispatch("QUEST_STARTED", quest=self.id)
                 if renpy.has_label(f"QUEST__{self.id}__started"): renpy.call(f"QUEST__{self.id}__started")
+                return True
+            return False
+        def _apply_rewards(self):
+            if self.rewards_applied:
+                return
+            rewards = self.rewards or {}
+            gold = int(rewards.get("gold", 0) or 0)
+            if gold:
+                add_gold(gold)
+            for item_id, count in (rewards.get("items", {}) or {}).items():
+                give_item(item_id, count)
+            for flag in rewards.get("flags", []) or []:
+                flag_set(flag, True)
+            self.rewards_applied = True
         def complete(self):
             self.state = "passed"
+            self._apply_rewards()
             renpy.notify(f"Quest Completed: {self.name}")
+            event_manager.dispatch("QUEST_COMPLETED", quest=self.id)
             if renpy.has_label(f"QUEST__{self.id}__passed"): renpy.call(f"QUEST__{self.id}__passed")
+        def fail(self):
+            self.state = "failed"
+            renpy.notify(f"Quest Failed: {self.name}")
+            event_manager.dispatch("QUEST_FAILED", quest=self.id)
+            if renpy.has_label(f"QUEST__{self.id}__failed"): renpy.call(f"QUEST__{self.id}__failed")
 
     class QuestManager:
         def __init__(self): self.quests, self.start_triggers = {}, {}
         def add_quest(self, q): self.quests[q.id] = q
         def start_quest(self, qid):
             q = self.quests.get(qid)
-            if q: q.start()
+            if q: return q.start()
+            return False
         def complete_quest(self, qid):
             q = self.quests.get(qid)
             if q: q.complete()
+        def fail_quest(self, qid):
+            q = self.quests.get(qid)
+            if q: q.fail()
         def update_goal(self, qid, gid, status="active"):
             target_quests = [self.quests[qid]] if qid and qid in self.quests else self.quests.values()
             
@@ -593,6 +688,7 @@ init -10 python:
                         t.state = status
                         if status == "complete":
                             t.current_value = t.required_value
+                            event_manager.dispatch("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
                 # Check for quest completion if manual update
                 if status == "complete":
                     all_c = True
@@ -601,6 +697,7 @@ init -10 python:
                             all_c = False
                             break
                     if all_c: q.complete()
+                event_manager.dispatch("QUEST_UPDATED", quest=q.id)
         def register_start_trigger(self, qid, data): self.start_triggers[qid] = data
         def handle_event(self, etype, **kwargs):
             for qid, trigger in self.start_triggers.items():
@@ -612,6 +709,7 @@ init -10 python:
                     for t in q.ticks:
                         if t.check_trigger(etype, **kwargs):
                             any_done = True
+                            event_manager.dispatch("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
                             if t.flow_label and renpy.has_label(t.flow_label): renpy.call(t.flow_label)
                     if any_done:
                         all_c = True
@@ -621,6 +719,7 @@ init -10 python:
                                 if t.state in ["hidden", "shown"]: t.state = "active"
                                 break
                         if all_c: q.complete()
+                        event_manager.dispatch("QUEST_UPDATED", quest=q.id)
         def _match(self, t, etype, **kwargs):
             if t.get("event") != etype: return False
             for k, v in t.items():
@@ -672,51 +771,270 @@ init -10 python:
             else: renpy.say(None, f"You see {self.name}. {self.description}")
 
     class Inventory(Entity):
-        def __init__(self, id, name, items=None, blocked_tags=None, allowed_tags=None, **kwargs):
+        def __init__(self, id, name, items=None, blocked_tags=None, allowed_tags=None, max_weight=None, max_slots=None, owner_id=None, **kwargs):
             super(Inventory, self).__init__(id, name, **kwargs)
             self.items, self.gold = [], 0
+            self.blocked_tags = _normalize_tags(blocked_tags)
+            self.allowed_tags = _normalize_tags(allowed_tags)  # empty = allow all
+            self.max_weight = float(max_weight) if max_weight is not None else None
+            self.max_slots = int(max_slots) if max_slots is not None else None
+            self.owner_id = owner_id
+            self._encumbrance_state = "none"
             if items:
                 for item_id in items:
                     it = item_manager.get(item_id)
-                    if it: self.items.append(it)
-            self.blocked_tags = set(blocked_tags or [])
-            self.allowed_tags = set(allowed_tags or [])  # empty = allow all
-        
-        def can_accept_item(self, item):
-            """Check if item can be added based on tag restrictions"""
-            item_tags = getattr(item, 'tags', set())
+                    if it:
+                        self.add_item(it, count=None, force=True, reason="seed")
+
+        def _item_id(self, item):
+            return item_manager.get_id_of(item)
+
+        def _stackable(self, item):
+            return bool(getattr(item, "stackable", False) or getattr(item, "stack_size", 1) > 1)
+
+        def _stack_size(self, item):
+            try:
+                return max(1, int(getattr(item, "stack_size", 1)))
+            except Exception:
+                return 1
+
+        def _item_qty(self, item, count):
+            if count is None:
+                return max(1, int(getattr(item, "quantity", 1)))
+            return max(1, int(count))
+
+        def _same_ownership(self, a, b):
+            return getattr(a, "owner_id", None) == getattr(b, "owner_id", None) and bool(getattr(a, "stolen", False)) == bool(getattr(b, "stolen", False))
+
+        def get_total_weight(self):
+            return sum(getattr(i, "weight", 0) * max(1, int(getattr(i, "quantity", 1))) for i in self.items)
+
+        def get_used_slots(self):
+            return len(self.items)
+
+        def get_item_count(self, item_id=None, name=None):
+            total = 0
+            for itm in self.items:
+                if item_id and self._item_id(itm) != item_id:
+                    continue
+                if name and itm.name != name:
+                    continue
+                total += max(1, int(getattr(itm, "quantity", 1)))
+            return total
+
+        def _estimate_new_stack_slots(self, item, qty):
+            if not self._stackable(item):
+                return qty
+            stack_size = self._stack_size(item)
+            item_id = self._item_id(item)
+            free = 0
+            for stack in self.items:
+                if self._item_id(stack) != item_id or not self._stackable(stack):
+                    continue
+                if not self._same_ownership(stack, item):
+                    continue
+                free += max(0, stack_size - max(1, int(getattr(stack, "quantity", 1))))
+            remaining = max(0, qty - free)
+            if remaining <= 0:
+                return 0
+            return int(math.ceil(float(remaining) / float(stack_size)))
+
+        def _can_accept_capacity(self, item, qty):
+            if self.max_weight is not None:
+                if self.get_total_weight() + (getattr(item, "weight", 0) * qty) > self.max_weight:
+                    return False, "overweight"
+            if self.max_slots is not None:
+                new_slots = self._estimate_new_stack_slots(item, qty)
+                if self.get_used_slots() + new_slots > self.max_slots:
+                    return False, "full"
+            return True, "ok"
+
+        def _tags_allow(self, item):
+            item_tags = getattr(item, "tags", set())
             if self.blocked_tags and item_tags & self.blocked_tags:
                 return False
             if self.allowed_tags and not (item_tags & self.allowed_tags):
                 return False
             return True
-        
-        def add_item(self, i, force=False):
-            if not force and not self.can_accept_item(i):
+
+        def can_accept_item(self, item, qty=1):
+            """Check if item can be added based on tag restrictions and capacity."""
+            if not self._tags_allow(item):
                 return False
-            self.items.append(i)
-            event_manager.dispatch("ITEM_GAINED", item=i.name, total=len([x for x in self.items if x.name == i.name]))
+            ok, _reason = self._can_accept_capacity(item, qty)
+            return ok
+
+        def _update_encumbrance(self):
+            if self.max_weight is None or self.max_weight <= 0:
+                return
+            ratio = self.get_total_weight() / float(self.max_weight)
+            if ratio < 0.7:
+                state = "light"
+            elif ratio < 0.9:
+                state = "medium"
+            elif ratio <= 1.0:
+                state = "heavy"
+            else:
+                state = "over"
+            if state != self._encumbrance_state:
+                prev = self._encumbrance_state
+                self._encumbrance_state = state
+                event_manager.dispatch("ENCUMBRANCE_CHANGED", inventory=self.id, state=state, previous=prev, ratio=ratio)
+
+        def get_encumbrance_ratio(self):
+            if self.max_weight is None or self.max_weight <= 0:
+                return 0.0
+            return self.get_total_weight() / float(self.max_weight)
+
+        def get_encumbrance_state(self):
+            return self._encumbrance_state
+
+        def _post_inventory_change(self, item, delta, added, reason=None):
+            item_id = self._item_id(item)
+            total = self.get_item_count(item_id=item_id)
+            payload = {
+                "item": item.name,
+                "item_id": item_id,
+                "quantity": int(delta),
+                "total": total,
+                "inventory": self.id,
+                "reason": reason or "unspecified",
+                "owner_id": getattr(item, "owner_id", None),
+                "stolen": bool(getattr(item, "stolen", False)),
+            }
+            event_manager.dispatch("ITEM_GAINED" if added else "ITEM_REMOVED", **payload)
+            event_manager.dispatch("INVENTORY_CHANGED", inventory=self.id, item_id=item_id, delta=int(delta), total=total)
+            self._update_encumbrance()
+
+        def add_item(self, i, count=None, force=False, reason=None):
+            if not i:
+                return False
+            qty = self._item_qty(i, count)
+            if getattr(i, "owner_id", None) is None and self.owner_id is not None:
+                i.owner_id = self.owner_id
+                i.stolen = False
+            if not force:
+                if not self._tags_allow(i):
+                    event_manager.dispatch("INVENTORY_BLOCKED", inventory=self.id, item_id=self._item_id(i), quantity=qty, reason="tags")
+                    return False
+                ok, cap_reason = self._can_accept_capacity(i, qty)
+                if not ok:
+                    event_manager.dispatch("INVENTORY_BLOCKED", inventory=self.id, item_id=self._item_id(i), quantity=qty, reason=cap_reason)
+                    return False
+
+            item_id = self._item_id(i)
+            use_original = i not in self.items
+            if self._stackable(i):
+                stack_size = self._stack_size(i)
+                remaining = qty
+                for stack in self.items:
+                    if self._item_id(stack) != item_id or not self._stackable(stack):
+                        continue
+                    if not self._same_ownership(stack, i):
+                        continue
+                    free = stack_size - max(1, int(getattr(stack, "quantity", 1)))
+                    if free <= 0:
+                        continue
+                    add = min(remaining, free)
+                    stack.quantity += add
+                    remaining -= add
+                    if remaining <= 0:
+                        break
+                while remaining > 0:
+                    add = min(remaining, stack_size)
+                    if use_original:
+                        new_item = i
+                        use_original = False
+                    else:
+                        new_item = copy.copy(i)
+                    new_item.quantity = add
+                    self.items.append(new_item)
+                    remaining -= add
+            else:
+                for _ in range(qty):
+                    if use_original:
+                        new_item = i
+                        use_original = False
+                    else:
+                        new_item = copy.copy(i)
+                    new_item.quantity = 1
+                    self.items.append(new_item)
+
+            self._post_inventory_change(i, qty, added=True, reason=reason)
             return True
-        
-        def remove_item(self, i):
-            if i in self.items:
-                self.items.remove(i)
-                return True
-            return False
-        
-        def transfer_to(self, i, target):
-            if not target.can_accept_item(i):
+
+        def remove_item(self, i, count=1, reason=None):
+            if i not in self.items:
+                return None
+            qty = max(1, int(getattr(i, "quantity", 1)))
+            take = max(1, int(count))
+            take = min(take, qty)
+            if self._stackable(i) and qty > take:
+                i.quantity = qty - take
+                removed = copy.copy(i)
+                removed.quantity = take
+                self._post_inventory_change(i, take, added=False, reason=reason)
+                return removed
+            self.items.remove(i)
+            self._post_inventory_change(i, qty, added=False, reason=reason)
+            return i
+
+        def remove_items_by_id(self, item_id, count=1, reason=None):
+            remaining = max(1, int(count))
+            removed = 0
+            for itm in list(self.items):
+                if self._item_id(itm) != item_id:
+                    continue
+                qty = max(1, int(getattr(itm, "quantity", 1)))
+                if qty <= remaining:
+                    self.items.remove(itm)
+                    self._post_inventory_change(itm, qty, added=False, reason=reason)
+                    removed += qty
+                    remaining -= qty
+                else:
+                    itm.quantity = qty - remaining
+                    self._post_inventory_change(itm, remaining, added=False, reason=reason)
+                    removed += remaining
+                    remaining = 0
+                if remaining <= 0:
+                    break
+            return removed
+
+        def transfer_to(self, i, target, count=1, reason="transfer", assign_owner=False):
+            probe = i
+            if assign_owner:
+                probe = copy.copy(i)
+                probe.owner_id = target.owner_id
+                probe.stolen = False
+            if not target.can_accept_item(probe, count):
                 return False
-            if self.remove_item(i):
-                target.add_item(i, force=True)
-                return True
-            return False
-        
+            removed = self.remove_item(i, count=count, reason="transfer_out")
+            if not removed:
+                return False
+            if assign_owner:
+                removed.owner_id = target.owner_id
+                removed.stolen = False
+            else:
+                if getattr(removed, "owner_id", None) and target.owner_id != removed.owner_id:
+                    if not getattr(removed, "stolen", False):
+                        removed.stolen = True
+                        event_manager.dispatch("ITEM_STOLEN", item_id=self._item_id(removed), owner=removed.owner_id, source=self.id, target=target.id, reason=reason)
+                elif getattr(removed, "owner_id", None) and target.owner_id == removed.owner_id:
+                    removed.stolen = False
+            event_manager.dispatch("ITEM_OWNERSHIP_CHANGED", item_id=self._item_id(removed), owner=removed.owner_id, stolen=bool(getattr(removed, "stolen", False)))
+            if not target.add_item(removed, count=None, reason=reason):
+                self.add_item(removed, count=None, force=True, reason="transfer_rollback")
+                return False
+            event_manager.dispatch("ITEM_TRANSFERRED", source=self.id, target=target.id, item_id=self._item_id(removed), quantity=max(1, int(getattr(removed, "quantity", 1))))
+            return True
+
         def get_items_with_tag(self, tag):
-            return [i for i in self.items if hasattr(i, 'tags') and tag in i.tags]
-        
+            t = _canonical_tag(tag)
+            return [i for i in self.items if hasattr(i, 'tags') and t in i.tags]
+
         def get_items_without_tag(self, tag):
-            return [i for i in self.items if not hasattr(i, 'tags') or tag not in i.tags]
+            t = _canonical_tag(tag)
+            return [i for i in self.items if not hasattr(i, 'tags') or t not in i.tags]
 
     class Container(Inventory):
         def __init__(self, id, name, **kwargs):
@@ -724,8 +1042,8 @@ init -10 python:
         def interact(self): renpy.show_screen("container_screen", container=self)
 
     class Shop(Inventory):
-        def __init__(self, id, name, buy_mult=1.2, sell_mult=0.6, **kwargs):
-            super(Shop, self).__init__(id, name, **kwargs)
+        def __init__(self, id, name, buy_mult=1.2, sell_mult=0.6, owner_id=None, **kwargs):
+            super(Shop, self).__init__(id, name, owner_id=owner_id or id, **kwargs)
             self.buy_mult, self.sell_mult = buy_mult, sell_mult
         def get_buy_price(self, i): return int(i.value * self.buy_mult)
         def get_sell_price(self, i): return int(i.value * self.sell_mult)
@@ -804,9 +1122,16 @@ init -10 python:
 
     # --- CHARACTER ---
     class RPGCharacter(Inventory):
-        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, affinity=0, schedule=None, companion_mods=None, is_companion=False, **kwargs):
-            super(RPGCharacter, self).__init__(id, name, **kwargs)
+        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, affinity=0, schedule=None, companion_mods=None, is_companion=False, owner_id=None, **kwargs):
+            super(RPGCharacter, self).__init__(id, name, owner_id=(owner_id or id), **kwargs)
             self.stats = stats if isinstance(stats, StatBlock) else StatBlock(stats) if stats else StatBlock()
+            if self.max_weight is None:
+                base_weight = 50
+                self.max_weight = base_weight + (self.stats.get("strength", 0) * 5)
+            if self.max_slots is None:
+                base_slots = 24
+                self.max_slots = base_slots + max(0, int(self.stats.get("strength", 0) // 2))
+            self._update_encumbrance()
             self.factions = set(factions or [])
             self.affinity = affinity  # -100 to 100
             self.schedule = schedule or {}  # "HH:MM": "loc_id"
@@ -937,9 +1262,13 @@ init -10 python:
                 self.unequip(slot_id)
             
             # Equip
-            self.equipped_slots[slot_id] = item
+            equipped = item
             if item in self.items:
-                self.items.remove(item)
+                removed = self.remove_item(item, count=1, reason="equip")
+                if removed:
+                    equipped = removed
+            self.equipped_slots[slot_id] = equipped
+            event_manager.dispatch("ITEM_EQUIPPED", actor=self.id, slot=slot_id, item_id=item_manager.get_id_of(equipped))
             return True, "Equipped"
         
         def unequip(self, slot_id):
@@ -947,7 +1276,8 @@ init -10 python:
             if slot_id not in self.equipped_slots:
                 return False
             item = self.equipped_slots.pop(slot_id)
-            self.items.append(item)
+            self.add_item(item, count=None, force=True, reason="unequip")
+            event_manager.dispatch("ITEM_UNEQUIPPED", actor=self.id, slot=slot_id, item_id=item_manager.get_id_of(item))
             return True
         
         def apply_story_origin(self, origin):
@@ -1581,11 +1911,9 @@ init -10 python:
             else:
                 count = int(entry.get("count", 1))
             count = max(1, count)
-            for _ in range(count):
-                it = item_manager.get(item_id)
-                if it:
-                    pc.add_item(it)
-            results.append(f"{item_id} x{count}")
+            it = item_manager.get(item_id)
+            if it and pc.add_item(it, count=count, reason="scavenge"):
+                results.append(f"{item_id} x{count}")
         scavenge_history[key] = True
         if results:
             renpy.notify("Found: " + ", ".join(results))
@@ -1746,6 +2074,8 @@ init -10 python:
                 items=p.get('items', []),
                 tags=p.get('tags', []),
                 affinity=int(p.get('affinity', 0)),
+                max_weight=p.get('max_weight'),
+                max_slots=p.get('max_slots'),
                 schedule=p.get('schedule', {}),
                 companion_mods=p.get('companion_mods', {}),
                 is_companion=bool(p.get('companion_mods'))
@@ -1815,15 +2145,32 @@ init -10 python:
 
         # Quests
         for oid, p in data.get("quests", {}).items():
-            q = Quest(oid, p['name'], p.get('description', ''))
+            q = Quest(
+                oid,
+                p.get('name', oid),
+                p.get('description', ''),
+                category=p.get('category', 'side'),
+                giver=p.get('giver'),
+                location=p.get('location'),
+                tags=p.get('tags', []),
+                prereqs=p.get('prereqs', {}),
+                rewards=p.get('rewards', {}),
+                start_trigger=p.get('start_trigger', {})
+            )
             for t_idx, tp in enumerate(p.get('ticks', [])):
                 tick = QuestTick(tp['id'], tp['name'])
                 tick.trigger_data = tp.get('trigger', {})
+                try:
+                    tick.required_value = int(tick.trigger_data.get("total", 1))
+                except Exception:
+                    tick.required_value = 1
                 tick.flow_label = tp.get('label')
                 # Optional: if it's the first tick and quest is autostart, it might be active
                 # But we handle state changes via commands/triggers
                 q.add_tick(tick)
             quest_manager.add_quest(q)
+            if q.start_trigger:
+                quest_manager.register_start_trigger(oid, q.start_trigger)
 
         # Achievements
         for oid, p in data.get("achievements", {}).items():
