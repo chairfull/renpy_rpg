@@ -83,6 +83,8 @@ screen map_browser():
                         text "🏠" size 24 outlines [(1, "#000", 0, 0)]
                     elif loc.ltype == 'floor':
                         text "📍" size 20 outlines [(1, "#000", 0, 0)]
+                    elif loc.ltype == 'room':
+                        text "🚪" size 18 outlines [(1, "#000", 0, 0)]
                     else:
                         text "❓" size 20
                         

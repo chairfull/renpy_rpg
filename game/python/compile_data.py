@@ -178,6 +178,77 @@ def parse_kv_block(lines):
                     result[k] = v.strip()
     return result
 
+def slugify_segment(text):
+    if text is None:
+        return "loc"
+    s = str(text).strip().lower()
+    s = re.sub(r'[^a-z0-9\s_-]', '', s)
+    s = s.replace('_', '-')
+    s = re.sub(r'\s+', '-', s)
+    s = re.sub(r'-+', '-', s).strip('-')
+    return s or "loc"
+
+def label_safe(text):
+    if text is None:
+        return "id"
+    s = re.sub(r'[^0-9a-zA-Z_]+', '_', str(text))
+    s = re.sub(r'_+', '_', s).strip('_')
+    return s or "id"
+
+def extract_locations_section(body):
+    if not body:
+        return [], body
+    lines = body.splitlines()
+    start = None
+    base_level = None
+    for i, line in enumerate(lines):
+        m = re.match(r'^(#+)\s*Locations\s*$', line.strip(), re.IGNORECASE)
+        if m:
+            start = i
+            base_level = len(m.group(1))
+            break
+    if start is None:
+        return [], body
+    end = len(lines)
+    for j in range(start + 1, len(lines)):
+        m = re.match(r'^(#+)\s+', lines[j])
+        if m and len(m.group(1)) <= base_level:
+            end = j
+            break
+    section_lines = lines[start + 1:end]
+    clean_lines = lines[:start] + lines[end:]
+    clean_body = "\n".join(clean_lines).strip()
+    nodes = []
+    stack = []
+    current = None
+    for line in section_lines:
+        m = re.match(r'^(#+)\s+(.*)$', line)
+        if m:
+            level = len(m.group(1))
+            title = m.group(2).strip()
+            if level <= base_level:
+                break
+            while stack and stack[-1]["level"] >= level:
+                stack.pop()
+            parent = stack[-1] if stack else None
+            node = {
+                "title": title,
+                "level": level,
+                "slug": slugify_segment(title),
+                "content": [],
+                "parent": parent,
+                "children": []
+            }
+            nodes.append(node)
+            if parent:
+                parent["children"].append(node)
+            stack.append(node)
+            current = node
+            continue
+        if current:
+            current["content"].append(line)
+    return nodes, clean_body
+
 FLOW_COMMANDS = {
     "event",
     "flag",
@@ -198,6 +269,7 @@ FLOW_COMMANDS = {
     "perk",
     "status",
     "bond",
+    "item",
 }
 
 def is_caps_command(line):
@@ -428,6 +500,17 @@ def directive_to_python(line):
                 return None
             tag = parts[4]
             return f"bond_remove_tag(pc.id, {other!r}, {tag!r})"
+    if cmd == "item":
+        if len(parts) < 2:
+            return None
+        op = parts[1].lower()
+        if op in ["show", "display"]:
+            item_id = parts[2] if len(parts) > 2 else None
+            if item_id:
+                return f"item_show_image({item_id!r})"
+            return "item_show_image(None)"
+        if op in ["hide", "clear"]:
+            return "item_hide_image()"
     return None
 
 def compile(lint_only=False):
@@ -522,6 +605,7 @@ def compile(lint_only=False):
                 data_consolidated["items"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
+                    "image": props.get('image'),
                     "weight": float(props.get('weight', 0)),
                     "volume": float(props.get('volume', 0) or 0),
                     "value": int(props.get('value', 0)),
@@ -551,7 +635,8 @@ def compile(lint_only=False):
                     scavenge = parse_yaml_list(raw_scav)
                 else:
                     scavenge = []
-
+                # Extract child locations from body (# Locations section)
+                child_nodes, cleaned_body = extract_locations_section(body or "")
                 data_consolidated["locations"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
@@ -560,7 +645,7 @@ def compile(lint_only=False):
                     "entities": entities,
                     "encounters": encounters,
                     "scavenge": scavenge,
-                    "body": body, # Store body for second pass
+                    "body": cleaned_body if cleaned_body is not None else body, # Store body for second pass
                     # Map Fields
                     "parent": props.get('parent'),
                     "map_type": props.get('map_type', 'world'),
@@ -571,6 +656,74 @@ def compile(lint_only=False):
                     "tags": parse_csv(props.get('tags', '')),
                     "factions": parse_csv(props.get('factions', ''))
                 }
+                # Add child locations defined in the body
+                if child_nodes:
+                    def _extract_yaml_block(text):
+                        if not text:
+                            return {}, text
+                        match = re.search(r'```yaml\s*\n(.*?)\n```', text, re.DOTALL)
+                        if not match:
+                            return {}, text
+                        yaml_text = match.group(1)
+                        try:
+                            data = yaml.safe_load(yaml_text) or {}
+                        except Exception:
+                            data = {}
+                        cleaned = text[:match.start()] + text[match.end():]
+                        return data, cleaned.strip()
+
+                    def _as_list(val):
+                        if val is None:
+                            return []
+                        if isinstance(val, list):
+                            return val
+                        if isinstance(val, dict):
+                            return [val]
+                        return []
+
+                    def _build_child(node, parent_id, parent_loc):
+                        full_id = f"{parent_id}#{node['slug']}"
+                        if full_id in data_consolidated["locations"]:
+                            warnings.append(f"location {full_id}: duplicate child id, skipped")
+                            return
+                        raw_body = "\n".join(node.get("content", [])).strip()
+                        yaml_props, child_body = _extract_yaml_block(raw_body)
+                        # Inherit map values from parent unless overridden
+                        map_type = yaml_props.get('map_type', parent_loc.get('map_type', 'world'))
+                        map_x = parse_int(yaml_props.get('map_x'), parent_loc.get('map_x', 0))
+                        map_y = parse_int(yaml_props.get('map_y'), parent_loc.get('map_y', 0))
+                        zoom_range = parse_csv(yaml_props.get('zoom_range', parent_loc.get('zoom_range', '0.0, 99.0')))
+                        floor_idx = parse_int(yaml_props.get('floor_idx'), parent_loc.get('floor_idx', 0))
+                        entities = _as_list(yaml_props.get('entities', []))
+                        encounters = _as_list(yaml_props.get('encounters', []))
+                        scavenge = _as_list(yaml_props.get('scavenge', []))
+                        child_loc = {
+                            "name": yaml_props.get('name', node.get('title') or node.get('slug')),
+                            "description": yaml_props.get('description', ''),
+                            "map_image": yaml_props.get('map_image'),
+                            "obstacles": yaml_props.get('obstacles', []),
+                            "entities": entities,
+                            "encounters": encounters,
+                            "scavenge": scavenge,
+                            "body": child_body,
+                            "parent": parent_id,
+                            "map_type": map_type,
+                            "map_x": int(map_x) if map_x is not None else 0,
+                            "map_y": int(map_y) if map_y is not None else 0,
+                            "zoom_range": zoom_range,
+                            "floor_idx": int(floor_idx) if floor_idx is not None else 0,
+                            "tags": parse_csv(yaml_props.get('tags', '')),
+                            "factions": parse_csv(yaml_props.get('factions', ''))
+                        }
+                        data_consolidated["locations"][full_id] = child_loc
+                        for child in node.get("children", []):
+                            _build_child(child, full_id, child_loc)
+
+                    parent_loc = data_consolidated["locations"][obj_id]
+                    # Only top-level child nodes should be attached to this parent
+                    for node in child_nodes:
+                        if node.get("parent") is None:
+                            _build_child(node, obj_id, parent_loc)
             elif otype == 'character':
                 pos = props.get('pos', '0,0').split(',')
                 # Parse equipment block
@@ -884,26 +1037,28 @@ def compile(lint_only=False):
         for oid, data in data_consolidated[collection].items():
             if 'body' not in data: continue
             body = data.pop('body')
+            safe_oid = label_safe(oid)
             prefix = {"character":"CHAR", "scene":"SCENE", "quest":"QUEST", "container":"CONT", "item":"ITEM", "shop":"SHOP", "story_origin":"QUEST"}.get(otype, "LOC")
             
             # Check for flow blocks in ALL types, but specifically handle naming for Dialogue, StoryOrigin, and Character
             flows = re.findall(r'```flow.*?\s*\n(.*?)\n```', body, re.DOTALL)
             if not flows:
                 flows = re.findall(r'```flow.*?\n(.*?)\n```', body, re.DOTALL)
-            
+
             if flows:
                 # Determine label name based on type
                 if otype == 'dialogue':
-                    label_name = f"CHOICE__{oid}"
-                    if not data.get('label'): data['label'] = label_name
+                    label_name = f"CHOICE__{safe_oid}"
+                    if not data.get('label'):
+                        data['label'] = label_name
                 elif otype == 'story_origin':
-                    label_name = f"QUEST__{oid}__started"
-                    # We might update data['intro_label'] if not present, but usually explicit or convention
+                    label_name = f"QUEST__{safe_oid}__started"
                 elif otype == 'character':
-                    label_name = f"CHAR__{oid}"
-                    if not data.get('label'): data['label'] = label_name
+                    label_name = f"CHAR__{safe_oid}"
+                    if not data.get('label'):
+                        data['label'] = label_name
                 else:
-                    label_name = f"{prefix}__{oid}__flow"
+                    label_name = f"{prefix}__{safe_oid}__flow"
 
                 # Skip if this label was already generated
                 if label_name in generated_labels:
@@ -937,17 +1092,25 @@ def compile(lint_only=False):
                 if flows:
                     for flow_body in flows:
                         if otype == "dialogue":
-                            label_name = f"CHOICE__{oid}"
+                            label_name = f"CHOICE__{safe_oid}"
                             # Set label on the dialogue option object if not set
                             if not data.get('label'):
                                 data['label'] = label_name
                         else:
-                            label_name = f"{prefix}__{oid}__{heading}"
+                            label_name = f"{prefix}__{safe_oid}__{label_safe(heading)}"
                         
                         # Skip if this label was already generated
                         if label_name in generated_labels:
                             continue
                         generated_labels.add(label_name)
+
+                        if otype == "item":
+                            data.setdefault("actions", [])
+                            if heading_raw.strip().lower() != "inspect":
+                                data["actions"].append({
+                                    "name": heading_raw.strip(),
+                                    "label": label_name
+                                })
                         
                         script_parts.append(f"label {label_name}:\n")
                         

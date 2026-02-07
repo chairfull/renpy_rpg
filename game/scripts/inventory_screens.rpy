@@ -91,6 +91,23 @@ screen meta_menu():
             padding (20, 10)
             background "#444"
 
+screen item_inspect_image():
+    zorder 200
+    frame:
+        align (0.5, 0.25)
+        xsize 520
+        ysize 360
+        background "#111a"
+        padding (20, 20)
+        vbox:
+            spacing 10
+            if item_inspect_title:
+                text "[item_inspect_title]" size 22 color "#ffd700" xalign 0.5
+            if item_inspect_image:
+                add item_inspect_image xalign 0.5 yalign 0.5
+            else:
+                text "No image available." size 16 color "#999" xalign 0.5
+
 screen inventory_content():
     hbox:
         spacing 20
@@ -172,10 +189,9 @@ screen inventory_content():
                     
                     hbox:
                         spacing 10
-                        if renpy.has_label(f"ITEM__{i_id}__inspect"):
-                            textbutton "Inspect":
-                                action [Call(f"ITEM__{i_id}__inspect")]
-                                background "#555" padding (15, 10)
+                        textbutton "Inspect":
+                            action Function(inspect_item, itm)
+                            background "#555" padding (15, 10)
                         
                         if itm.equip_slots:
                             textbutton "Equip":

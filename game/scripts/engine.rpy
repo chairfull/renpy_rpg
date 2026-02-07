@@ -4,6 +4,8 @@ default world_flags = {}
 default encounter_history = set()
 default scavenge_history = {}
 default allow_unvisited_travel = False
+default item_inspect_image = None
+default item_inspect_title = ""
 
 init -10 python:
     # Initialize Persistent Data Defaults (Legacy safety)
@@ -363,12 +365,14 @@ init -10 python:
 
     # --- ITEM SYSTEM ---
     class Item(TaggedObject):
-        def __init__(self, name="Unknown", description="", weight=0, value=0, volume=0, tags=None, factions=None, equip_slots=None, outfit_part=None, stackable=False, stack_size=1, quantity=1, owner_id=None, stolen=False, id=None, **kwargs):
+        def __init__(self, name="Unknown", description="", weight=0, value=0, volume=0, tags=None, factions=None, equip_slots=None, outfit_part=None, stackable=False, stack_size=1, quantity=1, owner_id=None, stolen=False, image=None, actions=None, id=None, **kwargs):
             TaggedObject.__init__(self, tags)
             self.id = id
             self.factions = set(factions or [])
             self.name, self.description, self.weight, self.value = name, description, weight, value
             self.volume = float(volume) if volume is not None else 0
+            self.image = image
+            self.actions = actions or []
             self.stack_size = max(1, int(stack_size or 1))
             self.stackable = bool(stackable) or self.stack_size > 1
             self.quantity = max(1, int(quantity or 1))
@@ -397,6 +401,64 @@ init -10 python:
             return "unknown"
 
     item_manager = ItemManager()
+
+    def item_show_image(item_or_id=None):
+        """Show item image overlay if available."""
+        item = item_or_id
+        if isinstance(item_or_id, str):
+            item = item_manager.get(item_or_id)
+        if item is None:
+            renpy.store.item_inspect_image = None
+            renpy.store.item_inspect_title = ""
+            return
+        image = getattr(item, "image", None)
+        if image and not renpy.loadable(image):
+            image = None
+        if image is None:
+            candidate = f"images/items/{item_manager.get_id_of(item)}.png"
+            if renpy.loadable(candidate):
+                image = candidate
+        renpy.store.item_inspect_image = image
+        renpy.store.item_inspect_title = item.name
+        renpy.show_screen("item_inspect_image")
+
+    def item_hide_image():
+        renpy.hide_screen("item_inspect_image")
+        renpy.store.item_inspect_image = None
+        renpy.store.item_inspect_title = ""
+
+    def _get_item_actions(item):
+        actions = []
+        for act in getattr(item, "actions", []) or []:
+            label = act.get("label") if isinstance(act, dict) else None
+            name = act.get("name") if isinstance(act, dict) else None
+            if label and renpy.has_label(label):
+                actions.append((name or label, label))
+        return actions
+
+    def inspect_item(item_or_id):
+        """Inspect an inventory item, optionally showing extra actions."""
+        item = item_or_id
+        if isinstance(item_or_id, str):
+            item = item_manager.get(item_or_id)
+        if not item:
+            return
+        item_id = item_manager.get_id_of(item)
+        inspect_label = f"ITEM__{item_id}__inspect"
+        if renpy.has_label(inspect_label):
+            renpy.call(inspect_label)
+            item_hide_image()
+        else:
+            item_show_image(item)
+            if item.description:
+                renpy.say(None, item.description)
+            item_hide_image()
+        actions = _get_item_actions(item)
+        if actions:
+            options = actions + [("Done", None)]
+            choice = renpy.display_menu(options)
+            if choice:
+                renpy.call(choice)
 
     class Recipe(object):
         def __init__(self, id, name, inputs, output, req_skill=None, tags=None):

@@ -355,31 +355,66 @@ style navigation_button_text:
 ##
 ## https://www.renpy.org/doc/html/screen_special.html#main-menu
 
+transform mm_fade_in:
+    alpha 0.0
+    linear 0.4 alpha 1.0
+
+transform mm_slide_in:
+    xoffset 40
+    alpha 0.0
+    linear 0.5 xoffset 0 alpha 1.0
+
 screen main_menu():
 
     ## This ensures that any other menu screen is replaced.
     tag menu
 
-    add gui.main_menu_background
+    # Layered background panels for a modern game-menu feel.
+    add Solid("#0b0f14")
+    add Solid("#102030cc") at Transform(xsize=1400, ysize=700, rotate=8, xpos=-320, ypos=-260)
+    add Solid("#1a2b3bcc") at Transform(xsize=1100, ysize=620, rotate=-6, xpos=420, ypos=80)
+    add Solid("#0b0f14aa") at Transform(xsize=1400, ysize=900, xpos=0, ypos=0)
 
-    ## This empty frame darkens the main menu.
+    # Accent lines
+    add Solid("#2ac7a7") at Transform(xsize=320, ysize=3, xpos=70, ypos=140, alpha=0.9)
+    add Solid("#2ac7a7") at Transform(xsize=4, ysize=220, xpos=62, ypos=140, alpha=0.9)
+
+    # Title block
+    vbox:
+        xalign 0.06
+        yalign 0.18
+        spacing 6
+        at mm_fade_in
+        text "[config.name!t]" style "mm_title"
+        text "A quiet survival RPG in a sleeping world." style "mm_subtitle"
+        text "[config.version]" style "mm_version"
+
+    # Menu panel
     frame:
-        style "main_menu_frame"
-
-    ## The use statement includes another screen inside this one. The actual
-    ## contents of the main menu are in the navigation screen.
-    use navigation
-
-    if gui.show_name:
-
+        style "mm_panel"
+        xalign 0.74
+        yalign 0.22
+        at mm_slide_in
         vbox:
-            style "main_menu_vbox"
+            spacing 14
+            text "MAIN MENU" style "mm_section"
+            textbutton _("Start") action Start() style "mm_button" text_style "mm_button_text"
+            textbutton _("Load") action ShowMenu("load") style "mm_button" text_style "mm_button_text"
+            textbutton _("Wiki") action ShowMenu("gallery_screen") style "mm_button" text_style "mm_button_text"
+            textbutton _("Preferences") action ShowMenu("preferences") style "mm_button" text_style "mm_button_text"
+            textbutton _("About") action ShowMenu("about") style "mm_button" text_style "mm_button_text"
+            if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
+                textbutton _("Help") action ShowMenu("help") style "mm_button" text_style "mm_button_text"
+            if renpy.variant("pc"):
+                textbutton _("Quit") action Quit(confirm=not main_menu) style "mm_button" text_style "mm_button_text"
 
-            text "[config.name!t]":
-                style "main_menu_title"
-
-            text "[config.version]":
-                style "main_menu_version"
+    # Footer hints
+    hbox:
+        xalign 0.06
+        yalign 0.93
+        spacing 18
+        text "Build: [config.version]" style "mm_footer"
+        text "Data: [config.name!t]" style "mm_footer"
 
 
 style main_menu_frame is empty
@@ -409,6 +444,60 @@ style main_menu_title:
 
 style main_menu_version:
     properties gui.text_properties("version")
+
+style mm_title is gui_text
+style mm_subtitle is gui_text
+style mm_version is gui_text
+style mm_section is gui_text
+style mm_footer is gui_text
+style mm_button is button
+style mm_button_text is gui_text
+style mm_panel is frame
+
+style mm_title:
+    font gui.interface_text_font
+    size 64
+    color "#e8f0f8"
+    outlines [(2, "#0b0f14", 0, 0)]
+
+style mm_subtitle:
+    font gui.interface_text_font
+    size 18
+    color "#9bb2c7"
+
+style mm_version:
+    font gui.interface_text_font
+    size 14
+    color "#6d7f90"
+
+style mm_section:
+    font gui.interface_text_font
+    size 14
+    color "#93a7ba"
+
+style mm_footer:
+    font gui.interface_text_font
+    size 12
+    color "#6d7f90"
+
+style mm_panel:
+    background Frame(Solid("#0f141bcc"), 12, 12)
+    padding (24, 24)
+    xsize 360
+    ysize 520
+
+style mm_button:
+    background Frame(Solid("#1b2733"), 10, 10)
+    hover_background Frame(Solid("#263748"), 10, 10)
+    insensitive_background Frame(Solid("#0f141b"), 10, 10)
+    padding (18, 12)
+    xsize 320
+
+style mm_button_text:
+    font gui.interface_text_font
+    size 22
+    color "#e6edf5"
+    hover_color "#ffffff"
 
 
 ## Game Menu screen ############################################################
