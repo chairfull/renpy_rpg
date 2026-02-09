@@ -61,7 +61,8 @@ def slugify(text: str) -> str:
 
 def parse_markdown(path: Path):
     if cd:
-        return cd.parse_markdown(str(path))
+        props, body, *_ = cd.parse_markdown(str(path))
+        return props, body
 
     try:
         content = path.read_text(encoding="utf-8")

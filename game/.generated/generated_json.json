@@ -3,7 +3,9 @@
         "wood": {
             "name": "Wood",
             "description": "A sturdy piece of timber.",
+            "image": null,
             "weight": 1.0,
+            "volume": 0.0,
             "value": 2,
             "tags": [
                 "material",
@@ -11,12 +13,107 @@
             ],
             "factions": [],
             "equip_slots": [],
-            "outfit_part": null
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 50
+        },
+        "compass": {
+            "name": "Compass",
+            "description": "An old needle compass that still holds north.",
+            "image": null,
+            "weight": 0.2,
+            "volume": 0.0,
+            "value": 12,
+            "tags": [
+                "tool",
+                "utility"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "map_fragment": {
+            "name": "Map Fragment",
+            "description": "A torn map showing a few quiet corridors.",
+            "image": null,
+            "weight": 0.1,
+            "volume": 0.0,
+            "value": 6,
+            "tags": [
+                "quest",
+                "note"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "scrub_pants": {
+            "name": "Scrub Pants",
+            "description": "Easy-clean pants for clinic work.",
+            "image": null,
+            "weight": 0.8,
+            "volume": 0.0,
+            "value": 9,
+            "tags": [
+                "clothing",
+                "medical"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "pants"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "patrol_jacket": {
+            "name": "Patrol Jacket",
+            "description": "A perimeter-issued jacket with reinforced seams.",
+            "image": null,
+            "weight": 1.8,
+            "volume": 0.0,
+            "value": 20,
+            "tags": [
+                "clothing",
+                "uniform"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "torso"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "signal_hoodie": {
+            "name": "Signal Hoodie",
+            "description": "A soft hoodie with stitched signal markers along the cuff.",
+            "image": null,
+            "weight": 0.9,
+            "volume": 0.0,
+            "value": 10,
+            "tags": [
+                "clothing",
+                "casual"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "torso"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
         },
         "protocol_deciphered": {
             "name": "Deciphered Protocol",
             "description": "The original frequency patterns, now fully understood. It is a bridge between the city and the silence.",
+            "image": null,
             "weight": 0.1,
+            "volume": 0.0,
             "value": 0,
             "tags": [
                 "lore",
@@ -24,12 +121,16 @@
             ],
             "factions": [],
             "equip_slots": [],
-            "outfit_part": null
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
         },
         "camp_kit": {
             "name": "Camp Kit",
             "description": "A light bundle for resting outdoors.",
+            "image": null,
             "weight": 1.0,
+            "volume": 0.0,
             "value": 20,
             "tags": [
                 "camp",
@@ -37,12 +138,50 @@
             ],
             "factions": [],
             "equip_slots": [],
-            "outfit_part": null
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "battery_cell": {
+            "name": "Battery Cell",
+            "description": "A compact power cell for scanners and receivers.",
+            "image": null,
+            "weight": 0.1,
+            "volume": 0.0,
+            "value": 5,
+            "tags": [
+                "material",
+                "utility"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 6
+        },
+        "multitool": {
+            "name": "Multitool",
+            "description": "Fold-out pliers and blades for quick fixes.",
+            "image": null,
+            "weight": 0.4,
+            "volume": 0.0,
+            "value": 15,
+            "tags": [
+                "tool",
+                "utility"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
         },
         "apple": {
             "name": "Ration Bar",
             "description": "A compact calorie bar for quick energy.",
+            "image": null,
             "weight": 0.2,
+            "volume": 0.0,
             "value": 5,
             "tags": [
                 "food",
@@ -50,12 +189,110 @@
             ],
             "factions": [],
             "equip_slots": [],
-            "outfit_part": null
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 20
+        },
+        "coveralls": {
+            "name": "Coveralls",
+            "description": "One-piece coveralls stained with honest work.",
+            "image": null,
+            "weight": 2.2,
+            "volume": 0.0,
+            "value": 22,
+            "tags": [
+                "clothing",
+                "work"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "two_piece"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "patrol_boots": {
+            "name": "Patrol Boots",
+            "description": "Heavy-duty boots with muted tread for perimeter work.",
+            "image": null,
+            "weight": 1.7,
+            "volume": 0.0,
+            "value": 22,
+            "tags": [
+                "clothing",
+                "footwear",
+                "uniform"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "feet"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "utility_jacket": {
+            "name": "Utility Jacket",
+            "description": "A rugged jacket with quiet snaps and deep pockets.",
+            "image": null,
+            "weight": 1.5,
+            "volume": 0.0,
+            "value": 18,
+            "tags": [
+                "clothing",
+                "outerwear"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "torso"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "rain_shell": {
+            "name": "Rain Shell",
+            "description": "A water-shedding shell that crackles softly with every step.",
+            "image": null,
+            "weight": 1.0,
+            "volume": 0.0,
+            "value": 12,
+            "tags": [
+                "clothing",
+                "outerwear"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "torso"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "med_patch": {
+            "name": "Med Patch",
+            "description": "A quick-seal patch infused with coagulant.",
+            "image": null,
+            "weight": 0.1,
+            "volume": 0.0,
+            "value": 8,
+            "tags": [
+                "consumable",
+                "medical"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 4
         },
         "broadcast_protocol": {
             "name": "Broadcast Protocol",
             "description": "A fragile data drive salvaged from the spire. Its signal could lead the sleepers home.",
+            "image": null,
             "weight": 0.1,
+            "volume": 0.0,
             "value": 0,
             "tags": [
                 "lore",
@@ -63,12 +300,105 @@
             ],
             "factions": [],
             "equip_slots": [],
-            "outfit_part": null
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "trail_boots": {
+            "name": "Trail Boots",
+            "description": "Quiet-soled boots built for long routes beyond the walls.",
+            "image": null,
+            "weight": 1.4,
+            "volume": 0.0,
+            "value": 18,
+            "tags": [
+                "clothing",
+                "footwear"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "feet"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "sneakers": {
+            "name": "Sneakers",
+            "description": "Light, quiet sneakers with worn soles.",
+            "image": null,
+            "weight": 0.8,
+            "volume": 0.0,
+            "value": 10,
+            "tags": [
+                "clothing",
+                "footwear"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "feet"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "note_card": {
+            "name": "Note Card",
+            "description": "A laminated card for logging routes and supplies.",
+            "image": null,
+            "weight": 0.05,
+            "volume": 0.0,
+            "value": 1,
+            "tags": [
+                "note"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 8
+        },
+        "track_pants": {
+            "name": "Track Pants",
+            "description": "Soft athletic pants that move quietly.",
+            "image": null,
+            "weight": 0.7,
+            "volume": 0.0,
+            "value": 8,
+            "tags": [
+                "clothing",
+                "casual"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "pants"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "keycard": {
+            "name": "Keycard",
+            "description": "A low-clearance card for doors and log terminals.",
+            "image": null,
+            "weight": 0.05,
+            "volume": 0.0,
+            "value": 5,
+            "tags": [
+                "key"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
         },
         "club": {
             "name": "Signal Baton",
             "description": "A weighted baton tuned to knock and tap without harm.",
+            "image": null,
             "weight": 2.5,
+            "volume": 0.0,
             "value": 10,
             "tags": [
                 "tool",
@@ -78,12 +408,236 @@
             "equip_slots": [
                 "main_hand"
             ],
-            "outfit_part": null
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "medical_coat": {
+            "name": "Medical Coat",
+            "description": "A clean coat marked with clinic patches and a pen loop.",
+            "image": null,
+            "weight": 1.0,
+            "volume": 0.0,
+            "value": 14,
+            "tags": [
+                "clothing",
+                "medical"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "torso"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "bandage_roll": {
+            "name": "Bandage Roll",
+            "description": "Flexible wrap for sprains and cuts.",
+            "image": null,
+            "weight": 0.2,
+            "volume": 0.0,
+            "value": 4,
+            "tags": [
+                "consumable",
+                "medical"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 4
+        },
+        "lockpick_set": {
+            "name": "Lockpick Set",
+            "description": "Slim picks and a tension wrench in a soft sleeve.",
+            "image": null,
+            "weight": 0.2,
+            "volume": 0.0,
+            "value": 12,
+            "tags": [
+                "tool",
+                "utility"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "patrol_pants": {
+            "name": "Patrol Pants",
+            "description": "Tough pants with reinforced knees and stitched unit marks.",
+            "image": null,
+            "weight": 1.2,
+            "volume": 0.0,
+            "value": 14,
+            "tags": [
+                "clothing",
+                "uniform"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "pants"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "radio_receiver": {
+            "name": "Radio Receiver",
+            "description": "A compact receiver tuned for low-frequency drift pings.",
+            "image": null,
+            "weight": 0.6,
+            "volume": 0.0,
+            "value": 20,
+            "tags": [
+                "tool",
+                "utility"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "watch_cap": {
+            "name": "Watch Cap",
+            "description": "A low-profile patrol cap favored by perimeter watchers.",
+            "image": null,
+            "weight": 0.2,
+            "volume": 0.0,
+            "value": 7,
+            "tags": [
+                "clothing",
+                "headwear",
+                "uniform"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "head"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "work_pants": {
+            "name": "Work Pants",
+            "description": "Hard-wearing trousers built for hauling and lifting.",
+            "image": null,
+            "weight": 1.1,
+            "volume": 0.0,
+            "value": 10,
+            "tags": [
+                "clothing",
+                "work"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "pants"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "cargo_pants": {
+            "name": "Cargo Pants",
+            "description": "Durable pants with quiet pockets and reinforced knees.",
+            "image": null,
+            "weight": 1.0,
+            "volume": 0.0,
+            "value": 12,
+            "tags": [
+                "clothing"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "pants"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "ball_cap": {
+            "name": "Ball Cap",
+            "description": "A faded cap with a curved brim and a stitched logo long worn smooth.",
+            "image": null,
+            "weight": 0.2,
+            "volume": 0.0,
+            "value": 6,
+            "tags": [
+                "clothing",
+                "headwear"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "head"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "surgical_cap": {
+            "name": "Surgical Cap",
+            "description": "A sterile cap that keeps hair out of the clinic's clean zone.",
+            "image": null,
+            "weight": 0.1,
+            "volume": 0.0,
+            "value": 4,
+            "tags": [
+                "clothing",
+                "headwear",
+                "medical"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "head"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "slacks": {
+            "name": "Slacks",
+            "description": "Clean, quiet slacks favored by clerks and planners.",
+            "image": null,
+            "weight": 0.9,
+            "volume": 0.0,
+            "value": 12,
+            "tags": [
+                "clothing"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "pants"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "tool_pouch": {
+            "name": "Tool Pouch",
+            "description": "A canvas pouch with loops for small tools.",
+            "image": null,
+            "weight": 0.5,
+            "volume": 0.0,
+            "value": 10,
+            "tags": [
+                "tool",
+                "container"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
         },
         "potion": {
             "name": "Antiseptic Ampoule",
             "description": "A sealed dose that eases fever and stabilizes wounds.",
+            "image": null,
             "weight": 0.3,
+            "volume": 0.0,
             "value": 25,
             "tags": [
                 "medical",
@@ -92,12 +646,50 @@
             ],
             "factions": [],
             "equip_slots": [],
-            "outfit_part": null
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 5
+        },
+        "sewing_kit": {
+            "name": "Sewing Kit",
+            "description": "Needle, thread, and a few spare buttons.",
+            "image": null,
+            "weight": 0.3,
+            "volume": 0.0,
+            "value": 9,
+            "tags": [
+                "tool",
+                "utility"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "signal_chalk": {
+            "name": "Signal Chalk",
+            "description": "Dusty sticks used to mark quiet routes and safe doors.",
+            "image": null,
+            "weight": 0.1,
+            "volume": 0.0,
+            "value": 2,
+            "tags": [
+                "tool",
+                "utility"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 6
         },
         "ancient_relic": {
             "name": "Ancient Relic",
             "description": "A pulsing obsidian cube pulsing with a low, rhythmic frequency.",
+            "image": null,
             "weight": 1.0,
+            "volume": 0.0,
             "value": 0,
             "tags": [
                 "lore",
@@ -105,12 +697,162 @@
             ],
             "factions": [],
             "equip_slots": [],
-            "outfit_part": null
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "glow_stick": {
+            "name": "Glow Stick",
+            "description": "Low-light marker that lasts a few hours.",
+            "image": null,
+            "weight": 0.1,
+            "volume": 0.0,
+            "value": 2,
+            "tags": [
+                "consumable",
+                "utility"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 6
+        },
+        "denim_jacket": {
+            "name": "Denim Jacket",
+            "description": "A reinforced jacket with patched elbows and a worn collar.",
+            "image": null,
+            "weight": 1.2,
+            "volume": 0.0,
+            "value": 15,
+            "tags": [
+                "clothing",
+                "outerwear"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "torso"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "water_flask": {
+            "name": "Water Flask",
+            "description": "A dented flask with a silent cap and clean seal.",
+            "image": null,
+            "weight": 0.8,
+            "volume": 0.0,
+            "value": 6,
+            "tags": [
+                "consumable",
+                "drink"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "clinic_shoes": {
+            "name": "Clinic Shoes",
+            "description": "Slip-resistant shoes built for long clinic shifts.",
+            "image": null,
+            "weight": 0.6,
+            "volume": 0.0,
+            "value": 10,
+            "tags": [
+                "clothing",
+                "footwear",
+                "medical"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "feet"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "antiseptic_wipe": {
+            "name": "Antiseptic Wipe",
+            "description": "Single-use cloth for cleaning wounds and tools.",
+            "image": null,
+            "weight": 0.05,
+            "volume": 0.0,
+            "value": 2,
+            "tags": [
+                "consumable",
+                "medical"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 10
+        },
+        "knit_cap": {
+            "name": "Knit Cap",
+            "description": "A warm, close-knit cap that keeps noise-raisers out of your ears.",
+            "image": null,
+            "weight": 0.2,
+            "volume": 0.0,
+            "value": 5,
+            "tags": [
+                "clothing",
+                "headwear"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "head"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "supply_apron": {
+            "name": "Supply Apron",
+            "description": "A heavy canvas apron that keeps ration dust off your clothes.",
+            "image": null,
+            "weight": 0.5,
+            "volume": 0.0,
+            "value": 8,
+            "tags": [
+                "clothing",
+                "work"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "torso"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "archivist_coat": {
+            "name": "Archivist Coat",
+            "description": "A long, quiet coat lined with pockets for data logs.",
+            "image": null,
+            "weight": 1.3,
+            "volume": 0.0,
+            "value": 16,
+            "tags": [
+                "clothing"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "torso"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
         },
         "stone": {
             "name": "Stone",
             "description": "A heavy rock.",
+            "image": null,
             "weight": 2.0,
+            "volume": 0.0,
             "value": 1,
             "tags": [
                 "material",
@@ -118,12 +860,53 @@
             ],
             "factions": [],
             "equip_slots": [],
-            "outfit_part": null
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 30
+        },
+        "ration_pack": {
+            "name": "Ration Pack",
+            "description": "Sealed meal bricks meant to keep you steady and quiet.",
+            "image": null,
+            "weight": 0.6,
+            "volume": 0.0,
+            "value": 8,
+            "tags": [
+                "consumable",
+                "food"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 3
+        },
+        "work_boots": {
+            "name": "Work Boots",
+            "description": "Sturdy boots that keep your footing on rusted stairs.",
+            "image": null,
+            "weight": 1.6,
+            "volume": 0.0,
+            "value": 20,
+            "tags": [
+                "clothing",
+                "footwear",
+                "work"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "feet"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
         },
         "sword": {
             "name": "Utility Pry Bar",
             "description": "A solid metal bar for lifting panels and opening jammed doors.",
+            "image": null,
             "weight": 2.0,
+            "volume": 0.0,
             "value": 50,
             "tags": [
                 "tool",
@@ -134,7 +917,100 @@
             "equip_slots": [
                 "main_hand"
             ],
-            "outfit_part": null
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "logistics_coat": {
+            "name": "Logistics Coat",
+            "description": "A tailored coat with colored tabs for resource priority levels.",
+            "image": null,
+            "weight": 1.6,
+            "volume": 0.0,
+            "value": 19,
+            "tags": [
+                "clothing",
+                "uniform"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "torso"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "scrap_parts": {
+            "name": "Scrap Parts",
+            "description": "Mixed fasteners, wire, and salvageable fittings.",
+            "image": null,
+            "weight": 0.7,
+            "volume": 0.0,
+            "value": 5,
+            "tags": [
+                "material",
+                "crafting"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 5
+        },
+        "bandana": {
+            "name": "Bandana",
+            "description": "A triangular scarf that can be tied for sweat, dust, or anonymity.",
+            "image": null,
+            "weight": 0.1,
+            "volume": 0.0,
+            "value": 3,
+            "tags": [
+                "clothing",
+                "headwear"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "head"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "protein_bar": {
+            "name": "Protein Bar",
+            "description": "A dense, chalky bar that keeps you moving.",
+            "image": null,
+            "weight": 0.2,
+            "volume": 0.0,
+            "value": 3,
+            "tags": [
+                "consumable",
+                "food"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 6
+        },
+        "rubber_boots": {
+            "name": "Rubber Boots",
+            "description": "Waterproof boots for docks and flood zones.",
+            "image": null,
+            "weight": 1.5,
+            "volume": 0.0,
+            "value": 16,
+            "tags": [
+                "clothing",
+                "footwear"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "feet"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
         }
     },
     "characters": {
@@ -142,7 +1018,12 @@
             "name": "Faye",
             "description": "Manages the rationed cots and the only filtered-air room in the district.",
             "location": "tavern",
-            "items": [],
+            "items": [
+                "ration_pack",
+                "water_flask",
+                "note_card",
+                "sewing_kit"
+            ],
             "base_image": null,
             "td_sprite": null,
             "x": 300,
@@ -153,20 +1034,43 @@
                 "logistics"
             ],
             "factions": [
-                "merchants"
+                "supply_union"
             ],
             "body_type": "humanoid",
+            "gender": "female",
+            "age": "31",
+            "height": "165 cm",
+            "weight": "58 kg",
+            "hair_color": "auburn",
+            "hair_style": "braided",
+            "eye_color": "green",
+            "face_shape": "heart",
+            "breast_size": "small",
+            "dick_size": "n/a",
+            "foot_size": "37",
+            "skin_tone": "light",
+            "build": "slim",
+            "distinctive_feature": "freckled nose",
+            "equipment": {},
             "stats": {},
             "affinity": 10,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__faye__talk"
         },
         "theo": {
             "name": "Theo",
             "description": "Dedicated to preserving pre-fall data logs and charting the decay of the global transmission grid.",
-            "location": "city_center",
-            "items": [],
+            "location": "temple",
+            "items": [
+                "note_card",
+                "map_fragment",
+                "radio_receiver",
+                "battery_cell"
+            ],
             "base_image": "chars/male_thin.png",
             "td_sprite": null,
             "x": 500,
@@ -178,6 +1082,21 @@
             ],
             "factions": [],
             "body_type": "humanoid",
+            "gender": "male",
+            "age": "27",
+            "height": "172 cm",
+            "weight": "60 kg",
+            "hair_color": "dark brown",
+            "hair_style": "messy",
+            "eye_color": "green",
+            "face_shape": "oval",
+            "breast_size": "n/a",
+            "dick_size": "average",
+            "foot_size": "41",
+            "skin_tone": "light",
+            "build": "slim",
+            "distinctive_feature": "ink-smudged collar",
+            "equipment": {},
             "stats": {
                 "strength": 8,
                 "dexterity": 10,
@@ -186,14 +1105,22 @@
             },
             "affinity": 0,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__theo__talk"
         },
         "nia": {
             "name": "Nia",
             "description": "A sharp-eyed orphan who navigates the crawlspaces and service tunnels to avoid the 'Sleeper' drifts.",
             "location": "market",
-            "items": [],
+            "items": [
+                "glow_stick",
+                "protein_bar",
+                "water_flask",
+                "note_card"
+            ],
             "base_image": null,
             "td_sprite": null,
             "x": 200,
@@ -205,17 +1132,40 @@
             ],
             "factions": [],
             "body_type": "humanoid",
+            "gender": "female",
+            "age": "12",
+            "height": "145 cm",
+            "weight": "38 kg",
+            "hair_color": "black",
+            "hair_style": "short curls",
+            "eye_color": "brown",
+            "face_shape": "round",
+            "breast_size": "n/a",
+            "dick_size": "n/a",
+            "foot_size": "35",
+            "skin_tone": "medium",
+            "build": "slight",
+            "distinctive_feature": "scuffed knees",
+            "equipment": {},
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__nia__talk"
         },
         "hakim": {
             "name": "Hakim",
             "description": "Manages the settlement's ration crates, medical supplies, and barter ledgers.",
             "location": "market",
-            "items": [],
+            "items": [
+                "ration_pack",
+                "note_card",
+                "keycard",
+                "water_flask"
+            ],
             "base_image": null,
             "td_sprite": null,
             "x": 600,
@@ -226,20 +1176,43 @@
                 "logistics"
             ],
             "factions": [
-                "merchants"
+                "supply_union"
             ],
             "body_type": "humanoid",
+            "gender": "male",
+            "age": "45",
+            "height": "180 cm",
+            "weight": "82 kg",
+            "hair_color": "black",
+            "hair_style": "close-cropped",
+            "eye_color": "brown",
+            "face_shape": "rectangular",
+            "breast_size": "n/a",
+            "dick_size": "average",
+            "foot_size": "43",
+            "skin_tone": "medium",
+            "build": "solid",
+            "distinctive_feature": "trimmed beard",
+            "equipment": {},
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__hakim__talk"
         },
         "clerk": {
             "name": "Clerk",
             "description": "A no-nonsense clerk who manages the official settlement exchange and logbooks.",
             "location": "shop",
-            "items": [],
+            "items": [
+                "keycard",
+                "note_card",
+                "ration_pack",
+                "battery_cell"
+            ],
             "base_image": "chars/male_average.png",
             "td_sprite": null,
             "x": 0,
@@ -250,17 +1223,40 @@
             ],
             "factions": [],
             "body_type": "humanoid",
+            "gender": "male",
+            "age": "38",
+            "height": "175 cm",
+            "weight": "78 kg",
+            "hair_color": "brown",
+            "hair_style": "neat short",
+            "eye_color": "hazel",
+            "face_shape": "square",
+            "breast_size": "n/a",
+            "dick_size": "average",
+            "foot_size": "42",
+            "skin_tone": "light",
+            "build": "average",
+            "distinctive_feature": "ink-stained fingertips",
+            "equipment": {},
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__clerk__talk"
         },
         "greta": {
             "name": "Greta",
             "description": "Keeps the shelter's alarms, air filtration, and signal rigs working with scrap-tech.",
             "location": "market",
-            "items": [],
+            "items": [
+                "scrap_parts",
+                "battery_cell",
+                "multitool",
+                "tool_pouch"
+            ],
             "base_image": null,
             "td_sprite": null,
             "x": 400,
@@ -271,20 +1267,43 @@
                 "scraptech"
             ],
             "factions": [
-                "merchants"
+                "supply_union"
             ],
             "body_type": "humanoid",
+            "gender": "female",
+            "age": "40",
+            "height": "172 cm",
+            "weight": "74 kg",
+            "hair_color": "blonde",
+            "hair_style": "tied back",
+            "eye_color": "blue",
+            "face_shape": "square",
+            "breast_size": "medium",
+            "dick_size": "n/a",
+            "foot_size": "39",
+            "skin_tone": "light",
+            "build": "sturdy",
+            "distinctive_feature": "oil-stained knuckles",
+            "equipment": {},
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__greta__talk"
         },
         "lena": {
             "name": "Lena",
             "description": "A veteran scout who reads the perimeter drifts like a topography map.",
             "location": "forest_edge",
-            "items": [],
+            "items": [
+                "map_fragment",
+                "compass",
+                "protein_bar",
+                "water_flask"
+            ],
             "base_image": null,
             "td_sprite": null,
             "x": 400,
@@ -295,20 +1314,43 @@
                 "tracker"
             ],
             "factions": [
-                "town_guard"
+                "perimeter_watch"
             ],
             "body_type": "humanoid",
+            "gender": "female",
+            "age": "33",
+            "height": "176 cm",
+            "weight": "66 kg",
+            "hair_color": "black",
+            "hair_style": "braided ponytail",
+            "eye_color": "amber",
+            "face_shape": "diamond",
+            "breast_size": "small",
+            "dick_size": "n/a",
+            "foot_size": "39",
+            "skin_tone": "olive",
+            "build": "athletic",
+            "distinctive_feature": "sun-faded freckles",
+            "equipment": {},
             "stats": {},
             "affinity": -5,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__lena__talk"
         },
         "mara": {
             "name": "Mara",
             "description": "The steady hand keeping the settlement's life-support and quarantine running.",
             "location": "market",
-            "items": [],
+            "items": [
+                "keycard",
+                "note_card",
+                "compass",
+                "water_flask"
+            ],
             "base_image": "chars/male_fit.png",
             "td_sprite": null,
             "x": 800,
@@ -319,21 +1361,44 @@
                 "coordinator"
             ],
             "factions": [
-                "town_guard",
-                "merchants"
+                "perimeter_watch",
+                "supply_union"
             ],
             "body_type": "humanoid",
+            "gender": "male",
+            "age": "42",
+            "height": "178 cm",
+            "weight": "80 kg",
+            "hair_color": "black",
+            "hair_style": "short",
+            "eye_color": "brown",
+            "face_shape": "square",
+            "breast_size": "n/a",
+            "dick_size": "average",
+            "foot_size": "42",
+            "skin_tone": "medium",
+            "build": "sturdy",
+            "distinctive_feature": "deep laugh lines",
+            "equipment": {},
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__mara__talk"
         },
         "jace": {
             "name": "Jace",
             "description": "A lookout at the rusted harbor who watches for 'Drifter' anomalies in the fog.",
             "location": "docks",
-            "items": [],
+            "items": [
+                "signal_chalk",
+                "glow_stick",
+                "water_flask",
+                "protein_bar"
+            ],
             "base_image": null,
             "td_sprite": null,
             "x": 700,
@@ -344,17 +1409,40 @@
             ],
             "factions": [],
             "body_type": "humanoid",
+            "gender": "male",
+            "age": "28",
+            "height": "182 cm",
+            "weight": "76 kg",
+            "hair_color": "sandy blond",
+            "hair_style": "messy",
+            "eye_color": "gray-blue",
+            "face_shape": "long",
+            "breast_size": "n/a",
+            "dick_size": "average",
+            "foot_size": "44",
+            "skin_tone": "light",
+            "build": "lean",
+            "distinctive_feature": "weathered hands",
+            "equipment": {},
             "stats": {},
             "affinity": 5,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__jace__talk"
         },
         "ash": {
             "name": "Ash",
             "description": "A quiet survivor who claims to have walked from the Dead Zones without a signal baton.",
             "location": "tavern",
-            "items": [],
+            "items": [
+                "protein_bar",
+                "water_flask",
+                "glow_stick",
+                "map_fragment"
+            ],
             "base_image": null,
             "td_sprite": null,
             "x": 150,
@@ -366,17 +1454,40 @@
             ],
             "factions": [],
             "body_type": "humanoid",
+            "gender": "nonbinary",
+            "age": "29",
+            "height": "178 cm",
+            "weight": "70 kg",
+            "hair_color": "black",
+            "hair_style": "cropped",
+            "eye_color": "dark brown",
+            "face_shape": "angular",
+            "breast_size": "n/a",
+            "dick_size": "n/a",
+            "foot_size": "42",
+            "skin_tone": "medium",
+            "build": "lean",
+            "distinctive_feature": "scar across left eyebrow",
+            "equipment": {},
             "stats": {},
             "affinity": -10,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__ash__talk"
         },
         "rafi": {
             "name": "Rafi",
             "description": "The firm voice at the quarantine gate, ensuring no 'Drift' enters the settlement.",
             "location": "guardhouse",
-            "items": [],
+            "items": [
+                "keycard",
+                "multitool",
+                "water_flask",
+                "ration_pack"
+            ],
             "base_image": null,
             "td_sprite": null,
             "x": 600,
@@ -387,20 +1498,43 @@
                 "guard"
             ],
             "factions": [
-                "town_guard"
+                "perimeter_watch"
             ],
             "body_type": "humanoid",
+            "gender": "male",
+            "age": "39",
+            "height": "183 cm",
+            "weight": "86 kg",
+            "hair_color": "black",
+            "hair_style": "buzzed",
+            "eye_color": "brown",
+            "face_shape": "square",
+            "breast_size": "n/a",
+            "dick_size": "average",
+            "foot_size": "44",
+            "skin_tone": "medium-dark",
+            "build": "muscular",
+            "distinctive_feature": "scar along jaw",
+            "equipment": {},
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__rafi__talk"
         },
         "imani": {
             "name": "Imani",
             "description": "A high-level policy lead tracking route safety, ration efficiency, and drift probability.",
             "location": "market",
-            "items": [],
+            "items": [
+                "map_fragment",
+                "note_card",
+                "compass",
+                "water_flask"
+            ],
             "base_image": "chars/female_fit.png",
             "td_sprite": null,
             "x": 900,
@@ -411,13 +1545,31 @@
                 "logistics"
             ],
             "factions": [
-                "merchants"
+                "supply_union"
             ],
             "body_type": "humanoid",
+            "gender": "female",
+            "age": "36",
+            "height": "168 cm",
+            "weight": "60 kg",
+            "hair_color": "black",
+            "hair_style": "short twists",
+            "eye_color": "brown",
+            "face_shape": "oval",
+            "breast_size": "small",
+            "dick_size": "n/a",
+            "foot_size": "38",
+            "skin_tone": "dark",
+            "build": "fit",
+            "distinctive_feature": "sharp cheekbones",
+            "equipment": {},
             "stats": {},
             "affinity": 0,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__imani__talk"
         },
         "kael": {
@@ -425,7 +1577,11 @@
             "description": "A high-risk courier who uses kinetic force to clear 'Sleeper' blockades.",
             "location": "market",
             "items": [
-                "sword"
+                "sword",
+                "protein_bar",
+                "water_flask",
+                "multitool",
+                "lockpick_set"
             ],
             "base_image": "chars/male_fit.png",
             "td_sprite": null,
@@ -436,9 +1592,24 @@
                 "combat"
             ],
             "factions": [
-                "town_guard"
+                "perimeter_watch"
             ],
             "body_type": "humanoid",
+            "gender": "male",
+            "age": "30",
+            "height": "185 cm",
+            "weight": "85 kg",
+            "hair_color": "dark brown",
+            "hair_style": "cropped",
+            "eye_color": "hazel",
+            "face_shape": "angular",
+            "breast_size": "n/a",
+            "dick_size": "average",
+            "foot_size": "44",
+            "skin_tone": "tan",
+            "build": "muscular",
+            "distinctive_feature": "scarred knuckles",
+            "equipment": {},
             "stats": {
                 "strength": 14,
                 "dexterity": 12,
@@ -447,14 +1618,23 @@
             },
             "affinity": 0,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__kael__talk"
         },
         "survivor": {
             "name": "Survivor",
             "description": "A veteran of the Dead Zones who can hear the rhythm of the Silence.",
             "location": "market",
-            "items": [],
+            "items": [
+                "camp_kit",
+                "water_flask",
+                "ration_pack",
+                "compass",
+                "protein_bar"
+            ],
             "base_image": "chars/male_fit.png",
             "td_sprite": null,
             "x": 960,
@@ -465,6 +1645,21 @@
             ],
             "factions": [],
             "body_type": "humanoid",
+            "gender": "male",
+            "age": "32",
+            "height": "179 cm",
+            "weight": "76 kg",
+            "hair_color": "brown",
+            "hair_style": "shaggy",
+            "eye_color": "gray",
+            "face_shape": "angular",
+            "breast_size": "n/a",
+            "dick_size": "average",
+            "foot_size": "42",
+            "skin_tone": "light",
+            "build": "lean",
+            "distinctive_feature": "sunburned nose",
+            "equipment": {},
             "stats": {
                 "strength": 14,
                 "dexterity": 12,
@@ -473,14 +1668,22 @@
             },
             "affinity": 0,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__survivor__talk"
         },
         "jun": {
             "name": "Jun",
             "description": "A calm voice who keeps the shelter steady with rhythmic cadence and signal-dampening tones.",
             "location": "tavern",
-            "items": [],
+            "items": [
+                "radio_receiver",
+                "battery_cell",
+                "signal_chalk",
+                "water_flask"
+            ],
             "base_image": null,
             "td_sprite": null,
             "x": 500,
@@ -492,18 +1695,41 @@
             ],
             "factions": [],
             "body_type": "humanoid",
+            "gender": "male",
+            "age": "26",
+            "height": "171 cm",
+            "weight": "63 kg",
+            "hair_color": "black",
+            "hair_style": "straight medium",
+            "eye_color": "brown",
+            "face_shape": "oval",
+            "breast_size": "n/a",
+            "dick_size": "average",
+            "foot_size": "41",
+            "skin_tone": "light-medium",
+            "build": "slender",
+            "distinctive_feature": "inked signal lines on wrist",
+            "equipment": {},
             "stats": {},
             "affinity": 10,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {},
             "label": "CHAR__jun__talk"
         },
         "elena": {
             "name": "Elena",
             "description": "A high-tension combat medic who specializes in frequency-induced trauma and Sleeper-bite stabilization.",
             "location": "temple",
-            "items": [],
-            "base_image": null,
+            "items": [
+                "med_patch",
+                "antiseptic_wipe",
+                "bandage_roll",
+                "water_flask"
+            ],
+            "base_image": "chars/female_fit.png",
             "td_sprite": null,
             "x": 500,
             "y": 300,
@@ -512,19 +1738,41 @@
                 "clinician",
                 "healer"
             ],
-            "factions": [],
+            "factions": [
+                "field_meds"
+            ],
             "body_type": "humanoid",
+            "gender": "female",
+            "age": "34",
+            "height": "170 cm",
+            "weight": "62 kg",
+            "hair_color": "black",
+            "hair_style": "tight bun",
+            "eye_color": "gray",
+            "face_shape": "oval",
+            "breast_size": "medium",
+            "dick_size": "n/a",
+            "foot_size": "38",
+            "skin_tone": "olive",
+            "build": "athletic",
+            "distinctive_feature": "clinic tattoo behind ear",
+            "equipment": {},
             "stats": {},
             "affinity": 20,
             "schedule": {},
+            "max_weight": null,
+            "max_slots": null,
             "companion_mods": {},
+            "give": {
+                "battery_cell": "GIVE__elena__battery_cell"
+            },
             "label": "CHAR__elena__talk"
         }
     },
     "locations": {
         "home": {
-            "name": "Safehouse Room",
-            "description": "Your assigned bunk inside the quarantine block.",
+            "name": "Safehouse",
+            "description": "A quiet multi-level safehouse assigned to you within the quarantine block.",
             "map_image": "#1a1a2a",
             "obstacles": [],
             "entities": [
@@ -537,7 +1785,74 @@
                         200,
                         540
                     ]
-                },
+                }
+            ],
+            "encounters": [],
+            "scavenge": [],
+            "parent": null,
+            "map_type": "structure",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 0,
+            "tags": [
+                "safe"
+            ],
+            "factions": []
+        },
+        "home#attic": {
+            "name": "Attic",
+            "description": "A cramped attic full of stored crates and old insulation.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home",
+            "map_type": "floor",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 3,
+            "tags": [
+                "storage"
+            ],
+            "factions": []
+        },
+        "home#top-floor": {
+            "name": "Top Floor",
+            "description": "Quiet sleeping quarters and the bathroom.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home",
+            "map_type": "floor",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 2,
+            "tags": [
+                "residential"
+            ],
+            "factions": []
+        },
+        "home#top-floor#main-bedroom": {
+            "name": "Main Bedroom",
+            "description": "Your assigned room with a narrow cot and a small mirror.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [
                 {
                     "id": "bed",
                     "type": "object",
@@ -575,8 +1890,188 @@
             ],
             "encounters": [],
             "scavenge": [],
-            "parent": null,
-            "map_type": "structure",
+            "parent": "home#top-floor",
+            "map_type": "room",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 2,
+            "tags": [],
+            "factions": []
+        },
+        "home#top-floor#guest-bedroom": {
+            "name": "Guest Bedroom",
+            "description": "A spare room kept ready for visitors or injured runners.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home#top-floor",
+            "map_type": "room",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 2,
+            "tags": [],
+            "factions": []
+        },
+        "home#top-floor#kids-bedroom": {
+            "name": "Kids Bedroom",
+            "description": "A small room with mismatched blankets and hand-drawn maps.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home#top-floor",
+            "map_type": "room",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 2,
+            "tags": [],
+            "factions": []
+        },
+        "home#top-floor#bathroom": {
+            "name": "Bathroom",
+            "description": "A compact washroom with a trickling filter line.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home#top-floor",
+            "map_type": "room",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 2,
+            "tags": [],
+            "factions": []
+        },
+        "home#main-floor": {
+            "name": "Main Floor",
+            "description": "The day-to-day living space, with work areas and a garage.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home",
+            "map_type": "floor",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 1,
+            "tags": [],
+            "factions": []
+        },
+        "home#main-floor#garage": {
+            "name": "Garage",
+            "description": "A converted bay for carts, tools, and quiet repairs.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home#main-floor",
+            "map_type": "room",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 1,
+            "tags": [],
+            "factions": []
+        },
+        "home#main-floor#kitchen": {
+            "name": "Kitchen",
+            "description": "A narrow galley for ration prep and shared meals.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home#main-floor",
+            "map_type": "room",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 1,
+            "tags": [],
+            "factions": []
+        },
+        "home#main-floor#living-room": {
+            "name": "Living Room",
+            "description": "A low-lit common area with patched couches and old screens.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home#main-floor",
+            "map_type": "room",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 1,
+            "tags": [],
+            "factions": []
+        },
+        "home#main-floor#office": {
+            "name": "Office",
+            "description": "A cramped desk space for logs, maps, and comms.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home#main-floor",
+            "map_type": "room",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 1,
+            "tags": [],
+            "factions": []
+        },
+        "home#basement": {
+            "name": "Basement",
+            "description": "Utility space with old ducting and supply cages.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home",
+            "map_type": "floor",
             "map_x": 1000,
             "map_y": 1000,
             "zoom_range": [
@@ -585,8 +2080,48 @@
             ],
             "floor_idx": 0,
             "tags": [
-                "safe"
+                "utility"
             ],
+            "factions": []
+        },
+        "home#basement#furnace-room": {
+            "name": "Furnace Room",
+            "description": "The heat hub, lined with filters and rumbling vents.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home#basement",
+            "map_type": "room",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 0,
+            "tags": [],
+            "factions": []
+        },
+        "home#basement#supply-room": {
+            "name": "Supply Room",
+            "description": "Locked shelves of spare parts and emergency stocks.",
+            "map_image": null,
+            "obstacles": [],
+            "entities": [],
+            "encounters": [],
+            "scavenge": [],
+            "parent": "home#basement",
+            "map_type": "room",
+            "map_x": 1000,
+            "map_y": 1000,
+            "zoom_range": [
+                "2.0",
+                "5.0"
+            ],
+            "floor_idx": 0,
+            "tags": [],
             "factions": []
         },
         "market": {
@@ -895,6 +2430,25 @@
         "iron_and_fire": {
             "name": "Tools and Fire",
             "description": "Mechanic Greta needs materials to build non-lethal tools and alarms.",
+            "category": "side",
+            "giver": null,
+            "location": null,
+            "tags": [],
+            "origin": false,
+            "pc_id": null,
+            "image": null,
+            "prereqs": {
+                "quests": [],
+                "flags": [],
+                "not_flags": [],
+                "cond": null
+            },
+            "rewards": {
+                "gold": 0,
+                "items": {},
+                "flags": []
+            },
+            "start_trigger": {},
             "ticks": [
                 {
                     "id": "collect_wood",
@@ -919,6 +2473,25 @@
         "apple_hunt": {
             "name": "Ration Run",
             "description": "Gather rations for the shelter.",
+            "category": "side",
+            "giver": null,
+            "location": null,
+            "tags": [],
+            "origin": false,
+            "pc_id": null,
+            "image": null,
+            "prereqs": {
+                "quests": [],
+                "flags": [],
+                "not_flags": [],
+                "cond": null
+            },
+            "rewards": {
+                "gold": 0,
+                "items": {},
+                "flags": []
+            },
+            "start_trigger": {},
             "ticks": [
                 {
                     "id": "visit_the_supply_depot",
@@ -937,6 +2510,25 @@
         "theo_secret": {
             "name": "Patient Zero",
             "description": "Theo is searching for the first record of the sleepers.",
+            "category": "side",
+            "giver": null,
+            "location": null,
+            "tags": [],
+            "origin": false,
+            "pc_id": null,
+            "image": null,
+            "prereqs": {
+                "quests": [],
+                "flags": [],
+                "not_flags": [],
+                "cond": null
+            },
+            "rewards": {
+                "gold": 0,
+                "items": {},
+                "flags": []
+            },
+            "start_trigger": {},
             "ticks": [
                 {
                     "id": "find_the_outbreak_note",
@@ -949,6 +2541,25 @@
         "formal_intro": {
             "name": "Chain of Command",
             "description": "Meet the leaders keeping the district steady.",
+            "category": "side",
+            "giver": null,
+            "location": null,
+            "tags": [],
+            "origin": false,
+            "pc_id": null,
+            "image": null,
+            "prereqs": {
+                "quests": [],
+                "flags": [],
+                "not_flags": [],
+                "cond": null
+            },
+            "rewards": {
+                "gold": 0,
+                "items": {},
+                "flags": []
+            },
+            "start_trigger": {},
             "ticks": [
                 {
                     "id": "speak_with_coordinator_mara",
@@ -967,6 +2578,200 @@
                     "name": "Speak with Captain Rafi",
                     "trigger": {},
                     "label": "QUEST__formal_intro__speak_with_captain_rafi"
+                }
+            ]
+        },
+        "long_dawn": {
+            "name": "The Long Dawn",
+            "description": "Track the Spire's shifting signal and protect the settlement through calm, non-violent guidance.",
+            "category": "main",
+            "giver": null,
+            "location": null,
+            "tags": [],
+            "origin": true,
+            "pc_id": "survivor",
+            "image": "chars/male_fit.png",
+            "prereqs": {
+                "quests": [],
+                "flags": [],
+                "not_flags": [],
+                "cond": null
+            },
+            "rewards": {
+                "gold": 0,
+                "items": {},
+                "flags": []
+            },
+            "start_trigger": {},
+            "ticks": [
+                {
+                    "id": "ordinary_world",
+                    "name": "Ordinary World",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__ordinary_world"
+                },
+                {
+                    "id": "call_to_adventure",
+                    "name": "Call to Adventure",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__call_to_adventure"
+                },
+                {
+                    "id": "refusal_of_the_call",
+                    "name": "Refusal of the Call",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__refusal_of_the_call"
+                },
+                {
+                    "id": "meeting_the_mentor",
+                    "name": "Meeting the Mentor",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__meeting_the_mentor"
+                },
+                {
+                    "id": "crossing_the_threshold",
+                    "name": "Crossing the Threshold",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__crossing_the_threshold"
+                },
+                {
+                    "id": "tests_and_allies",
+                    "name": "Tests and Allies",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__tests_and_allies"
+                },
+                {
+                    "id": "approach",
+                    "name": "Approach",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__approach"
+                },
+                {
+                    "id": "ordeal",
+                    "name": "Ordeal",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__ordeal"
+                },
+                {
+                    "id": "reward",
+                    "name": "Reward",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__reward"
+                },
+                {
+                    "id": "the_road_back",
+                    "name": "The Road Back",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__the_road_back"
+                },
+                {
+                    "id": "resurrection",
+                    "name": "Resurrection",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__resurrection"
+                },
+                {
+                    "id": "return_with_the_elixir",
+                    "name": "Return with the Elixir",
+                    "trigger": {},
+                    "label": "QUEST__long_dawn__return_with_the_elixir"
+                }
+            ]
+        },
+        "silent_tide": {
+            "name": "The Silent Tide",
+            "description": "Follow the sleepers' rhythm to craft a non-violent way to guide them away from the city.",
+            "category": "main",
+            "giver": null,
+            "location": null,
+            "tags": [],
+            "origin": true,
+            "pc_id": "theo",
+            "image": "chars/male_thin.png",
+            "prereqs": {
+                "quests": [],
+                "flags": [],
+                "not_flags": [],
+                "cond": null
+            },
+            "rewards": {
+                "gold": 0,
+                "items": {},
+                "flags": []
+            },
+            "start_trigger": {},
+            "ticks": [
+                {
+                    "id": "ordinary_world",
+                    "name": "Ordinary World",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__ordinary_world"
+                },
+                {
+                    "id": "call_to_adventure",
+                    "name": "Call to Adventure",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__call_to_adventure"
+                },
+                {
+                    "id": "refusal_of_the_call",
+                    "name": "Refusal of the Call",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__refusal_of_the_call"
+                },
+                {
+                    "id": "meeting_the_mentor",
+                    "name": "Meeting the Mentor",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__meeting_the_mentor"
+                },
+                {
+                    "id": "crossing_the_threshold",
+                    "name": "Crossing the Threshold",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__crossing_the_threshold"
+                },
+                {
+                    "id": "tests_and_allies",
+                    "name": "Tests and Allies",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__tests_and_allies"
+                },
+                {
+                    "id": "approach",
+                    "name": "Approach",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__approach"
+                },
+                {
+                    "id": "ordeal",
+                    "name": "Ordeal",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__ordeal"
+                },
+                {
+                    "id": "reward",
+                    "name": "Reward",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__reward"
+                },
+                {
+                    "id": "the_road_back",
+                    "name": "The Road Back",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__the_road_back"
+                },
+                {
+                    "id": "resurrection",
+                    "name": "Resurrection",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__resurrection"
+                },
+                {
+                    "id": "return_with_the_elixir",
+                    "name": "Return with the Elixir",
+                    "trigger": {},
+                    "label": "QUEST__silent_tide__return_with_the_elixir"
                 }
             ]
         }
@@ -1003,21 +2808,58 @@
         }
     },
     "factions": {
-        "merchants": {
-            "name": "Relief Guild",
-            "description": "Supply runners, mechanics, and traders keeping people fed and equipped.",
-            "allies": [
-                "town_guard"
-            ],
-            "enemies": []
+        "infected": {
+            "name": "The Infected",
+            "description": "The drifted and sleep-walked\u2014drawn to resonance, dangerous in swarms, but not mindless.",
+            "allies": [],
+            "enemies": [
+                "supply_union",
+                "perimeter_watch",
+                "remnant_government",
+                "field_meds"
+            ]
         },
-        "town_guard": {
-            "name": "Civic Watch",
-            "description": "The quarantine line and patrols that keep the settlement secure.",
+        "remnant_government": {
+            "name": "Remnant Government",
+            "description": "A thin, centralized authority clinging to protocols, radios, and old-world order.",
             "allies": [
-                "merchants"
+                "perimeter_watch"
             ],
-            "enemies": []
+            "enemies": [
+                "infected"
+            ]
+        },
+        "field_meds": {
+            "name": "Field Medics",
+            "description": "Healthcare crews managing triage, quarantine care, and frequency-related trauma.",
+            "allies": [
+                "supply_union"
+            ],
+            "enemies": [
+                "infected"
+            ]
+        },
+        "supply_union": {
+            "name": "Supply Union",
+            "description": "Ration runners, quartermasters, and salvage crews keeping the settlement stocked.",
+            "allies": [
+                "perimeter_watch",
+                "field_meds"
+            ],
+            "enemies": [
+                "infected"
+            ]
+        },
+        "perimeter_watch": {
+            "name": "Perimeter Watch",
+            "description": "The quiet line of patrols, checkpoints, and scouts who keep the sleepers out.",
+            "allies": [
+                "supply_union",
+                "remnant_government"
+            ],
+            "enemies": [
+                "infected"
+            ]
         }
     },
     "slots": {
@@ -1247,22 +3089,7 @@
             "label": "CHOICE__elena_checkup"
         }
     },
-    "story_origins": {
-        "long_dawn": {
-            "name": "The Long Dawn",
-            "description": "A runner's start at the quarantine line, chasing a signal of hope.",
-            "pc_id": "warrior",
-            "intro_label": "SCENE__long_dawn__intro",
-            "image": "chars/male_fit.png"
-        },
-        "silent_tide": {
-            "name": "The Silent Tide",
-            "description": "An archivist hears the sleepers' rhythm and follows it to the source.",
-            "pc_id": "scholar",
-            "intro_label": "SCENE__silent_tide__intro",
-            "image": "chars/male_thin.png"
-        }
-    },
+    "story_origins": {},
     "shops": {
         "general_store": {
             "name": "Relief Depot",

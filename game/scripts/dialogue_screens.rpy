@@ -3,46 +3,34 @@
 default hovered_dialogue_option = None
 default hovered_dialogue_reason = None
  
+transform dialogue_fade:
+    on show:
+        alpha 0.0
+        easein 0.2 alpha 1.0
+    on hide:
+        easeout 0.2 alpha 0.0
+
 screen dialogue_choice_screen(char):
     modal True
     zorder 160
     
-    # Background dismissal
+    # Background dismissal (no visible tint)
     button:
         action Return(None)
-        background Solid("#000000cc")
+        background None
     
-    # Description Box (Tooltip)
-    if hovered_dialogue_option:
-        frame:
-            align (0.5, 0.15)
-            background Frame("#1a1a25", 8, 8)
-            padding (25, 20)
-            xsize 900
-            
-            vbox:
-                spacing 5
-                text "[hovered_dialogue_option.long_text]" size 24 italic True color "#ddd" text_align 0.5 xalign 0.5
-                if hovered_dialogue_reason:
-                    text "[hovered_dialogue_reason]" size 16 color "#ffcc66" xalign 0.5
-                if hovered_dialogue_option.tags:
-                    $ tags_str = ", ".join(hovered_dialogue_option.tags)
-                    text "Properties: [tags_str]" size 16 color "#888" xalign 0.5
-    
-    vbox:
+    vbox at dialogue_fade:
         align (0.5, 0.6)
         spacing 30
         xsize 1000
         
         frame:
-            background "#1a1a1a"
+            background None
             padding (40, 40)
             xfill True
             
             vbox:
                 spacing 20
-                text "Conversation with [char.name]" size 36 color "#ffd700" xalign 0.5
-                
                 $ options = dialogue_manager.get_for_char(char)
                 python:
                     option_rows = []

@@ -1,11 +1,17 @@
 default persistent.met_characters = set()
 default persistent.unlocked_notes = set()
+default persistent.achievement_progress = {}
+default persistent.unlocked_scenes = set()
 default world_flags = {}
 default encounter_history = set()
 default scavenge_history = {}
 default allow_unvisited_travel = False
 default item_inspect_image = None
 default item_inspect_title = ""
+default _pending_inspect_item_id = None
+default _return_to_inventory = False
+default _inspect_force = False
+default preselected_origin_id = None
 
 init -10 python:
     # Initialize Persistent Data Defaults (Legacy safety)
@@ -81,6 +87,38 @@ init -10 python:
     def flag_toggle(name):
         world_flags[name] = not world_flags.get(name, False)
         return world_flags[name]
+
+    def bracket_label(text, color="#ff3b3b", bracket_color="#ffffff"):
+        return "{color=%s}[{/color}{color=%s}%s{/color}{color=%s}]{/color}" % (
+            bracket_color, color, text, bracket_color
+        )
+
+    def _hex_to_rgb(col):
+        c = str(col).lstrip("#")
+        if len(c) == 3:
+            c = "".join([ch * 2 for ch in c])
+        if len(c) != 6:
+            return (255, 255, 255)
+        return tuple(int(c[i:i+2], 16) for i in (0, 2, 4))
+
+    def _rgb_to_hex(rgb, alpha=None):
+        r, g, b = rgb
+        r = max(0, min(255, int(r)))
+        g = max(0, min(255, int(g)))
+        b = max(0, min(255, int(b)))
+        if alpha is None:
+            return "#%02x%02x%02x" % (r, g, b)
+        a = max(0, min(255, int(alpha)))
+        return "#%02x%02x%02x%02x" % (r, g, b, a)
+
+    def _tint_color(col, factor):
+        r, g, b = _hex_to_rgb(col)
+        return (r * factor, g * factor, b * factor)
+
+    def text_outline_fx(color, outline_factor=0.45, shadow_factor=0.2, shadow_alpha=80):
+        outline = _rgb_to_hex(_tint_color(color, outline_factor))
+        shadow = _rgb_to_hex(_tint_color(color, shadow_factor), shadow_alpha)
+        return [(2, outline, 0, 0), (2, shadow, 0, 2)]
 
     def find_item_by_tag(tag):
         for it in pc.items:
@@ -427,6 +465,28 @@ init -10 python:
         renpy.store.item_inspect_image = None
         renpy.store.item_inspect_title = ""
 
+    def get_item_icon(item_or_id, fallback=None):
+        """Return an item icon path, falling back to a generic icon."""
+        item = item_or_id
+        if isinstance(item_or_id, str):
+            item = item_manager.get(item_or_id)
+        if item is None:
+            return None
+        icon = getattr(item, "image", None)
+        if icon and renpy.loadable(icon):
+            return icon
+        item_id = item_manager.get_id_of(item)
+        for ext in ("png", "webp", "jpg", "jpeg"):
+            candidate = f"images/items/{item_id}.{ext}"
+            if renpy.loadable(candidate):
+                return candidate
+        if fallback is None:
+            fallback = "images/items/unknown.webp"
+        if fallback and renpy.loadable(fallback):
+            return fallback
+        alt = "images/icons/unknown.webp"
+        return alt if renpy.loadable(alt) else None
+
     def _get_item_actions(item):
         actions = []
         for act in getattr(item, "actions", []) or []:
@@ -443,6 +503,14 @@ init -10 python:
             item = item_manager.get(item_or_id)
         if not item:
             return
+        # If we're inside an interaction, queue a safe inspect label and exit.
+        if not getattr(store, "_inspect_force", False):
+            try:
+                if renpy.in_interaction():
+                    queue_inspect_item(item)
+                    return
+            except Exception:
+                pass
         item_id = item_manager.get_id_of(item)
         inspect_label = f"ITEM__{item_id}__inspect"
         if renpy.has_label(inspect_label):
@@ -459,6 +527,72 @@ init -10 python:
             choice = renpy.display_menu(options)
             if choice:
                 renpy.call(choice)
+
+    def queue_inspect_item(item_or_id):
+        item = item_or_id
+        if isinstance(item_or_id, str):
+            item = item_manager.get(item_or_id)
+        if not item:
+            return
+        store._pending_inspect_item_id = item_manager.get_id_of(item)
+        if hasattr(store, "flow_queue"):
+            store.flow_queue.queue_label("_inspect_item_pending")
+
+label _inspect_item_pending:
+    $ store._inspect_force = True
+    $ _iid = store._pending_inspect_item_id
+    $ store._pending_inspect_item_id = None
+    if _iid:
+        $ inspect_item(_iid)
+    $ store._inspect_force = False
+    if store._return_to_inventory:
+        $ store._return_to_inventory = False
+        call screen inventory_screen
+    return
+
+init -10 python:
+    def _resolve_inventory(ref):
+        if ref in (None, "", "none"):
+            return None
+        if isinstance(ref, Inventory):
+            return ref
+        if isinstance(ref, RPGCharacter):
+            return ref
+        key = str(ref).lower()
+        if key in ("player", "pc"):
+            return pc
+        if key == "char":
+            return getattr(store, "_interact_target_char", None)
+        if key in rpg_world.characters:
+            return rpg_world.characters.get(key)
+        if key in rpg_world.shops:
+            return rpg_world.shops.get(key)
+        return None
+
+    def give_item_between(item_id, source_id=None, target_id=None, count=1, assign_owner=True):
+        """Transfer an item between inventories (used by GIVE flows)."""
+        count = max(1, int(count))
+        src = _resolve_inventory(source_id)
+        tgt = _resolve_inventory(target_id)
+        if not src or not tgt:
+            return False
+        it = item_manager.get(item_id)
+        if not it:
+            return False
+        return src.transfer_to(it, tgt, count=count, reason="gift", assign_owner=assign_owner)
+
+    def get_give_label(char, item_or_id):
+        item = item_or_id
+        if isinstance(item_or_id, str):
+            item = item_manager.get(item_or_id)
+        if not item or not char:
+            return None
+        item_id = item_manager.get_id_of(item)
+        give_map = getattr(char, "give_flows", {}) or {}
+        return give_map.get(item_id)
+
+    def is_givable(char, item_or_id):
+        return bool(get_give_label(char, item_or_id))
 
     class Recipe(object):
         def __init__(self, id, name, inputs, output, req_skill=None, tags=None):
@@ -527,7 +661,8 @@ init -10 python:
 
         def dispatch(self, etype, **kwargs):
             quest_manager.handle_event(etype, **kwargs)
-            ach_mgr.handle_event(etype, **kwargs)
+            if "ach_mgr" in globals() and ach_mgr is not None:
+                ach_mgr.handle_event(etype, **kwargs)
             for fn in list(self.listeners.get(etype, [])):
                 try:
                     fn(etype, **kwargs)
@@ -535,6 +670,100 @@ init -10 python:
                     pass
 
     event_manager = EventManager()
+
+    class CharacterFixture(object):
+        """A place or object a character can fixate to (seat, bed, table, floor spot)."""
+        def __init__(self, id, name, fixture_type="seat", location_id=None, x=0, y=0, tags=None):
+            self.id = id
+            self.name = name
+            self.fixture_type = fixture_type or "seat"
+            self.location_id = location_id
+            self.x = x
+            self.y = y
+            self.tags = set(tags or [])
+            self.occupied_by = None
+
+        def is_occupied(self):
+            return self.occupied_by is not None
+
+        def fixate(self, char):
+            if self.occupied_by and self.occupied_by != char.id:
+                return False, "Occupied"
+            # Unfixate from previous fixture if needed
+            if getattr(char, "fixated_to", None) and getattr(char, "fixated_to") != self.id:
+                fixture_manager.unfixate_char(char)
+            self.occupied_by = char.id
+            char.fixated_to = self.id
+            if self.x is not None and self.y is not None:
+                char.x, char.y = self.x, self.y
+            event_manager.dispatch("CHARACTER_FIXATED", actor=char.id, fixture=self.id, fixture_type=self.fixture_type, location=self.location_id)
+            return True, "Fixated"
+
+        def unfixate(self, char=None):
+            target_id = self.occupied_by
+            if char is not None and target_id and target_id != char.id:
+                return False, "Not occupied by this character"
+            self.occupied_by = None
+            if char is not None:
+                char.fixated_to = None
+            event_manager.dispatch("CHARACTER_UNFIXATED", actor=target_id, fixture=self.id, fixture_type=self.fixture_type, location=self.location_id)
+            return True, "Unfixated"
+
+    class FixtureManager(object):
+        def __init__(self):
+            self.registry = {}
+
+        def register(self, fixture):
+            if fixture:
+                self.registry[fixture.id] = fixture
+
+        def get(self, fixture_id):
+            return self.registry.get(fixture_id)
+
+        def _build_fixture_id(self, location_id, entity_id):
+            loc = location_id or "unknown"
+            ent = entity_id or "fixture"
+            return f"{loc}#{ent}"
+
+        def get_by_entity(self, location_id, entity):
+            if not isinstance(entity, dict):
+                return None
+            ent_id = entity.get("fixture_id") or entity.get("id")
+            fixture_id = self._build_fixture_id(location_id, ent_id)
+            existing = self.registry.get(fixture_id)
+            if existing:
+                return existing
+            name = entity.get("name") or ent_id or "Fixture"
+            ftype = entity.get("fixture_type") or entity.get("fixture") or entity.get("use") or "seat"
+            fixture = CharacterFixture(
+                fixture_id,
+                name,
+                fixture_type=ftype,
+                location_id=location_id,
+                x=entity.get("x", 0),
+                y=entity.get("y", 0),
+                tags=entity.get("tags", [])
+            )
+            self.register(fixture)
+            return fixture
+
+        def fixate_char(self, char, fixture):
+            if isinstance(fixture, str):
+                fixture = self.get(fixture)
+            if not fixture or not char:
+                return False, "Invalid"
+            return fixture.fixate(char)
+
+        def unfixate_char(self, char):
+            if not char or not getattr(char, "fixated_to", None):
+                return False, "Not fixated"
+            fixture = self.get(char.fixated_to)
+            if not fixture:
+                char.fixated_to = None
+                return False, "Missing fixture"
+            return fixture.unfixate(char)
+
+    fixture_manager = FixtureManager()
 
     class TimeManager(object):
         def __init__(self, hour=8, minute=0, day=1):
@@ -657,7 +886,7 @@ init -10 python:
     story_origin_manager = StoryOriginManager()
 
     class Quest:
-        def __init__(self, id, name, description="", category="side", giver=None, location=None, tags=None, prereqs=None, rewards=None, start_trigger=None):
+        def __init__(self, id, name, description="", category="side", giver=None, location=None, tags=None, prereqs=None, rewards=None, start_trigger=None, origin=False, pc_id=None, image=None):
             self.id = id
             self.name = name
             self.description = description
@@ -668,6 +897,9 @@ init -10 python:
             self.prereqs = prereqs or {}
             self.rewards = rewards or {}
             self.start_trigger = start_trigger or {}
+            self.origin = bool(origin)
+            self.pc_id = pc_id
+            self.image = image
             self.state = "unknown"
             self.ticks = []
             self.rewards_applied = False
@@ -722,19 +954,44 @@ init -10 python:
             renpy.notify(f"Quest Completed: {self.name}")
             event_manager.dispatch("QUEST_COMPLETED", quest=self.id)
             if renpy.has_label(f"QUEST__{self.id}__passed"): renpy.call(f"QUEST__{self.id}__passed")
+            if quest_manager.active_quest_id == self.id:
+                quest_manager.set_active_quest(None)
         def fail(self):
             self.state = "failed"
             renpy.notify(f"Quest Failed: {self.name}")
             event_manager.dispatch("QUEST_FAILED", quest=self.id)
             if renpy.has_label(f"QUEST__{self.id}__failed"): renpy.call(f"QUEST__{self.id}__failed")
+            if quest_manager.active_quest_id == self.id:
+                quest_manager.set_active_quest(None)
 
     class QuestManager:
-        def __init__(self): self.quests, self.start_triggers = {}, {}
+        def __init__(self):
+            self.quests, self.start_triggers = {}, {}
+            self.active_quest_id = None
         def add_quest(self, q): self.quests[q.id] = q
+        def get_origins(self):
+            origins = [q for q in self.quests.values() if getattr(q, "origin", False)]
+            return sorted(origins, key=lambda x: x.name)
         def start_quest(self, qid):
             q = self.quests.get(qid)
-            if q: return q.start()
+            if q and q.start():
+                if not self.active_quest_id:
+                    self.set_active_quest(q.id)
+                return True
             return False
+        def set_active_quest(self, qid):
+            prev = self.active_quest_id
+            if not qid or qid not in self.quests:
+                self.active_quest_id = None
+            else:
+                self.active_quest_id = qid
+            if prev != self.active_quest_id:
+                event_manager.dispatch("QUEST_ACTIVE_CHANGED", quest=self.active_quest_id, previous=prev)
+            return self.active_quest_id
+        def get_active_quest(self):
+            if self.active_quest_id and self.active_quest_id in self.quests:
+                return self.quests[self.active_quest_id]
+            return None
         def complete_quest(self, qid):
             q = self.quests.get(qid)
             if q: q.complete()
@@ -1202,6 +1459,7 @@ init -10 python:
             self.companion_mods = companion_mods or {}
             self.is_companion = is_companion
             self.following = False
+            self.give_flows = {}
             
             # Determine TD Sprite
             if td_sprite:
@@ -1221,6 +1479,7 @@ init -10 python:
             self.equipped_items = self.equipped_slots
             self.active_perks = []
             self.active_statuses = []
+            self.fixated_to = None
             # Appearance metadata
             self.gender = gender
             self.age = age
@@ -1552,6 +1811,19 @@ init -10 python:
             before = len(self.active_statuses)
             self.active_statuses[:] = [e for e in self.active_statuses if e["id"] != status_id]
             return len(self.active_statuses) != before
+
+        def is_fixated(self, fixture_id=None):
+            if not self.fixated_to:
+                return False
+            if fixture_id is None:
+                return True
+            return self.fixated_to == fixture_id
+
+        def fixate(self, fixture):
+            return fixture_manager.fixate_char(self, fixture)
+
+        def unfixate(self):
+            return fixture_manager.unfixate_char(self)
         
         def get_stat_total(self, name):
             base = self.stats.get(name, 0)
@@ -1640,6 +1912,8 @@ init -10 python:
             self.search_query = ""
             self.selected_structure = None
             self.selected_location = None  # For location info popup
+            self.hover_location = None
+            self.hover_tooltip = None
         
         def set_zoom(self, z):
             """Set target zoom for smooth animation"""
@@ -1688,6 +1962,48 @@ init -10 python:
 
                 visible.append(loc)
             return visible
+
+        def update_hover(self, adj_x, adj_y, pad, view_w, view_h, radius=28):
+            """Manual hover detection for map markers (robust across viewports)."""
+            try:
+                mx, my = renpy.get_mouse_pos()
+            except Exception:
+                mx, my = None, None
+            if mx is None or my is None:
+                if self.hover_tooltip:
+                    self.hover_tooltip = None
+                    self.hover_location = None
+                    renpy.restart_interaction()
+                return
+
+            nearest = None
+            nearest_dist = None
+            for loc in self.get_visible_markers():
+                px = (loc.map_x + pad) * self.zoom
+                py = (loc.map_y + pad) * self.zoom
+                sx = px - adj_x.value
+                sy = py - adj_y.value
+                if sx < -radius or sx > view_w + radius or sy < -radius or sy > view_h + radius:
+                    continue
+                dist = math.hypot(mx - sx, my - sy)
+                if dist <= radius and (nearest is None or dist < nearest_dist):
+                    nearest = loc
+                    nearest_dist = dist
+
+            if nearest:
+                can_travel = allow_unvisited_travel or nearest.visited or (rpg_world.current_location_id == nearest.id)
+                tip = nearest.name if can_travel else bracket_label("Undiscovered", "#ff3b3b")
+                if tip != self.hover_tooltip:
+                    self.hover_tooltip = tip
+                    self.hover_location = nearest
+                    set_tooltip(tip)
+                    renpy.restart_interaction()
+            else:
+                if self.hover_tooltip:
+                    self.hover_tooltip = None
+                    self.hover_location = None
+                    set_tooltip(None)
+                    renpy.restart_interaction()
             
         def search(self, query):
             self.search_query = query.strip()
@@ -1801,8 +2117,8 @@ init -10 python:
                 if enc.get("once") and enc_id in encounter_history:
                     continue
                 cond = enc.get("cond")
-            if cond and not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level}):
-                continue
+                if cond and not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level}):
+                    continue
                 try:
                     chance = float(enc.get("chance", 1.0))
                 except Exception:
@@ -1826,7 +2142,7 @@ init -10 python:
             renpy.call_in_new_context(label)
 
     rpg_world = GameWorld()
-    pc = RPGCharacter("player", "Player", base_image="characters/male_fit.png")
+    pc = RPGCharacter("player", "Player", base_image="chars/male_fit.png")
     rpg_world.add_character(pc)
 
     class PartyManager:
@@ -1932,9 +2248,6 @@ init -10 python:
                 if not safe_eval_bool(self.trigger["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level}):
                     return False
             return True
-    
-    # Persistent progress for multi-tick achievements
-    default persistent.achievement_progress = {}
     
     class AchievementManager:
         """Manages achievement definitions, tracking, and event-based unlocks."""
@@ -2306,6 +2619,7 @@ init -10 python:
                 companion_mods=p.get('companion_mods', {}),
                 is_companion=bool(p.get('companion_mods'))
             )
+            char.give_flows = p.get('give', {}) or {}
             rpg_world.add_character(char)
                 
         # Dialogue Options
@@ -2381,7 +2695,10 @@ init -10 python:
                 tags=p.get('tags', []),
                 prereqs=p.get('prereqs', {}),
                 rewards=p.get('rewards', {}),
-                start_trigger=p.get('start_trigger', {})
+                start_trigger=p.get('start_trigger', {}),
+                origin=p.get('origin', False),
+                pc_id=p.get('pc_id'),
+                image=p.get('image')
             )
             for t_idx, tp in enumerate(p.get('ticks', [])):
                 tick = QuestTick(tp['id'], tp['name'])

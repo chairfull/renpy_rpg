@@ -357,20 +357,91 @@ style navigation_button_text:
 
 transform mm_fade_in:
     alpha 0.0
-    linear 0.4 alpha 1.0
+    linear 0.2 alpha 1.0
 
 transform mm_slide_in:
     xoffset 40
     alpha 0.0
-    linear 0.5 xoffset 0 alpha 1.0
+    linear 0.25 xoffset 0 alpha 1.0
+
+transform gm_slide_in_left:
+    xoffset -40
+    alpha 0.0
+    linear 0.25 xoffset 0 alpha 1.0
+
+init python:
+    import math
+
+    def _helix_points(count, height, amp, phase=0.0):
+        pts = []
+        if count <= 1:
+            return pts
+        for i in range(count):
+            t = float(i) / float(count - 1)
+            y = t * height
+            x = math.sin(t * math.pi * 4.0 + phase) * amp
+            a = 0.25 + 0.75 * (1.0 - abs(0.5 - t) * 2.0)
+            pts.append((x, y, a))
+        return pts
+
+    def _helix_rungs(count, height, amp, phase=0.0, step=4):
+        rungs = []
+        if count <= 1:
+            return rungs
+        for i in range(0, count, step):
+            t = float(i) / float(count - 1)
+            y = t * height
+            x = math.sin(t * math.pi * 4.0 + phase) * amp
+            rungs.append((x, y))
+        return rungs
+
+screen double_helix_bg():
+    $ w = 1920
+    $ h = 1080
+    $ amp = 160
+    $ count = 60
+    $ pts_a = _helix_points(count, h, amp, 0.0)
+    $ pts_b = _helix_points(count, h, amp, math.pi)
+    $ rungs = _helix_rungs(count, h, amp, 0.0, step=4)
+    fixed:
+        xsize w
+        ysize h
+        for x, y, a in pts_a:
+            add Solid("#2ac7a7") xpos (w * 0.5 + x) ypos y xysize (6, 6) alpha a
+        for x, y, a in pts_b:
+            add Solid("#66ffe0") xpos (w * 0.5 + x) ypos y xysize (6, 6) alpha a
+        for x, y in rungs:
+            $ rw = int(abs(x) * 2)
+            if rw > 0:
+                add Solid("#2ac7a7") xpos (w * 0.5 - abs(x)) ypos (y + 2) xysize (rw, 2) alpha 0.35
+
+# Button hover flash (fast double pulse)
+transform menu_hover_flash:
+    on hover:
+        block:
+            ease 0.5 matrixcolor BrightnessMatrix(0.3) * SaturationMatrix(1.5) * HueMatrix(180)
+        block:
+            ease 1.0 matrixcolor BrightnessMatrix(0.1) * SaturationMatrix(1.0) * HueMatrix(180)
+            ease 0.25 matrixcolor BrightnessMatrix(0.3) * SaturationMatrix(1.5) * HueMatrix(180)
+            repeat
+    on idle:
+        ease 0.125 matrixcolor BrightnessMatrix(0.0) * SaturationMatrix(1.0) * HueMatrix(0)
 
 screen main_menu():
 
     ## This ensures that any other menu screen is replaced.
     tag menu
+    on "show" action [SetVariable("tooltip_force_refresh", True), SetVariable("tooltip_force_min_dt", 0.03)]
+    on "hide" action [SetVariable("tooltip_force_refresh", False), SetVariable("tooltip_force_min_dt", 0.05)]
+    timer 0.05 repeat True action Function(renpy.restart_interaction)
+    on "show" action SetVariable("tooltip_force_refresh", True)
+    on "hide" action SetVariable("tooltip_force_refresh", False)
+    on "show" action SetVariable("tooltip_manual", "")
+    on "hide" action SetVariable("tooltip_manual", "")
 
     # Layered background panels for a modern game-menu feel.
     add Solid("#0b0f14")
+    use double_helix_bg
     add Solid("#102030cc") at Transform(xsize=1400, ysize=700, rotate=8, xpos=-320, ypos=-260)
     add Solid("#1a2b3bcc") at Transform(xsize=1100, ysize=620, rotate=-6, xpos=420, ypos=80)
     add Solid("#0b0f14aa") at Transform(xsize=1400, ysize=900, xpos=0, ypos=0)
@@ -397,16 +468,80 @@ screen main_menu():
         at mm_slide_in
         vbox:
             spacing 14
-            text "MAIN MENU" style "mm_section"
-            textbutton _("Start") action Start() style "mm_button" text_style "mm_button_text"
-            textbutton _("Load") action ShowMenu("load") style "mm_button" text_style "mm_button_text"
-            textbutton _("Wiki") action ShowMenu("gallery_screen") style "mm_button" text_style "mm_button_text"
-            textbutton _("Preferences") action ShowMenu("preferences") style "mm_button" text_style "mm_button_text"
-            textbutton _("About") action ShowMenu("about") style "mm_button" text_style "mm_button_text"
+            textbutton _("Start"):
+                action Start()
+                tooltip _("Start a new game")
+                hovered Function(set_tooltip, _("Start a new game"), True)
+                unhovered Function(set_tooltip, None, True)
+                style "mm_button"
+                text_style "mm_button_text"
+                at menu_hover_flash
+            $ origins = quest_manager.get_origins()
+            if origins:
+                vbox:
+                    xoffset 16
+                    spacing 6
+                    for origin in origins:
+                        textbutton "[origin.name]":
+                            hovered Function(set_tooltip, origin.description, True)
+                            unhovered Function(set_tooltip, None, True)
+                            tooltip origin.description
+                            action [Function(set_tooltip, None, True), SetVariable("preselected_origin_id", origin.id), Start()]
+                            style "mm_button"
+                            text_style "mm_button_text"
+                            text_size 18
+                            padding (18, 8)
+                            at menu_hover_flash
+            textbutton _("Load"):
+                action ShowMenu("load")
+                tooltip _("Load a saved game")
+                hovered Function(set_tooltip, _("Load a saved game"), True)
+                unhovered Function(set_tooltip, None, True)
+                style "mm_button"
+                text_style "mm_button_text"
+                at menu_hover_flash
+            textbutton _("Wiki"):
+                action ShowMenu("gallery_screen")
+                tooltip _("Open the in-game wiki")
+                hovered Function(set_tooltip, _("Open the in-game wiki"), True)
+                unhovered Function(set_tooltip, None, True)
+                style "mm_button"
+                text_style "mm_button_text"
+                at menu_hover_flash
+            textbutton _("Preferences"):
+                action ShowMenu("preferences")
+                tooltip _("Adjust settings")
+                hovered Function(set_tooltip, _("Adjust settings"), True)
+                unhovered Function(set_tooltip, None, True)
+                style "mm_button"
+                text_style "mm_button_text"
+                at menu_hover_flash
+            textbutton _("About"):
+                action ShowMenu("about")
+                tooltip _("View credits and info")
+                hovered Function(set_tooltip, _("View credits and info"), True)
+                unhovered Function(set_tooltip, None, True)
+                style "mm_button"
+                text_style "mm_button_text"
+                at menu_hover_flash
             if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
-                textbutton _("Help") action ShowMenu("help") style "mm_button" text_style "mm_button_text"
+                textbutton _("Help"):
+                    action ShowMenu("help")
+                    tooltip _("Open help")
+                    hovered Function(set_tooltip, _("Open help"), True)
+                    unhovered Function(set_tooltip, None, True)
+                    style "mm_button"
+                    text_style "mm_button_text"
+                    at menu_hover_flash
             if renpy.variant("pc"):
-                textbutton _("Quit") action Quit(confirm=not main_menu) style "mm_button" text_style "mm_button_text"
+                textbutton _("Quit"):
+                    action Quit(confirm=not main_menu)
+                    tooltip _("Exit the game")
+                    hovered Function(set_tooltip, _("Exit the game"), True)
+                    unhovered Function(set_tooltip, None, True)
+                    style "mm_button"
+                    text_style "mm_button_text"
+                    at menu_hover_flash
 
     # Footer hints
     hbox:
@@ -415,6 +550,12 @@ screen main_menu():
         spacing 18
         text "Build: [config.version]" style "mm_footer"
         text "Data: [config.name!t]" style "mm_footer"
+
+    # Tooltips are handled by the global overlay.
+
+    # Tooltips are handled by the global overlay.
+    
+    # Main menu tooltips are handled by the global overlay.
 
 
 style main_menu_frame is empty
@@ -492,12 +633,35 @@ style mm_button:
     insensitive_background Frame(Solid("#0f141b"), 10, 10)
     padding (18, 12)
     xsize 320
+    focus_mask True
 
 style mm_button_text:
     font gui.interface_text_font
     size 22
     color "#e6edf5"
     hover_color "#ffffff"
+    outlines text_outline_fx("#e6edf5")
+
+style gm_panel is frame
+style gm_content_panel is frame
+style gm_title is gui_text
+
+style gm_panel:
+    background Frame(Solid("#0f141bcc"), 12, 12)
+    padding (24, 24)
+    xsize 320
+    ysize 720
+
+style gm_content_panel:
+    background Frame(Solid("#0f141bcc"), 12, 12)
+    padding (28, 24)
+    xsize 1120
+    ysize 720
+
+style gm_title:
+    font gui.interface_text_font
+    size 34
+    color "#e8f0f8"
 
 
 ## Game Menu screen ############################################################
@@ -513,72 +677,95 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
 
     style_prefix "game_menu"
 
-    if main_menu:
-        add gui.main_menu_background
-    else:
-        add gui.game_menu_background
+    # Modern layered background (matches the main menu)
+    add Solid("#0b0f14")
+    add Solid("#102030cc") at Transform(xsize=1400, ysize=700, rotate=8, xpos=-320, ypos=-260)
+    add Solid("#1a2b3bcc") at Transform(xsize=1100, ysize=620, rotate=-6, xpos=420, ypos=80)
+    add Solid("#0b0f14aa") at Transform(xsize=1400, ysize=900, xpos=0, ypos=0)
 
+    # Accent lines
+    add Solid("#2ac7a7") at Transform(xsize=320, ysize=3, xpos=70, ypos=120, alpha=0.9)
+    add Solid("#2ac7a7") at Transform(xsize=4, ysize=220, xpos=62, ypos=120, alpha=0.9)
+
+    # Left navigation panel
     frame:
-        style "game_menu_outer_frame"
+        style "gm_panel"
+        xalign 0.05
+        yalign 0.22
+        at gm_slide_in_left
+        vbox:
+            spacing 10
+            text ("PAUSE MENU" if not main_menu else "MENU") style "mm_section"
+            textbutton _("Return") action Return() style "mm_button" text_style "mm_button_text" at menu_hover_flash
 
-        hbox:
+            if main_menu:
+                textbutton _("Start") action Start() style "mm_button" text_style "mm_button_text" at menu_hover_flash
+            else:
+                textbutton _("History") action ShowMenu("history") style "mm_button" text_style "mm_button_text" at menu_hover_flash
+                textbutton _("Save") action ShowMenu("save") style "mm_button" text_style "mm_button_text" at menu_hover_flash
 
-            ## Reserve space for the navigation section.
-            frame:
-                style "game_menu_navigation_frame"
+            textbutton _("Load") action ShowMenu("load") style "mm_button" text_style "mm_button_text" at menu_hover_flash
+            textbutton _("Wiki") action ShowMenu("gallery_screen") style "mm_button" text_style "mm_button_text" at menu_hover_flash
 
-            frame:
-                style "game_menu_content_frame"
+            if not main_menu:
+                textbutton _("DEV MODE") action ShowMenu("dev_mode_screen") style "mm_button" text_style "mm_button_text" text_color "#ff3333" at menu_hover_flash
 
-                if scroll == "viewport":
+            textbutton _("Preferences") action ShowMenu("preferences") style "mm_button" text_style "mm_button_text" at menu_hover_flash
 
-                    viewport:
-                        yinitial yinitial
-                        scrollbars "vertical"
-                        mousewheel True
-                        draggable True
-                        pagekeys True
+            if _in_replay:
+                textbutton _("End Replay") action EndReplay(confirm=True) style "mm_button" text_style "mm_button_text" at menu_hover_flash
+            elif not main_menu:
+                textbutton _("Main Menu") action MainMenu() style "mm_button" text_style "mm_button_text" at menu_hover_flash
 
-                        side_yfill True
+            textbutton _("About") action ShowMenu("about") style "mm_button" text_style "mm_button_text" at menu_hover_flash
 
-                        vbox:
-                            spacing spacing
+            if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
+                textbutton _("Help") action ShowMenu("help") style "mm_button" text_style "mm_button_text" at menu_hover_flash
 
-                            transclude
+            if renpy.variant("pc"):
+                textbutton _("Quit") action Quit(confirm=not main_menu) style "mm_button" text_style "mm_button_text" at menu_hover_flash
 
-                elif scroll == "vpgrid":
+    # Right content panel
+    frame:
+        style "gm_content_panel"
+        xalign 0.72
+        yalign 0.18
+        at mm_fade_in
+        vbox:
+            spacing 16
+            text "[title]" style "gm_title"
 
-                    vpgrid:
-                        cols 1
-                        yinitial yinitial
-
-                        scrollbars "vertical"
-                        mousewheel True
-                        draggable True
-                        pagekeys True
-
-                        side_yfill True
-
+            if scroll == "viewport":
+                viewport:
+                    yinitial yinitial
+                    scrollbars "vertical"
+                    mousewheel True
+                    draggable True
+                    pagekeys True
+                    side_yfill True
+                    vbox:
                         spacing spacing
-
                         transclude
 
-                else:
-
+            elif scroll == "vpgrid":
+                vpgrid:
+                    cols 1
+                    yinitial yinitial
+                    scrollbars "vertical"
+                    mousewheel True
+                    draggable True
+                    pagekeys True
+                    side_yfill True
+                    spacing spacing
                     transclude
 
-    use navigation
-
-    textbutton _("Return"):
-        style "return_button"
-        at phone_visual_hover
-
-        action Return()
-
-    label title
+            else:
+                transclude
 
     if main_menu:
         key "game_menu" action ShowMenu("main_menu")
+    else:
+        key "game_menu" action Return()
 
 
 style game_menu_outer_frame is empty
@@ -1250,25 +1437,30 @@ screen confirm(message, yes_action, no_action):
 
     style_prefix "confirm"
 
-    add "gui/overlay/confirm.png"
+    add Solid("#0b0f14cc") at confirm_fade
 
     frame:
+        at confirm_fade
+        background Frame(Solid("#0f141bcc"), 12, 12)
+        padding (28, 24)
+        xsize 700
+        ysize 260
+        xalign 0.5
+        yalign 0.5
 
         vbox:
-            xalign .5
-            yalign .5
-            spacing 45
+            spacing 24
+            xalign 0.5
+            yalign 0.5
 
-            label _(message):
-                style "confirm_prompt"
-                xalign 0.5
+            text "[message]" size 26 color "#e8f0f8" xalign 0.5
 
             hbox:
                 xalign 0.5
-                spacing 150
+                spacing 40
 
-                textbutton _("Yes") action yes_action
-                textbutton _("No") action no_action
+                textbutton _("Yes") action yes_action style "mm_button" text_style "mm_button_text"
+                textbutton _("No") action no_action style "mm_button" text_style "mm_button_text"
 
     ## Right-click and escape answer "no".
     key "game_menu" action no_action
@@ -1295,6 +1487,13 @@ style confirm_button:
 
 style confirm_button_text:
     properties gui.text_properties("confirm_button")
+
+transform confirm_fade:
+    on show:
+        alpha 0.0
+        easein 0.2 alpha 1.0
+    on hide:
+        easeout 0.2 alpha 0.0
 
 
 ## Skip indicator screen #######################################################

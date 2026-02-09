@@ -78,14 +78,17 @@ screen scene_view():
             draggable True
             scrollbars "vertical"
             vbox:
-                if not persistent.unlocked_scenes:
+                $ _scene_mgr = renpy.store.__dict__.get("scene_manager")
+                if _scene_mgr is None:
+                    text "Scene system is not initialized." color "#888"
+                elif not persistent.unlocked_scenes:
                     text "Unlocked scenes will appear here." color "#888"
                 else:
                     for scene_id in sorted(list(persistent.unlocked_scenes)):
-                        if scene_id in scene_manager.scenes:
-                            $ sc = scene_manager.scenes[scene_id]
+                        if scene_id in _scene_mgr.scenes:
+                            $ sc = _scene_mgr.scenes[scene_id]
                             textbutton "[sc.name]":
-                                action Function(scene_manager.play, scene_id)
+                                action Function(_scene_mgr.play, scene_id)
                                 text_hover_color "#66ccff"
 
 screen wiki_view():

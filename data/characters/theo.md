@@ -4,7 +4,7 @@ id: theo
 name: Theo
 description: Dedicated to preserving pre-fall data logs and charting the decay of the global transmission grid.
 base_image: chars/male_thin.png
-location: city_center
+location: temple
 pos: 500,500
 stats:
   - strength: 8

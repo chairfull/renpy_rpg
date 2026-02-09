@@ -15,7 +15,13 @@ label start:
     
     default intro_cinematic_done = False
     
-    # Story Selection
+    # Story Selection (skip if a quick-start origin was chosen)
+    if preselected_origin_id:
+        $ origin = quest_manager.quests.get(preselected_origin_id)
+        $ preselected_origin_id = None
+        if origin:
+            $ finish_story_selection(origin)
+            return
     call screen story_select_screen
     
     # After selection, the screen jumps to the intro label.

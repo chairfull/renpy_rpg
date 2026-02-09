@@ -2,6 +2,7 @@
 type: character
 name: Elena
 id: elena
+base_image: chars/female_fit.png
 description: A high-tension combat medic who specializes in frequency-induced trauma and Sleeper-bite stabilization.
 location: temple
 pos: 500,300
@@ -62,4 +63,13 @@ cond: true
 elena: Hold still. It's just a diagnostic sweep.
 STATUS REMOVE flu
 NOTIFY "Your cognitive resonance stabilizes."
+```
+
+# Give
+
+## Battery Cell
+```flow
+elena: Good. I can keep the clinic lights stable for another night.
+GIVE battery_cell from:pc to:elena count:1
+NOTIFY "You gave Elena a Battery Cell."
 ```

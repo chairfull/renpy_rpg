@@ -9,23 +9,25 @@ import shlex
 def parse_markdown(filepath):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
-            content = f.read()
+            raw_lines = f.read().splitlines()
     except Exception as e:
         print(f"Error reading {filepath}: {e}")
-        return None, None
+        return None, None, None, None
     
-    if "---" not in content:
-        return None, None
+    delim_idxs = [i for i, line in enumerate(raw_lines) if line.strip() == "---"]
+    if len(delim_idxs) < 2:
+        return None, None, None, None
     
-    parts = content.split("---", 2)
-    if len(parts) < 3:
-        return None, None
+    start = delim_idxs[0]
+    end = delim_idxs[1]
+    props_lines = raw_lines[start + 1:end]
+    body_raw_lines = raw_lines[end + 1:]
+    body_start_line = end + 2  # 1-based
     
     props = {}
-    lines = parts[1].split('\n')
     i = 0
-    while i < len(lines):
-        line = lines[i]
+    while i < len(props_lines):
+        line = props_lines[i]
         if not line.strip():
             i += 1
             continue
@@ -35,8 +37,9 @@ def parse_markdown(filepath):
             if not v: # Block value
                 block = []
                 j = i + 1
-                while j < len(lines) and (not lines[j].strip() or lines[j].startswith(' ') or lines[j].strip().startswith('-')):
-                    if lines[j].strip(): block.append(lines[j])
+                while j < len(props_lines) and (not props_lines[j].strip() or props_lines[j].startswith(' ') or props_lines[j].strip().startswith('-')):
+                    if props_lines[j].strip():
+                        block.append(props_lines[j])
                     j += 1
                 props[k] = block
                 i = j
@@ -44,7 +47,9 @@ def parse_markdown(filepath):
             props[k] = v
         i += 1
     
-    return props, parts[2].strip()
+    body = "\n".join(body_raw_lines).strip()
+    body_lines = [(body_start_line + i, line) for i, line in enumerate(body_raw_lines)]
+    return props, body, body_start_line, body_lines
 
 def parse_yaml_list(lines):
     """Safely parse a block of YAML lines into a list of dictionaries."""
@@ -195,33 +200,34 @@ def label_safe(text):
     s = re.sub(r'_+', '_', s).strip('_')
     return s or "id"
 
-def extract_locations_section(body):
-    if not body:
-        return [], body
-    lines = body.splitlines()
+def _lines_to_text(lines_with_no):
+    return "\n".join(line for _, line in lines_with_no).strip()
+
+def extract_locations_section(body_lines):
+    if not body_lines:
+        return [], body_lines
     start = None
     base_level = None
-    for i, line in enumerate(lines):
+    for i, (_, line) in enumerate(body_lines):
         m = re.match(r'^(#+)\s*Locations\s*$', line.strip(), re.IGNORECASE)
         if m:
             start = i
             base_level = len(m.group(1))
             break
     if start is None:
-        return [], body
-    end = len(lines)
-    for j in range(start + 1, len(lines)):
-        m = re.match(r'^(#+)\s+', lines[j])
+        return [], body_lines
+    end = len(body_lines)
+    for j in range(start + 1, len(body_lines)):
+        m = re.match(r'^(#+)\s+', body_lines[j][1])
         if m and len(m.group(1)) <= base_level:
             end = j
             break
-    section_lines = lines[start + 1:end]
-    clean_lines = lines[:start] + lines[end:]
-    clean_body = "\n".join(clean_lines).strip()
+    section_lines = body_lines[start + 1:end]
+    clean_lines = body_lines[:start] + body_lines[end:]
     nodes = []
     stack = []
     current = None
-    for line in section_lines:
+    for line_no, line in section_lines:
         m = re.match(r'^(#+)\s+(.*)$', line)
         if m:
             level = len(m.group(1))
@@ -235,7 +241,7 @@ def extract_locations_section(body):
                 "title": title,
                 "level": level,
                 "slug": slugify_segment(title),
-                "content": [],
+                "content_lines": [],
                 "parent": parent,
                 "children": []
             }
@@ -246,8 +252,136 @@ def extract_locations_section(body):
             current = node
             continue
         if current:
-            current["content"].append(line)
-    return nodes, clean_body
+            current["content_lines"].append((line_no, line))
+    return nodes, clean_lines
+
+def extract_named_section(body_lines, title):
+    """Extract a markdown section by heading title, return (section_lines, clean_lines, base_level)."""
+    if not body_lines:
+        return [], body_lines, None
+    start = None
+    base_level = None
+    title_re = re.compile(r'^(#+)\s*' + re.escape(title) + r'\s*$', re.IGNORECASE)
+    for i, (_, line) in enumerate(body_lines):
+        m = title_re.match(line.strip())
+        if m:
+            start = i
+            base_level = len(m.group(1))
+            break
+    if start is None:
+        return [], body_lines, None
+    end = len(body_lines)
+    for j in range(start + 1, len(body_lines)):
+        m = re.match(r'^(#+)\s+', body_lines[j][1])
+        if m and len(m.group(1)) <= base_level:
+            end = j
+            break
+    section_lines = body_lines[start + 1:end]
+    clean_lines = body_lines[:start] + body_lines[end:]
+    return section_lines, clean_lines, base_level
+
+def find_named_section(body_lines, title):
+    """Find a markdown section by heading title, return (section_lines, base_level)."""
+    if not body_lines:
+        return [], None
+    start = None
+    base_level = None
+    title_re = re.compile(r'^(#+)\s*' + re.escape(title) + r'\s*$', re.IGNORECASE)
+    for i, (_, line) in enumerate(body_lines):
+        m = title_re.match(line.strip())
+        if m:
+            start = i
+            base_level = len(m.group(1))
+            break
+    if start is None:
+        return [], None
+    end = len(body_lines)
+    for j in range(start + 1, len(body_lines)):
+        m = re.match(r'^(#+)\s+', body_lines[j][1])
+        if m and len(m.group(1)) <= base_level:
+            end = j
+            break
+    section_lines = body_lines[start + 1:end]
+    return section_lines, base_level
+
+def split_sections(body_lines):
+    sections = []
+    current = None
+    for line_no, line in body_lines:
+        m = re.match(r'^(#+)\s+(.*)$', line)
+        if m:
+            if current:
+                sections.append(current)
+            current = {
+                "heading": m.group(2).strip(),
+                "heading_line": line_no,
+                "lines": []
+            }
+            continue
+        if current:
+            current["lines"].append((line_no, line))
+    if current:
+        sections.append(current)
+    return sections
+
+def extract_flow_blocks(lines_with_no):
+    blocks = []
+    in_block = False
+    block_lines = []
+    start_line = None
+    for line_no, line in lines_with_no:
+        if not in_block:
+            if re.match(r'^\s*```flow\b', line):
+                in_block = True
+                block_lines = []
+                start_line = (line_no + 1) if line_no is not None else None
+            continue
+        if line.strip().startswith("```"):
+            end_line = block_lines[-1][0] if block_lines else start_line
+            blocks.append({
+                "lines": block_lines,
+                "start_line": start_line,
+                "end_line": end_line
+            })
+            in_block = False
+            block_lines = []
+            start_line = None
+            continue
+        block_lines.append((line_no, line))
+    if in_block:
+        end_line = block_lines[-1][0] if block_lines else start_line
+        blocks.append({
+            "lines": block_lines,
+            "start_line": start_line,
+            "end_line": end_line
+        })
+    return blocks
+
+def extract_yaml_block(lines_with_no):
+    if not lines_with_no:
+        return {}, lines_with_no
+    start = None
+    end = None
+    for i, (_, line) in enumerate(lines_with_no):
+        if line.strip().startswith("```yaml"):
+            start = i
+            break
+    if start is None:
+        return {}, lines_with_no
+    for j in range(start + 1, len(lines_with_no)):
+        if lines_with_no[j][1].strip().startswith("```"):
+            end = j
+            break
+    if end is None:
+        return {}, lines_with_no
+    yaml_lines = [line for _, line in lines_with_no[start + 1:end]]
+    yaml_text = "\n".join(yaml_lines)
+    try:
+        data = yaml.safe_load(yaml_text) or {}
+    except Exception:
+        data = {}
+    cleaned_lines = lines_with_no[:start] + lines_with_no[end + 1:]
+    return data, cleaned_lines
 
 FLOW_COMMANDS = {
     "event",
@@ -335,7 +469,29 @@ def directive_to_python(line):
         if len(parts) < 2:
             return None
         item_id = parts[1]
-        count = int(parts[2]) if len(parts) > 2 else 1
+        count = None
+        src = None
+        dst = None
+        for token in parts[2:]:
+            if token.isdigit():
+                count = int(token)
+                continue
+            if ':' in token:
+                k, v = token.split(':', 1)
+                k = k.strip().lower()
+                v = v.strip()
+                if k == "from":
+                    src = v
+                elif k == "to":
+                    dst = v
+                elif k == "count":
+                    try:
+                        count = int(v)
+                    except Exception:
+                        pass
+        if src or dst:
+            return f"give_item_between({item_id!r}, {src!r}, {dst!r}, {count or 1})"
+        count = count or (int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 1)
         return f"give_item({item_id!r}, {count})"
     if cmd == "take":
         if len(parts) < 2:
@@ -517,7 +673,7 @@ def compile(lint_only=False):
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     game_dir = os.path.join(base_dir, "game")
     data_dir = os.path.join(base_dir, "data") # Moved to root
-    # JSON and Labels both go to a hidden folder
+    # JSON goes to a hidden folder; labels go to a non-hidden .rpy so Ren'Py loads them.
     gen_dir = os.path.join(game_dir, ".generated")
     if not os.path.exists(gen_dir):
         os.makedirs(gen_dir)
@@ -548,6 +704,7 @@ def compile(lint_only=False):
     }
     errors = []
     warnings = []
+    source_info = {}
 
     def _is_origin_path(rel_path):
         rel_norm = rel_path.replace(os.sep, "/")
@@ -586,18 +743,23 @@ def compile(lint_only=False):
             
             full_path = os.path.join(root, f)
             rel_path = os.path.relpath(full_path, data_dir)
-            props, body = parse_markdown(full_path)
+            props, body, body_start_line, body_lines = parse_markdown(full_path)
             
             if not props:
                 continue
+            source_path = os.path.join("data", rel_path).replace(os.sep, "/")
+            if body_lines is None:
+                body_lines = []
             
             obj_id = props.get('id', props.get('name', 'unknown')).lower()
             otype = str(props.get('type', 'location')).strip().lower()
-            if otype == "origin":
-                otype = "story_origin"
-            if otype == "story_origin" and not _is_origin_path(rel_path):
-                warnings.append(f"story_origin {obj_id}: move to data/quests/origins/ (ignored)")
-                continue
+            if otype in ["origin", "story_origin"]:
+                # Origins are treated as quests with an origin flag.
+                otype = "quest"
+                if "origin" not in props:
+                    props["origin"] = True
+                if not _is_origin_path(rel_path):
+                    warnings.append(f"origin quest {obj_id}: consider moving to data/quests/origins/")
             
             # Store in JSON data
             if otype == 'item':
@@ -636,7 +798,8 @@ def compile(lint_only=False):
                 else:
                     scavenge = []
                 # Extract child locations from body (# Locations section)
-                child_nodes, cleaned_body = extract_locations_section(body or "")
+                child_nodes, cleaned_lines = extract_locations_section(body_lines)
+                cleaned_body = _lines_to_text(cleaned_lines) if cleaned_lines is not None else (body or "")
                 data_consolidated["locations"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
@@ -656,22 +819,12 @@ def compile(lint_only=False):
                     "tags": parse_csv(props.get('tags', '')),
                     "factions": parse_csv(props.get('factions', ''))
                 }
+                source_info[("locations", obj_id)] = {
+                    "path": source_path,
+                    "body_lines": cleaned_lines if cleaned_lines is not None else []
+                }
                 # Add child locations defined in the body
                 if child_nodes:
-                    def _extract_yaml_block(text):
-                        if not text:
-                            return {}, text
-                        match = re.search(r'```yaml\s*\n(.*?)\n```', text, re.DOTALL)
-                        if not match:
-                            return {}, text
-                        yaml_text = match.group(1)
-                        try:
-                            data = yaml.safe_load(yaml_text) or {}
-                        except Exception:
-                            data = {}
-                        cleaned = text[:match.start()] + text[match.end():]
-                        return data, cleaned.strip()
-
                     def _as_list(val):
                         if val is None:
                             return []
@@ -686,8 +839,9 @@ def compile(lint_only=False):
                         if full_id in data_consolidated["locations"]:
                             warnings.append(f"location {full_id}: duplicate child id, skipped")
                             return
-                        raw_body = "\n".join(node.get("content", [])).strip()
-                        yaml_props, child_body = _extract_yaml_block(raw_body)
+                        raw_lines = node.get("content_lines", []) or []
+                        yaml_props, child_body_lines = extract_yaml_block(raw_lines)
+                        child_body = _lines_to_text(child_body_lines)
                         # Inherit map values from parent unless overridden
                         map_type = yaml_props.get('map_type', parent_loc.get('map_type', 'world'))
                         map_x = parse_int(yaml_props.get('map_x'), parent_loc.get('map_x', 0))
@@ -716,6 +870,10 @@ def compile(lint_only=False):
                             "factions": parse_csv(yaml_props.get('factions', ''))
                         }
                         data_consolidated["locations"][full_id] = child_loc
+                        source_info[("locations", full_id)] = {
+                            "path": source_path,
+                            "body_lines": child_body_lines
+                        }
                         for child in node.get("children", []):
                             _build_child(child, full_id, child_loc)
 
@@ -767,6 +925,46 @@ def compile(lint_only=False):
                                 k, v = parts
                                 schedule[k.strip()] = v.strip()
 
+                # Extract Give section (for item gifting flows)
+                give_section, body_lines, give_base = extract_named_section(body_lines, "Give")
+                body = _lines_to_text(body_lines)
+                give_flows = []
+                give_map = {}
+                if give_section and give_base is not None:
+                    current = None
+                    for line_no, line in give_section:
+                        m = re.match(r'^(#+)\s+(.*)$', line)
+                        if m and len(m.group(1)) > give_base:
+                            if current:
+                                give_flows.append(current)
+                            current = {"title": m.group(2).strip(), "content_lines": []}
+                            continue
+                        if current:
+                            current["content_lines"].append((line_no, line))
+                    if current:
+                        give_flows.append(current)
+                parsed_give_flows = []
+                for entry in give_flows:
+                    item_title = entry.get("title", "").strip()
+                    if not item_title:
+                        continue
+                    item_id = label_safe(item_title).lower()
+                    flow_blocks = extract_flow_blocks(entry.get("content_lines") or [])
+                    if not flow_blocks:
+                        continue
+                    flow_lines = flow_blocks[0].get("lines") or []
+                    flow_content = "\n".join(line for _, line in flow_lines).strip()
+                    if not flow_content:
+                        continue
+                    label_name = f"GIVE__{label_safe(obj_id)}__{label_safe(item_id)}"
+                    give_map[item_id] = label_name
+                    parsed_give_flows.append({
+                        "item_id": item_id,
+                        "label": label_name,
+                        "flow": flow_content,
+                        "flow_lines": flow_lines
+                    })
+
                 data_consolidated["characters"][obj_id] = {
                     "name": props.get('name'),
                     "description": props.get('description', ''),
@@ -800,28 +998,56 @@ def compile(lint_only=False):
                     "max_weight": parse_float(props.get('max_weight')),
                     "max_slots": parse_int(props.get('max_slots')),
                     "companion_mods": parse_kv_block(props.get('companion_mods', [])) if isinstance(props.get('companion_mods', []), list) else {},
-                    "body": body
+                    "body": body,
+                    "give": give_map,
+                    "give_flows": parsed_give_flows
+                }
+                source_info[("characters", obj_id)] = {
+                    "path": source_path,
+                    "body_lines": body_lines
                 }
                 
                 # Check for nested Dialogue section
-                dialogue_match = re.search(r'# Dialogue\s*\n(.*?)(?=\n# |$)', body, re.DOTALL)
-                if dialogue_match:
-                    dialogue_section = dialogue_match.group(1)
-                    # Find all ## options
-                    options = re.findall(r'## (.*?)\s*\n(.*?)(?=\n## |$)', dialogue_section, re.DOTALL)
-                    for opt_name, opt_body in options:
+                dialogue_section, dialogue_base = find_named_section(body_lines, "Dialogue")
+                if dialogue_section and dialogue_base is not None:
+                    current = None
+                    options = []
+                    for line_no, line in dialogue_section:
+                        m = re.match(r'^(#+)\s+(.*)$', line)
+                        if m and len(m.group(1)) > dialogue_base:
+                            if current:
+                                options.append(current)
+                            current = {
+                                "title": m.group(2).strip(),
+                                "heading_line": line_no,
+                                "content_lines": []
+                            }
+                            continue
+                        if current:
+                            current["content_lines"].append((line_no, line))
+                    if current:
+                        options.append(current)
+
+                    for opt in options:
+                        opt_name = opt.get("title", "")
+                        if not opt_name:
+                            continue
                         opt_id = f"{obj_id}_{opt_name.lower().replace(' ', '_')}"
-                        
+                        opt_body = "\n".join(line for _, line in (opt.get("content_lines") or []))
+
                         # Extract Config YAML block
                         config = {}
                         config_match = re.search(r'```yaml\s*\n(.*?)\n```', opt_body, re.DOTALL)
                         if config_match:
                             config = yaml.safe_load(config_match.group(1)) or {}
-                        
-                        # Extract Flow block
-                        flow_match = re.search(r'```flow\s*\n(.*?)\n```', opt_body, re.DOTALL)
-                        flow_content = flow_match.group(1).strip() if flow_match else ""
-                        
+
+                        # Extract Flow block with line numbers
+                        flow_blocks = extract_flow_blocks(opt.get("content_lines") or [])
+                        if not flow_blocks:
+                            continue
+                        flow_lines = flow_blocks[0].get("lines") or []
+                        flow_content = "\n".join(line for _, line in flow_lines).strip()
+
                         data_consolidated["dialogue"][opt_id] = {
                             "short": config.get('short', opt_name),
                             "long": config.get('long', opt_name),
@@ -834,6 +1060,10 @@ def compile(lint_only=False):
                             "label": f"CHOICE__{opt_id}",
                             "body": f"```flow\n{flow_content}\n```"
                         }
+                        source_info[("dialogue", opt_id)] = {
+                            "path": source_path,
+                            "flow_blocks": flow_blocks
+                        }
             elif otype == 'quest':
                 rewards_raw = parse_yaml_block(props.get('rewards'), {})
                 prereqs_raw = parse_yaml_block(props.get('prereqs'), {})
@@ -844,13 +1074,19 @@ def compile(lint_only=False):
                     reward_flags = [str(f).strip() for f in reward_flags if str(f).strip()]
                 else:
                     reward_flags = parse_csv(reward_flags)
+                tags = parse_csv(props.get('tags', ''))
+                category = props.get('category', 'side')
+                origin_flag = parse_bool(props.get('origin', False)) or str(category).lower() == "origin" or ("origin" in [t.lower() for t in tags])
                 data_consolidated["quests"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
-                    "category": props.get('category', 'side'),
+                    "category": category,
                     "giver": props.get('giver'),
                     "location": props.get('location'),
-                    "tags": parse_csv(props.get('tags', '')),
+                    "tags": tags,
+                    "origin": origin_flag,
+                    "pc_id": props.get('pc_id'),
+                    "image": props.get('image'),
                     "prereqs": {
                         "quests": parse_csv(prereqs_raw.get('quests', [])) if isinstance(prereqs_raw, dict) else [],
                         "flags": parse_csv(prereqs_raw.get('flags', [])) if isinstance(prereqs_raw, dict) else [],
@@ -863,7 +1099,12 @@ def compile(lint_only=False):
                         "flags": reward_flags,
                     },
                     "start_trigger": start_trigger if isinstance(start_trigger, dict) else {},
-                    "ticks": parse_quest_ticks(body, obj_id)
+                    "ticks": parse_quest_ticks(body, obj_id),
+                    "body": body
+                }
+                source_info[("quests", obj_id)] = {
+                    "path": source_path,
+                    "body_lines": body_lines
                 }
             elif otype == 'container':
                 pos = props.get('pos', '0,0').split(',')
@@ -881,6 +1122,10 @@ def compile(lint_only=False):
                     "max_weight": parse_float(props.get('max_weight')),
                     "max_slots": parse_int(props.get('max_slots')),
                     "body": body
+                }
+                source_info[("containers", obj_id)] = {
+                    "path": source_path,
+                    "body_lines": body_lines
                 }
             elif otype == 'stat':
                 data_consolidated["stats"][obj_id] = {
@@ -920,14 +1165,22 @@ def compile(lint_only=False):
                     "cond": props.get('cond', 'True'),
                     "body": body
                 }
+                source_info[("dialogue", obj_id)] = {
+                    "path": source_path,
+                    "body_lines": body_lines
+                }
             elif otype == 'story_origin':
                 data_consolidated["story_origins"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
                     "pc_id": props.get('pc_id'),
-                    "intro_label": props.get('intro_label', f"SCENE__{obj_id}__intro"),
+                    "intro_label": props.get('intro_label'),
                     "image": props.get('image'),
                     "body": body
+                }
+                source_info[("story_origins", obj_id)] = {
+                    "path": source_path,
+                    "body_lines": body_lines
                 }
             elif otype == 'recipe':
                 req_skill = {}
@@ -951,6 +1204,10 @@ def compile(lint_only=False):
                     "tags": parse_csv(props.get('tags', '')),
                     "body": body
                 }
+                source_info[("notes", obj_id)] = {
+                    "path": source_path,
+                    "body_lines": body_lines
+                }
             elif otype == 'shop':
                 data_consolidated["shops"][obj_id] = {
                     "name": props.get('name', obj_id),
@@ -959,6 +1216,10 @@ def compile(lint_only=False):
                     "sell_mult": float(props.get('sell_mult', 0.6)),
                     "items": parse_csv(props.get('items', '')),
                     "body": body
+                }
+                source_info[("shops", obj_id)] = {
+                    "path": source_path,
+                    "body_lines": body_lines
                 }
             elif otype == 'achievement':
                 trigger_raw = props.get('trigger', {})
@@ -1007,45 +1268,56 @@ def compile(lint_only=False):
                     "stats": stats
                 }
             
-    def _emit_flow(flow_body, script_parts):
-        for line in flow_body.split('\n'):
-            line = line.strip()
+    def _append_script_line(text, source_path=None, line_no=None):
+        line = text.rstrip("\n")
+        if source_path and line_no:
+            line = f"{line} # @{source_path}:{line_no}"
+        script_parts.append(line + "\n")
+
+    def _emit_flow(flow_lines, source_path):
+        for line_no, raw in flow_lines:
+            line = raw.strip()
             if not line:
                 continue
             if line.startswith('$'):
-                script_parts.append(f"    {line}\n")
+                _append_script_line(f"    {line}", source_path, line_no)
                 continue
             if line.startswith('@') or is_caps_command(line):
                 py = directive_to_python(line)
                 if py:
-                    script_parts.append(f"    $ {py}\n")
+                    _append_script_line(f"    $ {py}", source_path, line_no)
                 else:
-                    script_parts.append(f"    # {line}\n")
+                    _append_script_line(f"    # {line}", source_path, line_no)
                 continue
             if ':' in line:
                 cid, txt = line.split(':', 1)
                 txt = txt.strip().replace('"', '\\"')
-                script_parts.append(f"    {cid.strip().lower()} \"{txt}\"\n")
+                _append_script_line(f"    {cid.strip().lower()} \"{txt}\"", source_path, line_no)
             else:
                 txt = line.strip().replace('"', '\\"')
-                script_parts.append(f"    \"{txt}\"\n")
+                _append_script_line(f"    \"{txt}\"", source_path, line_no)
 
     # Second pass: Process bodies to link labels and generate RPY
     generated_labels = set()  # Track generated label names to avoid duplicates
 
     for otype, collection in [("location", "locations"), ("character", "characters"), ("item", "items"), ("quest", "quests"), ("container", "containers"), ("dialogue", "dialogue"), ("story_origin", "story_origins"), ("shop", "shops"), ("recipe", "recipes"), ("note", "notes")]:
         for oid, data in data_consolidated[collection].items():
-            if 'body' not in data: continue
+            if 'body' not in data:
+                continue
             body = data.pop('body')
+            src = source_info.get((collection, oid), {})
+            source_path = src.get("path")
+            body_lines = src.get("body_lines")
+            flow_blocks_override = src.get("flow_blocks")
+            if body_lines is None:
+                body_lines = [(None, line) for line in (body or "").splitlines()]
             safe_oid = label_safe(oid)
             prefix = {"character":"CHAR", "scene":"SCENE", "quest":"QUEST", "container":"CONT", "item":"ITEM", "shop":"SHOP", "story_origin":"QUEST"}.get(otype, "LOC")
             
             # Check for flow blocks in ALL types, but specifically handle naming for Dialogue, StoryOrigin, and Character
-            flows = re.findall(r'```flow.*?\s*\n(.*?)\n```', body, re.DOTALL)
-            if not flows:
-                flows = re.findall(r'```flow.*?\n(.*?)\n```', body, re.DOTALL)
+            flow_blocks = flow_blocks_override if flow_blocks_override is not None else extract_flow_blocks(body_lines)
 
-            if flows:
+            if flow_blocks:
                 # Determine label name based on type
                 if otype == 'dialogue':
                     label_name = f"CHOICE__{safe_oid}"
@@ -1066,10 +1338,17 @@ def compile(lint_only=False):
                         continue
                 else:
                     generated_labels.add(label_name)
-                    script_parts.append(f"label {label_name}:\n")
-                    for flow_body in flows:
-                        _emit_flow(flow_body, script_parts)
-                    script_parts.append("    return\n\n")
+                    label_line_no = flow_blocks[0].get("start_line")
+                    if label_line_no is None and flow_blocks[0].get("lines"):
+                        label_line_no = flow_blocks[0]["lines"][0][0]
+                    _append_script_line(f"label {label_name}:", source_path, label_line_no)
+                    for block in flow_blocks:
+                        _emit_flow(block.get("lines") or [], source_path)
+                    return_line_no = flow_blocks[-1].get("end_line")
+                    if return_line_no is None and flow_blocks[-1].get("lines"):
+                        return_line_no = flow_blocks[-1]["lines"][-1][0]
+                    _append_script_line("    return", source_path, return_line_no)
+                    script_parts.append("\n")
                 
                 # If specific types, we might skip the old section loop or mix it?
                 # User preference "minimise labels generated outside of markdown" -> prefer flows.
@@ -1077,20 +1356,36 @@ def compile(lint_only=False):
                 if otype in ['dialogue']:
                     continue
 
-            sections = re.split(r'(?m)^#+\s*', body)
-            for sec in sections:
-                if not sec.strip(): continue
-                lines = sec.split('\n', 1)
-                heading_raw = lines[0].strip()
-                heading = heading_raw.lower().replace(' ', '_')
-                content = lines[1] if len(lines) > 1 else ""
-                
-                flows = re.findall(r'```flow.*?\s*\n(.*?)\n```', content, re.DOTALL)
-                if not flows:
-                    flows = re.findall(r'```flow.*?\n(.*?)\n```', content, re.DOTALL)
+            # Character Give flows (from # Give section)
+            if otype == "character":
+                for gf in (data.get("give_flows") or []):
+                    label_name = gf.get("label")
+                    flow_lines = gf.get("flow_lines") or []
+                    if not label_name or not flow_lines:
+                        continue
+                    if label_name in generated_labels:
+                        continue
+                    generated_labels.add(label_name)
+                    label_line_no = flow_lines[0][0] if flow_lines else None
+                    _append_script_line(f"label {label_name}:", source_path, label_line_no)
+                    _emit_flow(flow_lines, source_path)
+                    return_line_no = flow_lines[-1][0] if flow_lines else label_line_no
+                    _append_script_line("    return", source_path, return_line_no)
+                    script_parts.append("\n")
+                if "give_flows" in data:
+                    data.pop("give_flows", None)
 
-                if flows:
-                    for flow_body in flows:
+            sections = split_sections(body_lines)
+            for sec in sections:
+                heading_raw = sec.get("heading", "").strip()
+                if not heading_raw:
+                    continue
+                heading = heading_raw.lower().replace(' ', '_')
+                content_lines = sec.get("lines", [])
+
+                flow_blocks = extract_flow_blocks(content_lines)
+                if flow_blocks:
+                    for block in flow_blocks:
                         if otype == "dialogue":
                             label_name = f"CHOICE__{safe_oid}"
                             # Set label on the dialogue option object if not set
@@ -1111,8 +1406,11 @@ def compile(lint_only=False):
                                     "name": heading_raw.strip(),
                                     "label": label_name
                                 })
-                        
-                        script_parts.append(f"label {label_name}:\n")
+
+                        label_line_no = block.get("start_line")
+                        if label_line_no is None and block.get("lines"):
+                            label_line_no = block["lines"][0][0]
+                        _append_script_line(f"label {label_name}:", source_path, label_line_no)
                         
                         # Link label to character/entity
                         if otype == "character" and heading == "talk":
@@ -1125,9 +1423,13 @@ def compile(lint_only=False):
                                 if ent.get('id', '').lower() == heading:
                                     ent['label'] = label_name
 
-                        _emit_flow(flow_body, script_parts)
+                        _emit_flow(block.get("lines") or [], source_path)
                         
-                        script_parts.append("    return\n\n")
+                        return_line_no = block.get("end_line")
+                        if return_line_no is None and block.get("lines"):
+                            return_line_no = block["lines"][-1][0]
+                        _append_script_line("    return", source_path, return_line_no)
+                        script_parts.append("\n")
 
     # Cross-reference validation
     loc_ids = set(data_consolidated["locations"].keys())
@@ -1144,6 +1446,9 @@ def compile(lint_only=False):
         for itm in c.get("items", []):
             if itm not in item_ids:
                 errors.append(f"character {cid}: unknown item '{itm}'")
+        for itm in (c.get("give", {}) or {}).keys():
+            if itm not in item_ids:
+                warnings.append(f"character {cid}: unknown give item '{itm}'")
         equip = c.get("equipment", {})
         if isinstance(equip, dict):
             for slot_id, item_id in equip.items():

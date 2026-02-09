@@ -2,7 +2,20 @@
 # Run script for AI RPG
 # Compiles data and launches Ren'Py
 
+# Desktop notification on exit (Kubuntu/notify-send)
+notify_done() {
+    local code="$1"
+    if command -v notify-send >/dev/null 2>&1; then
+        notify-send "AI RPG" "run.sh finished (exit ${code})"
+    fi
+}
+trap 'code=$?; notify_done "$code"' EXIT
+
 # 1. Compile Data
+echo "Cleaning .rpyc files..."
+find game -name "*.rpyc" -print -delete
+echo "Done."
+
 echo "Linting data..."
 python3 game/python/compile_data.py --lint
 if [ $? -ne 0 ]; then

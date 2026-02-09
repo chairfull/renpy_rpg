@@ -1,15 +1,15 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "label": "Run Game (Build & Play)",
-            "type": "shell",
-            "command": "./run.sh",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        }
-    ]
+"version": "2.0.0",
+"tasks": [
+{
+"label": "Run Codex",
+"type": "shell",
+"command": "notify-send 'Codex' 'Finished'",
+"problemMatcher": [],
+"presentation": {
+"reveal": "always",
+"panel": "shared"
+}
+}
+]
 }

@@ -32,6 +32,22 @@ init -5 python:
 
         if is_npc:
             obj.interact()
+        elif obj.get('type') == 'fixture':
+            fixture = fixture_manager.get_by_entity(rpg_world.current_location_id, obj)
+            if not fixture:
+                renpy.notify("Nothing to use here.")
+                return
+            if fixture.occupied_by == pc.id:
+                fixture.unfixate(pc)
+                renpy.notify(f"You leave {fixture.name}.")
+                return
+            if fixture.occupied_by and fixture.occupied_by != pc.id:
+                renpy.notify(f"{fixture.name} is occupied.")
+                return
+            ok, _msg = fixture.fixate(pc)
+            if ok:
+                renpy.notify(f"You settle at {fixture.name}.")
+            return
         elif obj.get('type') == 'container':
             # Initialize Inventory object for the container if it doesn't exist
             if not isinstance(obj.get('inventory'), Inventory):
@@ -53,12 +69,25 @@ init -5 python:
         else:
             renpy.notify(f"Interacted with {obj.get('name')}")
 
+    # Backwards-compatible alias used by setup bindings.
+    def _td_interact(obj):
+        return _td_interact_core(obj)
+
     def _run_action(action):
         if action:
             renpy.run(action)
 
+    def _open_inventory_screen():
+        store.phone_current_app = "inventory"
+        store.phone_transition = "to_landscape"
+        store.phone_state = "mini"
+
     def _td_click_entity(entity):
-        if not entity or entity.is_player:
+        if not entity:
+            return
+        if entity.is_player:
+            _open_inventory_screen()
+            renpy.restart_interaction()
             return
         if getattr(entity, "requires_approach", False):
             td_manager.walk_to_entity(entity.x, entity.y, lambda: _run_action(entity.action))
@@ -66,7 +95,7 @@ init -5 python:
             _run_action(entity.action)
 
     class TopDownEntity(object):
-        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None, depth=None, is_player=False, rotation=0, requires_approach=False):
+        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None, depth=None, is_player=False, rotation=0, requires_approach=False, hit_anchor=(0.5, 0.5), hit_size=(120, 120)):
             self.x = x
             self.y = y
             self.sprite = sprite
@@ -79,6 +108,8 @@ init -5 python:
             self.is_player = is_player
             self.rotation = rotation  # Only used for player
             self.requires_approach = requires_approach
+            self.hit_anchor = hit_anchor
+            self.hit_size = hit_size
 
     class TopDownManager(object):
         def __init__(self):
@@ -142,8 +173,8 @@ init -5 python:
                     dest_name = dest_loc.name if dest_loc else dest_id.capitalize()
                     tooltip_text = f"Go to {dest_name}"
                     
-                    ent = TopDownEntity(ix, iy, 
-                                    sprite="images/topdown/chars/male_base.png",
+                    ent = TopDownEntity(ix, iy,
+                                        sprite="images/topdown/chars/male_base.png",
                                         action=Function(self.walk_to_exit, dest_id),
                                         tooltip=tooltip_text,
                                         sprite_tint=TintMatrix("#00ff00"),
@@ -178,7 +209,9 @@ init -5 python:
                                     tooltip=char.name,
                                     idle_anim=True,
                                     label=f"char_{char.id}_interact",
-                                    requires_approach=True)
+                                    requires_approach=True,
+                                    hit_anchor=(0.5, 1.0),
+                                    hit_size=(120, 160))
                 self.entities.append(ent)
             
             # Create player entity and add to entities list
@@ -189,7 +222,9 @@ init -5 python:
                 tooltip=pc.name,
                 idle_anim=False,
                 is_player=True,
-                requires_approach=False
+                requires_approach=False,
+                hit_anchor=(0.5, 1.0),
+                hit_size=(120, 160)
             )
             self.entities.append(self.player_entity)
 
@@ -417,24 +452,77 @@ label _char_interaction_wrapper:
     $ char = getattr(store, '_interact_target_char', None)
     if not char:
         return
-        
-    $ renpy.transition(dissolve)
-    $ res = renpy.call_screen("char_interaction_menu", char)
-    
-    if res == "talk":
-        while True:
-            $ d_res = renpy.call_screen("dialogue_choice_screen", char)
-            
-            if d_res and renpy.has_label(d_res):
-                call expression d_res from _call_npc_label_wrapper
-            else:
-                $ renpy.transition(dissolve)
-                jump _char_interaction_wrapper
-    
-    elif res == "give":
-        $ renpy.call_screen("give_item_screen", char)
-        $ renpy.transition(dissolve)
-        jump _char_interaction_wrapper
-        
-    $ renpy.transition(dissolve)
+    jump char_interaction_show
+
+label char_interaction_show:
+    $ char = getattr(store, '_interact_target_char', None)
+    if not char:
+        return
+    $ char_interaction_state = "menu"
+    $ char_interaction_pending_label = None
+    $ renpy.show_screen("char_interaction_menu", char, show_preview=False, show_backdrop=False)
+
+    # show character on right
+    if char.base_image:
+        show expression Transform(char.base_image, xzoom=-1) as char_right at right
+        with dissolve
+
+    # move player in from left
+    if pc.base_image:
+        show expression pc.base_image as char_left at left
+        with moveinleft
+
+    jump char_interaction_loop
+
+label char_interaction_loop:
+    $ char = getattr(store, '_interact_target_char', None)
+    if not char:
+        jump char_interaction_end
+    $ char_interaction_state = "menu"
+    $ char_interaction_pending_label = None
+    $ renpy.show_screen("char_interaction_menu", char, show_preview=False, show_backdrop=False)
+    while True:
+        $ renpy.pause(0.05)
+        if not getattr(store, '_interact_target_char', None):
+            $ char_interaction_state = "exit"
+        if char_interaction_state == "exit":
+            jump char_interaction_end
+        if char_interaction_pending_label:
+            $ _lbl = char_interaction_pending_label
+            $ char_interaction_pending_label = None
+            $ renpy.hide_screen("char_interaction_menu")
+            $ renpy.with_statement(Dissolve(0.2))
+            if renpy.has_label(_lbl):
+                call expression _lbl from _call_npc_label_wrapper
+            $ renpy.show_screen("char_interaction_menu", char, show_preview=False, show_backdrop=False)
+            $ renpy.with_statement(Dissolve(0.2))
+            $ char_interaction_state = "menu"
+
+label _char_interaction_run_pending:
+    $ _lbl = char_interaction_pending_label
+    $ char_interaction_pending_label = None
+    if not _lbl:
+        return
+    $ _char = getattr(store, '_interact_target_char', None)
+    if not _char:
+        return
+    $ renpy.hide_screen("char_interaction_menu")
+    $ renpy.with_statement(Dissolve(0.2))
+    if renpy.has_label(_lbl):
+        call expression _lbl
+    $ renpy.show_screen("char_interaction_menu", _char, show_preview=False, show_backdrop=False)
+    $ renpy.with_statement(Dissolve(0.2))
+    return
+
+label char_interaction_end:
+    hide screen char_interaction_menu
+    if pc.base_image:
+        show expression Transform(pc.base_image, xzoom=-1) as char_left at offscreenleft with moveoutleft
+    hide char_right with dissolve
+    hide char_left
+    $ _interact_target_char = None
+    return
+
+label _open_inventory_screen:
+    call screen inventory_screen
     return

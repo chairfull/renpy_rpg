@@ -11,15 +11,20 @@ init python:
                 renpy.store.pc = char
                 # Ensure starting location is set from character
                 if renpy.store.pc.location_id:
-                    rpg_world.current_location_id = renpy.store.pc.location_id
-        
+                    rpg_world.move_to(renpy.store.pc.location_id)
+        # Core origin bootstrapping lives here.
+        flag_set("origin", origin.id)
+        event_manager.dispatch("GAME_STARTED", origin=origin.id)
+
         renpy.hide_screen("story_select_screen")
         # Auto-start quest if ID matches origin
         if origin.id in quest_manager.quests:
             quest_manager.start_quest(origin.id)
+        else:
+            renpy.notify("Origin quest not found; starting world loop.")
         
         renpy.transition(fade)
-        renpy.jump(origin.intro_label)
+        renpy.jump("world_loop")
 
 screen story_select_screen():
     modal True
@@ -39,7 +44,7 @@ screen story_select_screen():
             spacing 40
             xalign 0.5
             
-            $ origins = story_origin_manager.get_all()
+            $ origins = quest_manager.get_origins()
             
             for origin in origins:
                 button:
