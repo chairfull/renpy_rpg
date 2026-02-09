@@ -36,6 +36,7 @@ equipment:
   pants: slacks
   feet: sneakers
 items:
+  - apple
   - note_card
   - map_fragment
   - radio_receiver

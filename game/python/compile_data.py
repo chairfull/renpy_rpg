@@ -124,16 +124,17 @@ def parse_csv(value):
         # Already a list - flatten and clean
         result = []
         for item in value:
-            if isinstance(item, str):
-                # Clean YAML list markers if present
-                cleaned = item.strip()
-                if cleaned.startswith('- '):
-                    cleaned = cleaned[2:].strip()
-                elif cleaned.startswith('-'):
-                    cleaned = cleaned[1:].strip()
-                
-                # Split by comma in case it's a mix
-                result.extend([x.strip() for x in cleaned.split(',') if x.strip()])
+            # Convert to string if not already
+            item_str = str(item)
+            # Clean YAML list markers if present
+            cleaned = item_str.strip()
+            if cleaned.startswith('- '):
+                cleaned = cleaned[2:].strip()
+            elif cleaned.startswith('-'):
+                cleaned = cleaned[1:].strip()
+            
+            # Split by comma in case it's a mix
+            result.extend([x.strip() for x in cleaned.split(',') if x.strip()])
         return result
     if isinstance(value, str):
         cleaned = value.strip()
@@ -306,14 +307,27 @@ def find_named_section(body_lines, title):
 
 def split_sections(body_lines):
     sections = []
+    stack = [] # (level, slug)
     current = None
     for line_no, line in body_lines:
         m = re.match(r'^(#+)\s+(.*)$', line)
         if m:
+            level = len(m.group(1))
+            title = m.group(2).strip()
+            slug = label_safe(title).lower()
+            
+            while stack and stack[-1][0] >= level:
+                stack.pop()
+            stack.append((level, slug))
+            
+            # Create a path of slugs separated by __
+            path = "__".join(item[1] for item in stack)
+            
             if current:
                 sections.append(current)
             current = {
-                "heading": m.group(2).strip(),
+                "heading": title,
+                "path": path,
                 "heading_line": line_no,
                 "lines": []
             }
@@ -404,6 +418,8 @@ FLOW_COMMANDS = {
     "status",
     "bond",
     "item",
+    "show_item",
+    "hide_item",
 }
 
 def is_caps_command(line):
@@ -665,6 +681,15 @@ def directive_to_python(line):
             if item_id:
                 return f"item_show_image({item_id!r})"
             return "item_show_image(None)"
+    if cmd == "show_item":
+        if len(parts) < 2:
+            return None
+        item_id = parts[1]
+        return f"renpy.call('show_item', {item_id!r})"
+    if cmd == "hide_item":
+        if len(parts) > 1:
+            return f"renpy.call('hide_item', {parts[1]!r})"
+        return "renpy.call('hide_item')"
         if op in ["hide", "clear"]:
             return "item_hide_image()"
     return None
@@ -674,7 +699,7 @@ def compile(lint_only=False):
     game_dir = os.path.join(base_dir, "game")
     data_dir = os.path.join(base_dir, "data") # Moved to root
     # JSON goes to a hidden folder; labels go to a non-hidden .rpy so Ren'Py loads them.
-    gen_dir = os.path.join(game_dir, ".generated")
+    gen_dir = os.path.join(game_dir, "generated")
     if not os.path.exists(gen_dir):
         os.makedirs(gen_dir)
     
@@ -776,7 +801,12 @@ def compile(lint_only=False):
                     "equip_slots": parse_csv(props.get('equip_slots', '')),
                     "outfit_part": props.get('outfit_part'),
                     "stackable": parse_bool(props.get('stackable', False)) or stack_size > 1,
-                    "stack_size": stack_size
+                    "stack_size": stack_size,
+                    "body": body
+                }
+                source_info[("items", obj_id)] = {
+                    "path": source_path,
+                    "body_lines": body_lines
                 }
             elif otype == 'location':
                 # Parse list of entities/links
@@ -1196,7 +1226,12 @@ def compile(lint_only=False):
                     "inputs": parse_counts(props.get('inputs', [])),
                     "output": parse_counts(props.get('output', [])),
                     "req_skill": req_skill,
-                    "tags": parse_csv(props.get('tags', ''))
+                    "tags": parse_csv(props.get('tags', '')),
+                    "body": body
+                }
+                source_info[("recipes", obj_id)] = {
+                    "path": source_path,
+                    "body_lines": body_lines
                 }
             elif otype == 'note':
                 data_consolidated["notes"][obj_id] = {
@@ -1392,7 +1427,7 @@ def compile(lint_only=False):
                             if not data.get('label'):
                                 data['label'] = label_name
                         else:
-                            label_name = f"{prefix}__{safe_oid}__{label_safe(heading)}"
+                            label_name = f"{prefix}__{safe_oid}__{sec.get('path')}"
                         
                         # Skip if this label was already generated
                         if label_name in generated_labels:

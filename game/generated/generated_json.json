@@ -140,7 +140,8 @@
             "equip_slots": [],
             "outfit_part": null,
             "stackable": false,
-            "stack_size": 1
+            "stack_size": 1,
+            "actions": []
         },
         "battery_cell": {
             "name": "Battery Cell",
@@ -191,7 +192,8 @@
             "equip_slots": [],
             "outfit_part": null,
             "stackable": true,
-            "stack_size": 20
+            "stack_size": 20,
+            "actions": []
         },
         "coveralls": {
             "name": "Coveralls",
@@ -648,7 +650,8 @@
             "equip_slots": [],
             "outfit_part": null,
             "stackable": true,
-            "stack_size": 5
+            "stack_size": 5,
+            "actions": []
         },
         "sewing_kit": {
             "name": "Sewing Kit",
@@ -919,7 +922,8 @@
             ],
             "outfit_part": null,
             "stackable": false,
-            "stack_size": 1
+            "stack_size": 1,
+            "actions": []
         },
         "logistics_coat": {
             "name": "Logistics Coat",
@@ -1066,6 +1070,7 @@
             "description": "Dedicated to preserving pre-fall data logs and charting the decay of the global transmission grid.",
             "location": "temple",
             "items": [
+                "apple",
                 "note_card",
                 "map_fragment",
                 "radio_receiver",

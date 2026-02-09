@@ -503,6 +503,7 @@ init -10 python:
             item = item_manager.get(item_or_id)
         if not item:
             return
+            
         # If we're inside an interaction, queue a safe inspect label and exit.
         if not getattr(store, "_inspect_force", False):
             try:
@@ -511,8 +512,17 @@ init -10 python:
                     return
             except Exception:
                 pass
+                
         item_id = item_manager.get_id_of(item)
         inspect_label = f"ITEM__{item_id}__inspect"
+        
+        # Hide phone UI during inspection
+        old_phone_state = getattr(store, "phone_state", "mini")
+        old_phone_app = getattr(store, "phone_current_app", None)
+        store.phone_state = "mini"
+        store.phone_transition = None
+        renpy.restart_interaction()
+        
         if renpy.has_label(inspect_label):
             renpy.call(inspect_label)
             item_hide_image()
@@ -521,6 +531,11 @@ init -10 python:
             if item.description:
                 renpy.say(None, item.description)
             item_hide_image()
+            
+        # Restore phone UI
+        store.phone_state = old_phone_state
+        store.phone_current_app = old_phone_app
+        renpy.restart_interaction()
         actions = _get_item_actions(item)
         if actions:
             options = actions + [("Done", None)]
@@ -2533,10 +2548,18 @@ init -10 python:
     def instantiate_all():
         reset_game_data()
         try:
-            with renpy.file(".generated/generated_json.json") as f:
-                data = json.load(f)
+            # Use a more robust path check for renpy.file
+            json_path = "generated/generated_json.json"
+            if not renpy.loadable(json_path):
+                # Fallback check
+                json_path = game_dir + "/generated/generated_json.json"
+            
+            with renpy.file(json_path) as f:
+                content = f.read().decode('utf-8')
+                data = json.loads(content)
         except Exception as e:
-            # If JSON is missing, we can't load metadata objects
+            with open("debug_load.txt", "a") as df:
+                df.write("JSON Load Error: {}\n".format(str(e)))
             return
 
         # Slots (must be loaded before body types and characters)
@@ -2549,7 +2572,11 @@ init -10 python:
 
         # Items (now with tags and equip_slots)
         for oid, p in data.get("items", {}).items():
-            item_manager.register(oid, from_dict(Item, p, id=oid))
+            try:
+                item_manager.register(oid, from_dict(Item, p, id=oid))
+            except Exception as e:
+                with open("debug_load.txt", "a") as df:
+                    df.write("Item Load Error ({}): {}\n".format(oid, str(e)))
 
 
         
@@ -2565,62 +2592,70 @@ init -10 python:
             else:
                 z_range = (0.0, 99.0)
 
-            loc = Location(
-                oid, p['name'], p['description'], 
-                p.get('map_image'), obstacles, p.get('entities'), p.get('encounters'), p.get('scavenge'),
-                tags=p.get('tags', []),
-                factions=p.get('factions', []),
-                parent_id=p.get('parent'),
-                ltype=p.get('map_type', 'world'),
-                map_x=int(p.get('map_x', 0)),
-                map_y=int(p.get('map_y', 0)),
-                zoom_range=z_range,
-                floor_idx=int(p.get('floor_idx', 0))
-            )
-            rpg_world.add_location(loc)
+            try:
+                loc = Location(
+                    oid, p.get('name', oid), p.get('description', ''), 
+                    p.get('map_image'), obstacles, p.get('entities'), p.get('encounters'), p.get('scavenge'),
+                    tags=p.get('tags', []),
+                    factions=p.get('factions', []),
+                    parent_id=p.get('parent'),
+                    ltype=p.get('map_type', 'world'),
+                    map_x=int(p.get('map_x', 0) or 0),
+                    map_y=int(p.get('map_y', 0) or 0),
+                    zoom_range=z_range,
+                    floor_idx=int(p.get('floor_idx', 0) or 0)
+                )
+                rpg_world.add_location(loc)
+            except Exception as e:
+                with open("debug_load.txt", "a") as df:
+                    df.write("Location Load Error ({}): {}\n".format(oid, str(e)))
             
         # Characters (now with factions, body_type, stats, and tags)
         for oid, p in data.get("characters", {}).items():
             stats_data = p.get('stats', {})
             stats = StatBlock(stats_data) if stats_data else None
-            char = RPGCharacter(
-                oid, p['name'],
-                stats=stats,
-                description=p.get('description', ''),
-                location_id=p.get('location'),
-                base_image=p.get('base_image'),
-                td_sprite=p.get('td_sprite'),
-                x=p.get('x', 0),
-                y=p.get('y', 0),
-                label=p.get('label'),
-                factions=p.get('factions', []),
-                body_type=p.get('body_type', 'humanoid'),
-                gender=p.get('gender'),
-                age=p.get('age'),
-                height=p.get('height'),
-                weight=p.get('weight'),
-                hair_color=p.get('hair_color'),
-                hair_style=p.get('hair_style'),
-                eye_color=p.get('eye_color'),
-                face_shape=p.get('face_shape'),
-                breast_size=p.get('breast_size'),
-                dick_size=p.get('dick_size'),
-                foot_size=p.get('foot_size'),
-                skin_tone=p.get('skin_tone'),
-                build=p.get('build'),
-                distinctive_feature=p.get('distinctive_feature'),
-                equipment=p.get('equipment', {}),
-                items=p.get('items', []),
-                tags=p.get('tags', []),
-                affinity=int(p.get('affinity', 0)),
-                max_weight=p.get('max_weight'),
-                max_slots=p.get('max_slots'),
-                schedule=p.get('schedule', {}),
-                companion_mods=p.get('companion_mods', {}),
-                is_companion=bool(p.get('companion_mods'))
-            )
-            char.give_flows = p.get('give', {}) or {}
-            rpg_world.add_character(char)
+            try:
+                char = RPGCharacter(
+                    oid, p.get('name', oid),
+                    stats=stats,
+                    description=p.get('description', ''),
+                    location_id=p.get('location'),
+                    base_image=p.get('base_image'),
+                    td_sprite=p.get('td_sprite'),
+                    x=p.get('x', 0) or 0,
+                    y=p.get('y', 0) or 0,
+                    label=p.get('label'),
+                    factions=p.get('factions', []),
+                    body_type=p.get('body_type', 'humanoid'),
+                    gender=p.get('gender'),
+                    age=p.get('age'),
+                    height=p.get('height'),
+                    weight=p.get('weight'),
+                    hair_color=p.get('hair_color'),
+                    hair_style=p.get('hair_style'),
+                    eye_color=p.get('eye_color'),
+                    face_shape=p.get('face_shape'),
+                    breast_size=p.get('breast_size'),
+                    dick_size=p.get('dick_size'),
+                    foot_size=p.get('foot_size'),
+                    skin_tone=p.get('skin_tone'),
+                    build=p.get('build'),
+                    distinctive_feature=p.get('distinctive_feature'),
+                    equipment=p.get('equipment', {}),
+                    items=p.get('items', []),
+                    tags=p.get('tags', []),
+                    affinity=int(p.get('affinity', 0) or 0),
+                    max_weight=p.get('max_weight'),
+                    max_slots=p.get('max_slots'),
+                    schedule=p.get('schedule', {}),
+                    companion_mods=p.get('companion_mods', {}),
+                    is_companion=bool(p.get('companion_mods'))
+                )
+                char.give_flows = p.get('give', {}) or {}
+                rpg_world.add_character(char)
+            except Exception as e:
+                with open("debug_load.txt", "a") as df:
+                    df.write("Character Load Error ({}): {}\n".format(oid, str(e)))
                 
         # Dialogue Options
         for oid, p in data.get("dialogue", {}).items():
@@ -2685,35 +2720,37 @@ init -10 python:
 
         # Quests
         for oid, p in data.get("quests", {}).items():
-            q = Quest(
-                oid,
-                p.get('name', oid),
-                p.get('description', ''),
-                category=p.get('category', 'side'),
-                giver=p.get('giver'),
-                location=p.get('location'),
-                tags=p.get('tags', []),
-                prereqs=p.get('prereqs', {}),
-                rewards=p.get('rewards', {}),
-                start_trigger=p.get('start_trigger', {}),
-                origin=p.get('origin', False),
-                pc_id=p.get('pc_id'),
-                image=p.get('image')
-            )
-            for t_idx, tp in enumerate(p.get('ticks', [])):
-                tick = QuestTick(tp['id'], tp['name'])
-                tick.trigger_data = tp.get('trigger', {})
-                try:
-                    tick.required_value = int(tick.trigger_data.get("total", 1))
-                except Exception:
-                    tick.required_value = 1
-                tick.flow_label = tp.get('label')
-                # Optional: if it's the first tick and quest is autostart, it might be active
-                # But we handle state changes via commands/triggers
-                q.add_tick(tick)
-            quest_manager.add_quest(q)
-            if q.start_trigger:
-                quest_manager.register_start_trigger(oid, q.start_trigger)
+            try:
+                q = Quest(
+                    oid,
+                    p.get('name', oid),
+                    p.get('description', ''),
+                    category=p.get('category', 'side'),
+                    giver=p.get('giver'),
+                    location=p.get('location'),
+                    tags=p.get('tags', []),
+                    prereqs=p.get('prereqs', {}),
+                    rewards=p.get('rewards', {}),
+                    start_trigger=p.get('start_trigger', {}),
+                    origin=p.get('origin', False),
+                    pc_id=p.get('pc_id'),
+                    image=p.get('image')
+                )
+                for t_idx, tp in enumerate(p.get('ticks', [])):
+                    tick = QuestTick(tp['id'], tp['name'])
+                    tick.trigger_data = tp.get('trigger', {})
+                    try:
+                        tick.required_value = int(tick.trigger_data.get("total", 1) or 1)
+                    except Exception:
+                        tick.required_value = 1
+                    tick.flow_label = tp.get('label')
+                    q.add_tick(tick)
+                quest_manager.add_quest(q)
+                if q.start_trigger:
+                    quest_manager.register_start_trigger(oid, q.start_trigger)
+            except Exception as e:
+                with open("debug_load.txt", "a") as df:
+                    df.write("Quest Load Error ({}): {}\n".format(oid, str(e)))
 
         # Achievements
         for oid, p in data.get("achievements", {}).items():

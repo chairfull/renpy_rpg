@@ -8,7 +8,7 @@ map_image: "#1a1a2a"
 map_type: structure
 map_x: 1000
 map_y: 1000
-zoom_range: 2.0, 5.0
+zoom_range: [2.0, 5.0]
 tags: [safe]
 entities:
   - id: market

@@ -7,7 +7,7 @@ map_image: "#333"
 map_type: city
 map_x: 1100
 map_y: 900
-zoom_range: 0.5, 3.0
+zoom_range: [0.5, 3.0]
 obstacles:
   - [10, 10]
   - [10, 11]

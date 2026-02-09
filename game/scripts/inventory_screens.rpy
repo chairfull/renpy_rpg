@@ -109,30 +109,45 @@ screen meta_menu():
                 style "tab_button"
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "inventory")
+                tooltip "View and manage items"
+                hovered Function(set_tooltip, "View and manage items")
+                unhovered Function(set_tooltip, None)
             
             textbutton "Stats":
                 action SetVariable("meta_menu_tab", "stats")
                 style "tab_button"
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "stats")
+                tooltip "Character stats and attributes"
+                hovered Function(set_tooltip, "Character stats and attributes")
+                unhovered Function(set_tooltip, None)
             
             textbutton "Crafting":
                 action SetVariable("meta_menu_tab", "crafting")
                 style "tab_button"
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "crafting")
+                tooltip "Combine items into new ones"
+                hovered Function(set_tooltip, "Combine items into new ones")
+                unhovered Function(set_tooltip, None)
             
             textbutton "Journal":
                 action SetVariable("meta_menu_tab", "journal")
                 style "tab_button"
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "journal")
+                tooltip "Quests, notes, and people"
+                hovered Function(set_tooltip, "Quests, notes, and people")
+                unhovered Function(set_tooltip, None)
             
             textbutton "🏆":
                 action SetVariable("meta_menu_tab", "achievements")
                 style "tab_button"
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "achievements")
+                tooltip "Unlocked achievements"
+                hovered Function(set_tooltip, "Unlocked achievements")
+                unhovered Function(set_tooltip, None)
 
         # Main Content Area
         frame:
@@ -216,7 +231,7 @@ screen inventory_grid(entries, columns=5, cell_size=110, total_slots=None, selec
                     tooltip tip
                     hovered [SetScreenVariable("hover_idx", idx), Function(set_tooltip, tip, True)]
                     unhovered [SetScreenVariable("hover_idx", None), Function(set_tooltip, None, True)]
-                    focus_mask True
+                    focus_mask None
                     at phone_visual_hover
                     
                     if _slot_bg:

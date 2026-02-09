@@ -168,6 +168,9 @@ screen phone_app_icon(icon, label, app_id):
         action [SetVariable("phone_current_app", app_id), SetVariable("phone_transition", "to_landscape"), SetVariable("phone_selected_quest", None)]
         xsize 100
         ysize 100
+        tooltip label
+        hovered Function(set_tooltip, label)
+        unhovered Function(set_tooltip, None)
         
         vbox at phone_visual_hover:
             align (0.5, 0.5)
@@ -189,6 +192,9 @@ screen phone_nav_icon(icon, label, app_id):
         action SetVariable("phone_current_app", app_id)
         xsize 110
         ysize 56
+        tooltip label
+        hovered Function(set_tooltip, label)
+        unhovered Function(set_tooltip, None)
         background ("#2a2a3a" if is_selected else "#1a1a25")
         hover_background "#2f3442"
         padding (6, 6)
@@ -707,6 +713,10 @@ screen phone_wardrobe_content():
                                     action SetVariable("phone_selected_slot", item)
                                 else:
                                     action Notify(f"{item.name}: {item.description}")
+                                
+                                tooltip item_tooltip_text(item, count)
+                                hovered Function(set_tooltip, item_tooltip_text(item, count))
+                                unhovered Function(set_tooltip, None)
                                 
                                 hbox:
                                     xfill True

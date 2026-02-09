@@ -6,7 +6,7 @@ description: The fence line where the city thins into overgrowth and silent lots
 map_type: wilderness
 map_x: 600
 map_y: 500
-zoom_range: 0.5, 3.0
+zoom_range: [0.5, 3.0]
 scavenge:
   - item: wood
     chance: 0.8
