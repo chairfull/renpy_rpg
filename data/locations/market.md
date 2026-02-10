@@ -46,6 +46,6 @@ encounters:
 ```flow
 A volunteer presses a ration bar into your hand.
 "Take it," she says. "You look like you run far."
-EVENT ITEM_GAINED item=apple total=1
+EVENT ITEM_GAINED item=ration_bar total=1
 FLAG SET market_swap true
 ```

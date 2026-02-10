@@ -171,6 +171,12 @@ screen map_browser(view_w=None, view_h=None):
                         text "🚪" size 18 outlines [(1, "#000", 0, 0)]
                     else:
                         text "❓" size 20
+
+                    # Quest Highlight
+                    $ guidance = quest_manager.get_current_guidance()
+                    if guidance and loc.id == guidance.get('location'):
+                        add "images/ui/quest_marker.png" at quest_pulse zoom 0.5 align (0.5, 0.5)
+
                         
                     # tooltip set above
 
@@ -392,6 +398,12 @@ screen phone_minimap(view_w=None, view_h=None):
                             text "🚪" size 18 outlines [(1, "#000", 0, 0)]
                         else:
                             text "❓" size 20
+                        
+                        # Quest Highlight
+                        $ guidance = quest_manager.get_current_guidance()
+                        if guidance and loc.id == guidance.get('location'):
+                            add "images/ui/quest_marker.png" at quest_pulse zoom 0.5 align (0.5, 0.5)
+
 
         # Off-screen clamp indicators (screen space, true position)
         $ _arrows = _map_edge_arrows(rpg_world.locations.values(), adj_x, adj_y, PAD, _vw, _vh, map_manager.zoom)

@@ -1,7 +1,8 @@
 ---
 type: quest
-id: apple_hunt
+id: ration_run
 name: Ration Run
+
 description: Gather rations for the shelter.
 ---
 

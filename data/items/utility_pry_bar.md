@@ -1,6 +1,6 @@
 ---
 type: item
-id: sword
+id: utility_pry_bar
 name: Utility Pry Bar
 description: A solid metal bar for lifting panels and opening jammed doors.
 weight: 2.0

@@ -19,7 +19,8 @@ transform td_interactive_zoom(z):
     anchor (0.5, 0.5)
 
 screen top_down_map(location):
-    tag world_view
+    if location is None:
+        text "Loading..." align (0.5, 0.5)
     zorder 10
     on "show" action [Function(td_manager.setup, location), SetVariable("tooltip_restart_min_dt", 0.02), SetVariable("tooltip_use_raw_mouse", True), SetVariable("tooltip_offset_x", 0), SetVariable("tooltip_offset_y", 0), SetVariable("tooltip_force_refresh", True)]
     on "hide" action [SetVariable("tooltip_restart_min_dt", 0.08), SetVariable("tooltip_use_raw_mouse", False), SetVariable("tooltip_offset_x", 18), SetVariable("tooltip_offset_y", 18), SetVariable("tooltip_force_refresh", False)]
@@ -116,10 +117,16 @@ screen top_down_map(location):
                                 add Transform(entity.sprite, zoom=0.3, matrixcolor=entity.sprite_tint) align (0.5, 0.5)
                             else:
                                 # For characters/objects
-                                if entity.idle_anim:
-                                    add At(Transform(entity.sprite, zoom=0.35, matrixcolor=reach_color), char_idle_anim) align (0.5, 0.5)
-                                else:
-                                    add Transform(entity.sprite, zoom=0.35, matrixcolor=reach_color) align (0.5, 0.5)
+                                    if entity.idle_anim:
+                                        add At(Transform(entity.sprite, zoom=0.35, matrixcolor=reach_color), char_idle_anim) align (0.5, 0.5)
+                                    else:
+                                        add Transform(entity.sprite, zoom=0.35, matrixcolor=reach_color) align (0.5, 0.5)
+                                    
+                                    # Quest Highlight
+                                    $ guidance = quest_manager.get_current_guidance()
+                                    if guidance and entity.id in guidance.get('objects', []):
+                                        add "images/ui/quest_marker.png" at quest_pulse yoffset -100 align (0.5, 0.5)
+
     
     # 5. UI Layers (Location Name, Dashboard)
     frame:

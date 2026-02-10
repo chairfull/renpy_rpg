@@ -11,18 +11,18 @@ We should *check* everywhere _or else_ we may die. And $mary asked for {asn}.
 # comment
 $ code = code.code(123)
 
-SHOW_ITEM sword at=right scale=1.5
+SHOW_ITEM utility_pry_bar at=right scale=1.5
 PLAY_SOUND sword_pickup volume=0.8
 
-alice: I found this old sword in the ruins.
+alice: I found this old pry bar in the ruins.
 bob: That looks dangerous. Are you sure you want to keep it?
 
 MENU id=first_choice timeout=30
     What should Alice do?
-    Keep the sword
+    Keep the pry bar
         alice: It might come in handy later.
         AWARD brave_choice
-        ADD_ITEM sword damage=15 durability=100
+        ADD_ITEM utility_pry_bar damage=15 durability=100
         SET score=10
     Leave it behind
         alice: You're right, it's too risky.
@@ -42,7 +42,8 @@ IF tutorial_complete == false
     JUMP tutorial_section
 
 alice: Let's explore the east wing.
-HIDE_ITEM sword
+HIDE_ITEM utility_pry_bar
+
 MOVE_TO eastern_corridor speed=normal
 
 WAIT 1.5

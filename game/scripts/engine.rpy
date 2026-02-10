@@ -8,9 +8,11 @@ default scavenge_history = {}
 default allow_unvisited_travel = False
 default item_inspect_image = None
 default item_inspect_title = ""
-default _pending_inspect_item_id = None
+default pending_inspect_item_id = None
 default _return_to_inventory = False
-default _inspect_force = False
+default inspect_force = False
+default inspect_resolved_label = None
+default inspect_resolved_item = None
 default preselected_origin_id = None
 
 init -10 python:
@@ -497,57 +499,42 @@ init -10 python:
         return actions
 
     def inspect_item(item_or_id):
-        """Inspect an inventory item, optionally showing extra actions."""
+        """Resolve an inventory item's inspect label and store it for calling."""
         item = item_or_id
         if isinstance(item_or_id, str):
             item = item_manager.get(item_or_id)
         if not item:
             return
-            
+
         # If we're inside an interaction, queue a safe inspect label and exit.
-        if not getattr(store, "_inspect_force", False):
+        if not getattr(store, "inspect_force", False):
             try:
                 if renpy.in_interaction():
                     queue_inspect_item(item)
                     return
             except Exception:
                 pass
-                
+
         item_id = item_manager.get_id_of(item)
-        inspect_label = f"ITEM__{item_id}__inspect"
-        
-        # Fallback to title case if lowercase not found
+        sep = "__"
+
+        # Try inspect label first, then flow label as fallback
+        inspect_label = sep.join(["ITEM", item_id, "inspect"])
         if not renpy.has_label(inspect_label):
-            alt_label = f"ITEM__{item_id}__Inspect"
+            alt_label = sep.join(["ITEM", item_id, "Inspect"])
             if renpy.has_label(alt_label):
                 inspect_label = alt_label
-        
-        # Hide phone UI during inspection
-        old_phone_state = getattr(store, "phone_state", "mini")
-        old_phone_app = getattr(store, "phone_current_app", None)
-        store.phone_state = "mini"
-        store.phone_transition = None
-        renpy.restart_interaction()
-        
+        if not renpy.has_label(inspect_label):
+            flow_label = sep.join(["ITEM", item_id, "flow"])
+            if renpy.has_label(flow_label):
+                inspect_label = flow_label
+
+        # Store results for _inspect_item_pending to use
         if renpy.has_label(inspect_label):
-            renpy.call(inspect_label)
-            item_hide_image()
+            store.inspect_resolved_label = inspect_label
         else:
-            item_show_image(item)
-            if item.description:
-                renpy.say(None, item.description)
-            item_hide_image()
-            
-        # Restore phone UI
-        store.phone_state = old_phone_state
-        store.phone_current_app = old_phone_app
-        renpy.restart_interaction()
-        actions = _get_item_actions(item)
-        if actions:
-            options = actions + [("Done", None)]
-            choice = renpy.display_menu(options)
-            if choice:
-                renpy.call(choice)
+            store.inspect_resolved_label = None
+        store.inspect_resolved_item = item
 
     def queue_inspect_item(item_or_id):
         item = item_or_id
@@ -555,17 +542,43 @@ init -10 python:
             item = item_manager.get(item_or_id)
         if not item:
             return
-        store._pending_inspect_item_id = item_manager.get_id_of(item)
+        store.pending_inspect_item_id = item_manager.get_id_of(item)
         if hasattr(store, "flow_queue"):
-            store.flow_queue.queue_label("_inspect_item_pending")
+            store.flow_queue.queue_label("inspect_item_pending")
 
-label _inspect_item_pending:
-    $ store._inspect_force = True
-    $ _iid = store._pending_inspect_item_id
-    $ store._pending_inspect_item_id = None
-    if _iid:
-        $ inspect_item(_iid)
-    $ store._inspect_force = False
+label inspect_item_pending:
+    $ store.inspect_force = True
+    $ iid = store.pending_inspect_item_id
+    $ store.pending_inspect_item_id = None
+    if not iid:
+        $ store.inspect_force = False
+        return
+
+    # Resolve the label
+    $ inspect_item(iid)
+    $ resolved_label = store.inspect_resolved_label
+    $ resolved_item = store.inspect_resolved_item
+    $ store.inspect_force = False
+
+    # Hide phone UI during inspection
+    $ old_phone_state = phone_state
+    $ old_phone_app = phone_current_app
+    $ phone_state = "mini"
+    $ phone_transition = None
+
+    if resolved_label:
+        call expression resolved_label
+    elif resolved_item and resolved_item.description:
+        $ item_show_image(resolved_item)
+        "[resolved_item.description]"
+        $ item_hide_image()
+
+    $ item_hide_image()
+
+    # Restore phone UI
+    $ phone_state = old_phone_state
+    $ phone_current_app = old_phone_app
+
     if store._return_to_inventory:
         $ store._return_to_inventory = False
         call screen inventory_screen
@@ -827,7 +840,8 @@ init -10 python:
     class QuestTick:
         def __init__(self, id, name):
             self.id, self.name = id, name
-            self.state, self.flow_label, self.trigger_data = "hidden", None, {}
+            self.state, self.flow_label, self.trigger_data, self.guidance = "hidden", None, {}, {}
+
             self.current_value, self.required_value = 0, 1
         def check_trigger(self, etype, **kwargs):
             if self.state not in ["shown", "active"] or self.trigger_data.get("event") != etype: return False
@@ -1013,6 +1027,14 @@ init -10 python:
             if self.active_quest_id and self.active_quest_id in self.quests:
                 return self.quests[self.active_quest_id]
             return None
+        def get_current_guidance(self):
+            q = self.get_active_quest()
+            if not q or q.state != "active": return None
+            for t in q.ticks:
+                if t.state == "active":
+                    return t.guidance
+            return None
+
         def complete_quest(self, qid):
             q = self.quests.get(qid)
             if q: q.complete()
@@ -1394,9 +1416,7 @@ init -10 python:
         """Flexible stat container that loads stats from data"""
         def __init__(self, stats_dict=None):
             self._stats = stats_dict or {}
-            # Provide defaults for required stats
-            self._stats.setdefault('hp', 100)
-            self._stats.setdefault('max_hp', 100)
+
         
         def __getattr__(self, name):
             if name.startswith('_'):
@@ -1421,13 +1441,7 @@ init -10 python:
         def items(self):
             return self._stats.items()
 
-    # Legacy alias for backward compatibility
-    class RPGStats(StatBlock):
-        def __init__(self, s=10, d=10, i=10, c=10):
-            super().__init__({
-                'strength': s, 'dexterity': d, 'intelligence': i, 'charisma': c,
-                'hp': 100, 'max_hp': 100
-            })
+
 
     # --- SLOT SYSTEM ---
     class SlotRegistry:
@@ -2745,12 +2759,14 @@ init -10 python:
                 for t_idx, tp in enumerate(p.get('ticks', [])):
                     tick = QuestTick(tp['id'], tp['name'])
                     tick.trigger_data = tp.get('trigger', {})
+                    tick.guidance = tp.get('guidance', {})
                     try:
                         tick.required_value = int(tick.trigger_data.get("total", 1) or 1)
                     except Exception:
                         tick.required_value = 1
                     tick.flow_label = tp.get('label')
                     q.add_tick(tick)
+
                 quest_manager.add_quest(q)
                 if q.start_trigger:
                     quest_manager.register_start_trigger(oid, q.start_trigger)

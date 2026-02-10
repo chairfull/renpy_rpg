@@ -1,6 +1,6 @@
 ---
 type: item
-id: apple
+id: ration_bar
 name: Ration Bar
 description: A compact calorie bar for quick energy.
 weight: 0.2
@@ -14,8 +14,9 @@ tags:
 # Inspect
 
 ```flow
-SHOW_ITEM apple
-Sealed, sweet, and a little chalky.
-It keeps you moving.
-HIDE_ITEM apple
+SHOW_ITEM ration_bar
+Sealed, _sweet_, and a little chalky.
+It keeps you _moving_.
+Weighs $ration_bar.weight lbs.
+HIDE_ITEM ration_bar
 ```

@@ -7,10 +7,12 @@ base_image: chars/male_fit.png
 location: market
 pos: 960,800
 stats:
-  - strength: 14
-  - dexterity: 12
-  - intelligence: 10
-  - charisma: 8
+  strength: 14
+  dexterity: 12
+  intelligence: 10
+  charisma: 8
+  hp: 100
+  max_hp: 100
 tags:
   - protagonist
   - survivor
@@ -34,13 +36,14 @@ equipment:
   torso: utility_jacket
   pants: cargo_pants
   feet: trail_boots
-  main_hand: club
+  main_hand: signal_baton
 items:
   - camp_kit
   - water_flask
   - ration_pack
   - compass
   - protein_bar
+  - ration_bar
 ---
 # Talk
 ```flow

@@ -9,56 +9,31 @@ default selected_person = None
 default quick_loot_tags = ["consumable", "food", "medical", "ammo", "currency", "component", "material"]
 default quest_filter = "active"
 
+# Functions moved to game/python/inventory_utils.py (Actually implemented below for now)
 init python:
-    def _equip_item_quick(itm):
-        """Equip the item to the first compatible slot, using the safe equip pipeline."""
-        slots_for_body = slot_registry.get_slots_for_body(pc.body_type)
-        valid_slots = [s for s in getattr(itm, "equip_slots", []) if s in slots_for_body]
-        if not valid_slots:
-            renpy.notify("No valid slot for this item")
-            return
-        ok, msg = pc.equip(itm, valid_slots[0])
-        renpy.notify(msg)
-        renpy.restart_interaction()
+    def get_stat_icon(stat_name):
+        icons = {
+            "strength": "💪",
+            "dexterity": "🏹",
+            "intelligence": "🧠",
+            "charisma": "✨",
+            "perception": "👁️",
+            "luck": "🍀",
+            "willpower": "🛡️",
+            "agility": "👟",
+            "constitution": "🔋",
+            "stamina": "🏃",
+            "stealth": "👤",
+            "hacking": "⌨️",
+            "engineering": "🔧",
+            "medical": "💊"
+        }
+        return icons.get(stat_name.lower(), "📊")
 
-    def build_inventory_entries(inv):
-        grouped = {}
-        for item in inv.items:
-            item_id = item_manager.get_id_of(item)
-            key = (item_id, getattr(item, "owner_id", None), bool(getattr(item, "stolen", False)))
-            if key not in grouped:
-                label = item.name + (" [stolen]" if getattr(item, "stolen", False) else "")
-                grouped[key] = {"item": item, "qty": 0, "label": label}
-            grouped[key]["qty"] += max(1, int(getattr(item, "quantity", 1)))
-        return list(grouped.values())
+    def get_stat_display_name(stat_name):
+        # Handle snake_case and capitalize
+        return stat_name.replace("_", " ").title()
 
-    def item_tooltip_text(item, qty=1):
-        if not item:
-            return ""
-        lines = [f"{{b}}{item.name}{{/b}}"]
-        if getattr(item, "description", ""):
-            lines.append(f"{{i}}{item.description}{{/i}}")
-        if qty is not None:
-            lines.append(f"Qty: {{color=#ffd700}}{qty}{{/color}}")
-        wt = getattr(item, "weight", None)
-        if wt is not None:
-            try:
-                total = float(wt) * (qty or 1)
-                if (qty or 1) > 1:
-                    lines.append(f"Weight: {{color=#ffd700}}{wt}{{/color}} (Total {{color=#ffd700}}{total:.1f}{{/color}})")
-                else:
-                    lines.append(f"Weight: {{color=#ffd700}}{wt}{{/color}}")
-            except Exception:
-                lines.append(f"Weight: {{color=#ffd700}}{wt}{{/color}}")
-        val = getattr(item, "value", None)
-        if val is not None:
-            lines.append(f"Value: {{color=#ffd700}}{val}{{/color}}")
-        owner_id = getattr(item, "owner_id", None)
-        if owner_id and owner_id != pc.id:
-            lines.append(f"Owner: {owner_id}")
-        if getattr(item, "stolen", False):
-            lines.append("Stolen")
-        return "\n".join([l for l in lines if l])
 
 transform inventory_icon_idle:
     anchor (0.5, 0.5)
@@ -177,7 +152,8 @@ screen meta_menu():
 screen item_inspect_image():
     zorder 200
     frame:
-        align (0.5, 0.25)
+        at item_popup_bounce
+        xalign 0.5
         xsize 520
         ysize 360
         background "#111a"
@@ -271,6 +247,7 @@ screen inventory_grid(entries, columns=5, cell_size=110, total_slots=None, selec
                         add Solid("#1f1f1f") xysize (cell_size, cell_size)
 
 screen inventory_content():
+    on "show" action Function(set_tooltip, None)
     $ columns = 4
     $ rows = 3
     $ per_page = columns * rows
@@ -396,14 +373,23 @@ screen stats_content():
                 spacing 15
                 text "Attributes" size 28 color "#ffd700"
                 $ stats = pc.stats
-                $ stat_list = [("Strength", "strength", "💪"), ("Dexterity", "dexterity", "🏹"), ("Intelligence", "intelligence", "🧠"), ("Charisma", "charisma", "✨")]
-                for sname, sval, sicon in stat_list:
-                    $ total = pc.get_stat_total(sval)
-                    $ mod = pc.get_stat_mod(sval)
-                    hbox:
-                        xfill True
-                        text "[sicon] [sname]" size 22 color "#ffffff"
-                        text "[total] ([mod:+])" size 22 color "#00bfff" xalign 1.0
+                python:
+                    # Filter out HP stats and anything else starting with underscore
+                    display_stats = sorted([s for s in stats.keys() if s not in ('hp', 'max_hp') and not s.startswith('_')])
+                
+                if not display_stats:
+                    text "No special attributes" size 18 italic True color "#666"
+                else:
+                    for s_key in display_stats:
+                        $ sname = get_stat_display_name(s_key)
+                        $ sicon = get_stat_icon(s_key)
+                        $ total = pc.get_stat_total(s_key)
+                        $ mod = pc.get_stat_mod(s_key)
+                        hbox:
+                            xfill True
+                            text "[sicon] [sname]" size 22 color "#ffffff"
+                            text "[total] ([mod:+])" size 22 color "#00bfff" xalign 1.0
+
                 null height 20
                 text "Vitals" size 28 color "#ffd700"
                 vbox:
@@ -718,13 +704,20 @@ screen char_interaction_menu(char, show_preview=True, show_backdrop=True):
             xsize 520
             vbox:
                 spacing 12
-                if any(stat not in ['hp', 'max_hp'] for stat in char.stats.keys()):
+                if any(stat not in ['hp', 'max_hp'] and not stat.startswith('_') for stat in char.stats.keys()):
                     vbox:
                         spacing 8
                         label "ATTRIBUTES" text_color "#ffd700" text_size 26
-                        for stat_name, stat_val in char.stats.items():
-                            if stat_name not in ['hp', 'max_hp']:
-                                text "[stat_name!c]: [stat_val]" size 24 color "#f8f8f2"
+                        python:
+                            # Filter and sort
+                            char_display_stats = sorted([s for s in char.stats.keys() if s not in ('hp', 'max_hp') and not s.startswith('_')])
+                        
+                        for s_key in char_display_stats:
+                            $ sname = get_stat_display_name(s_key)
+                            $ sicon = get_stat_icon(s_key)
+                            $ sval = char.stats.get(s_key)
+                            text "[sicon] [sname]: [sval]" size 24 color "#f8f8f2"
+
 
         # MAIN CONTENT: Full-Screen Sprite Presence (Absolute Bottom)
         if show_preview:

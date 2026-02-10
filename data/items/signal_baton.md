@@ -1,6 +1,6 @@
 ---
 type: item
-id: club
+id: signal_baton
 name: Signal Baton
 description: A weighted baton tuned to knock and tap without harm.
 value: 10

@@ -6,14 +6,15 @@ description: The main distribution point for rations and repair kits.
 buy_mult: 1.1
 sell_mult: 0.6
 items:
-  - apple
-  - apple
-  - potion
-  - potion
+  - ration_bar
+  - ration_bar
+  - antiseptic_ampoule
+  - antiseptic_ampoule
   - camp_kit
   - camp_kit
-  - sword
-  - club
+  - utility_pry_bar
+  - signal_baton
+
 ---
 
 # Talk

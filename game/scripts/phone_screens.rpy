@@ -100,9 +100,8 @@ init python:
 
 # --- PHONE HOME SCREEN ---
 screen phone_screen():
-    # Phone frame background (transparency handled by router)
-    # add Solid("#111118") # Removed to allow dimming from router
-    
+    modal True
+
     frame:
         background "#1a1a2a"
         xsize 520
@@ -811,9 +810,15 @@ screen phone_router():
 
     use phone_equip_picker
 
+transform bg_blur:
+    blur 10
+
+transform bg_unblur:
+    blur 0
+
 screen phone_mini_button():
     button:
-        action [SetVariable("phone_state", "portrait"), SetVariable("phone_transition", "to_portrait"), SetVariable("phone_current_app", None)]
+        action [Function(renpy.show_layer_at, bg_blur, layer="topdown"), Function(renpy.notify, "Pee"), SetVariable("phone_state", "portrait"), SetVariable("phone_transition", "to_portrait"), SetVariable("phone_current_app", None)]
         align (0.06, 0.94)
         padding (12, 8)
         background Frame(Solid("#0f141bcc"), 8, 8)
@@ -833,7 +838,7 @@ screen phone_transition_portrait():
             align (0.5, 0.5)
             at phone_portrait_open
             use phone_screen
-    timer 0.26 action [SetVariable("phone_state", "portrait"), SetVariable("phone_transition", None)]
+    timer 0.26 action [SetVariable("phone_state", "portrait"), SetVariable("phone_transition", None), Function(set_tooltip, None)]
 
 screen phone_transition_landscape():
     fixed:
@@ -846,7 +851,7 @@ screen phone_transition_landscape():
             align (0.5, 0.5)
             at phone_rotate_to_landscape
             use phone_screen
-    timer 0.26 action [SetVariable("phone_state", "landscape"), SetVariable("phone_transition", None)]
+    timer 0.26 action [SetVariable("phone_state", "landscape"), SetVariable("phone_transition", None), Function(set_tooltip, None)]
 
 screen phone_transition_mini():
     fixed:

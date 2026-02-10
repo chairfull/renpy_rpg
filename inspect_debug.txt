@@ -1,0 +1,17 @@
+item type: <class 'store.Item'>
+item.id: 'apple'
+item.name: 'Ration Bar'
+item_id repr: 'apple'
+item_id len: 5
+item_id bytes: b'apple'
+prefix repr: 'ITEM__'
+suffix repr: '_m1_engine__inspect'
+concat step1: 'ITEM__apple'
+concat step2: 'ITEM__apple_m1_engine__inspect'
+inspect_label repr: 'ITEM__apple_m1_engine__inspect'
+inspect_label len: 30
+inspect_label is concat: True
+has_label: False
+has ITEM__apple__inspect: True
+locals inspect_label id: 132100178760912
+store has inspect_label: False

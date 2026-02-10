@@ -1,6 +1,6 @@
 ---
 type: item
-id: potion
+id: antiseptic_ampoule
 name: Antiseptic Ampoule
 description: A sealed dose that eases fever and stabilizes wounds.
 weight: 0.3

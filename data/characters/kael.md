@@ -6,16 +6,17 @@ description: A high-risk courier who uses kinetic force to clear 'Sleeper' block
 base_image: chars/male_fit.png
 location: market
 items:
-  - sword
+  - utility_pry_bar
   - protein_bar
   - water_flask
   - multitool
   - lockpick_set
+
 stats:
-  - strength: 14
-  - dexterity: 12
-  - intelligence: 8
-  - charisma: 10
+  strength: 14
+  dexterity: 12
+  intelligence: 8
+  charisma: 10
 factions:
   - perimeter_watch
 tags:
@@ -41,7 +42,7 @@ equipment:
   torso: patrol_jacket
   pants: patrol_pants
   feet: patrol_boots
-  main_hand: sword
+  main_hand: utility_pry_bar
 ---
 
 # Talk
@@ -50,6 +51,7 @@ kael: Don't just stand there making noise. Noise is death.
 kael: Unless you're making it to clear a path. You looking for a piece of the next breach?
 $ kael.mark_as_met()
 ```
+
 
 # Dialogue
 

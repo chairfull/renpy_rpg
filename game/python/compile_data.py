@@ -73,8 +73,9 @@ def parse_yaml_block(value, default=None):
     """Safely parse a block of YAML lines into a dict or list."""
     if value is None:
         return default if default is not None else {}
-    if isinstance(value, (dict, list)):
+    if isinstance(value, dict):
         return value
+
     if isinstance(value, str):
         try:
             data = yaml.safe_load(value)
@@ -420,6 +421,7 @@ FLOW_COMMANDS = {
     "item",
     "show_item",
     "hide_item",
+    "popup",
 }
 
 def is_caps_command(line):
@@ -537,12 +539,12 @@ def directive_to_python(line):
         if len(parts) < 2:
             return None
         label = parts[1]
-        return f"renpy.jump({label!r})"
+        return f"jump {label}"
     if cmd == "call":
         if len(parts) < 2:
             return None
         label = parts[1]
-        return f"renpy.call({label!r})"
+        return f"call {label}"
     if cmd == "quest":
         if len(parts) < 3: return None
         sub = parts[1].lower()
@@ -610,7 +612,7 @@ def directive_to_python(line):
         if len(parts) < 2:
             return None
         text = " ".join(parts[1:])
-        return f"renpy.notify({text!r})"
+        return f"notify {text!r}"
     if cmd == "companion":
         if len(parts) < 3:
             return None
@@ -685,13 +687,27 @@ def directive_to_python(line):
         if len(parts) < 2:
             return None
         item_id = parts[1]
-        return f"renpy.call('show_item', {item_id!r})"
+        return f"call show_item({item_id!r})"
     if cmd == "hide_item":
         if len(parts) > 1:
-            return f"renpy.call('hide_item', {parts[1]!r})"
-        return "renpy.call('hide_item')"
-        if op in ["hide", "clear"]:
-            return "item_hide_image()"
+            return f"call hide_item({parts[1]!r})"
+        return "call hide_item()"
+    if cmd == "popup":
+        # POPUP "Title" "Message" [icon="icon_name"]
+        if len(parts) < 3:
+            return None
+        title = parts[1]
+        message = parts[2]
+        icon = None
+        for p in parts[3:]:
+            if p.startswith("icon="):
+                icon = p.split("=", 1)[1]
+        
+        args = [repr(message), f"title={repr(title)}"]
+        if icon:
+            args.append(f"icon={repr(icon)}")
+            
+        return f"add_notification({', '.join(args)})"
     return None
 
 def compile(lint_only=False):
@@ -745,20 +761,30 @@ def compile(lint_only=False):
             sid = slug(name)
             content = lines[1] if len(lines) > 1 else ""
             
-            trigger = {}
-            trig_match = re.search(r'```trigger\s*\n(.*?)\n```', content, re.DOTALL)
-            if trig_match:
-                try:
-                    trigger = yaml.safe_load(trig_match.group(1))
-                except:
-                    print(f"Error parsing trigger for {qid}:{sid}")
+            # Extract metadata from yaml or trigger blocks
+            meta = {}
+            # Check for multiple blocks and merge them
+            for block_type in ['yaml', 'trigger', 'guidance']:
+                matches = re.finditer(r'```' + block_type + r'\s*\n(.*?)\n```', content, re.DOTALL)
+                for m in matches:
+                    try:
+                        data = yaml.safe_load(m.group(1))
+                        if isinstance(data, dict):
+                            meta.update(data)
+                    except:
+                        print(f"Error parsing {block_type} for {qid}:{sid}")
+            
+            trigger = meta.get('trigger', meta if 'event' in meta else {})
+            guidance = meta.get('guidance', meta.get('highlight', {}))
             
             ticks.append({
                 "id": sid,
                 "name": name,
                 "trigger": trigger,
+                "guidance": guidance,
                 "label": f"QUEST__{qid}__{sid}"
             })
+
         return ticks
 
     for root, dirs, files in os.walk(data_dir):
@@ -928,10 +954,8 @@ def compile(lint_only=False):
                         if v is not None and str(v).strip():
                             equipment[str(k).strip()] = str(v).strip()
                 # Parse stats block if present
-                stats_raw = props.get('stats', {})
-                stats_dict = {}
-                if isinstance(stats_raw, list):
-                    stats_dict = parse_kv_block(stats_raw)
+                stats_dict = parse_yaml_block(props.get('stats', {}), {})
+
                 # Parse schedule block
                 schedule_raw = props.get('schedule', [])
                 schedule = {}
@@ -1309,6 +1333,16 @@ def compile(lint_only=False):
             line = f"{line} # @{source_path}:{line_no}"
         script_parts.append(line + "\n")
 
+    def format_dialogue(text):
+        """Convert markdown bold/italic and $vars to RenPy format."""
+        # Variables: $var.path or $var_name -> [var.path] or [var_name]
+        text = re.sub(r'\$([a-zA-Z_][a-zA-Z0-9_\.]*)', r'[\1]', text)
+        # Bold: *text* -> {b}text{/b}
+        text = re.sub(r'\*([^*]+)\*', r'{b}\1{/b}', text)
+        # Italic: _text_ -> {i}text{/i}
+        text = re.sub(r'_([^_]+)_', r'{i}\1{/i}', text)
+        return text
+
     def _emit_flow(flow_lines, source_path):
         for line_no, raw in flow_lines:
             line = raw.strip()
@@ -1318,18 +1352,22 @@ def compile(lint_only=False):
                 _append_script_line(f"    {line}", source_path, line_no)
                 continue
             if line.startswith('@') or is_caps_command(line):
-                py = directive_to_python(line)
-                if py:
-                    _append_script_line(f"    $ {py}", source_path, line_no)
+                res = directive_to_python(line)
+                if res:
+                    # If it's a native Ren'Py command like jump, call, or notify, don't prefix with $
+                    if any(res.startswith(prefix) for prefix in ["jump ", "call ", "notify "]):
+                        _append_script_line(f"    {res}", source_path, line_no)
+                    else:
+                        _append_script_line(f"    $ {res}", source_path, line_no)
                 else:
                     _append_script_line(f"    # {line}", source_path, line_no)
                 continue
             if ':' in line:
                 cid, txt = line.split(':', 1)
-                txt = txt.strip().replace('"', '\\"')
+                txt = format_dialogue(txt.strip()).replace('"', '\\"')
                 _append_script_line(f"    {cid.strip().lower()} \"{txt}\"", source_path, line_no)
             else:
-                txt = line.strip().replace('"', '\\"')
+                txt = format_dialogue(line.strip()).replace('"', '\\"')
                 _append_script_line(f"    \"{txt}\"", source_path, line_no)
 
     # Second pass: Process bodies to link labels and generate RPY

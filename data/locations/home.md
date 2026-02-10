@@ -64,7 +64,7 @@ entities:
     description: A battered locker for your essentials.
     x: 0
     y: 0
-    items: [camp_kit, apple, potion]
+    items: [camp_kit, ration_bar, antiseptic_ampoule]
     sprite: "images/topdown/chars/male_base.png"
 ```
 

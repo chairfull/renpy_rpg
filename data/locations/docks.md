@@ -12,6 +12,7 @@ scavenge:
     chance: 0.3
     min: 1
     max: 2
-  - item: apple
+  - item: ration_bar
     chance: 0.2
+
 ---

@@ -1,12 +1,6 @@
-﻿# The script of the game goes in this file.
+﻿init python:
+    config.layers = [ 'master', 'transient', 'topdown', 'screens', 'overlay' ]
 
-# Declare characters used by this game. The color argument colorizes the
-# name of the character.
-
-define e = Character("Eileen")
-
-
-# The game starts here.
 
 label start:
     "Welcome to the AI RPG."
@@ -31,5 +25,5 @@ label start:
 label world_loop:
     window hide
     $ loc = rpg_world.current_location
-    call screen top_down_map(loc)
+    call screen top_down_map(loc) onlayer topdown
     jump world_loop

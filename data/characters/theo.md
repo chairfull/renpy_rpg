@@ -7,10 +7,10 @@ base_image: chars/male_thin.png
 location: temple
 pos: 500,500
 stats:
-  - strength: 8
-  - dexterity: 10
-  - intelligence: 16
-  - charisma: 14
+  strength: 8
+  dexterity: 10
+  intelligence: 16
+  charisma: 14
 tags:
   - archivist
   - lore
@@ -36,11 +36,12 @@ equipment:
   pants: slacks
   feet: sneakers
 items:
-  - apple
+  - ration_bar
   - note_card
   - map_fragment
   - radio_receiver
   - battery_cell
+
 ---
 # Talk
 ```flow

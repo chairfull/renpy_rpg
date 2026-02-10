@@ -10,8 +10,6 @@
 #
 # vscode_renpy_warp_*.rpe*
 #
-# For more information, see https://github.com/furudean/vscode-renpy-warp
-#
 
 import renpy  # type: ignore
 from time import sleep

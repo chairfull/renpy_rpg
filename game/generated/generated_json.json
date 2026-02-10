@@ -177,23 +177,24 @@
             "stackable": false,
             "stack_size": 1
         },
-        "apple": {
-            "name": "Ration Bar",
-            "description": "A compact calorie bar for quick energy.",
+        "signal_baton": {
+            "name": "Signal Baton",
+            "description": "A weighted baton tuned to knock and tap without harm.",
             "image": null,
-            "weight": 0.2,
+            "weight": 2.5,
             "volume": 0.0,
-            "value": 5,
+            "value": 10,
             "tags": [
-                "food",
-                "ration"
+                "tool",
+                "signal"
             ],
             "factions": [],
-            "equip_slots": [],
+            "equip_slots": [
+                "main_hand"
+            ],
             "outfit_part": null,
-            "stackable": true,
-            "stack_size": 20,
-            "actions": []
+            "stackable": false,
+            "stack_size": 1
         },
         "coveralls": {
             "name": "Coveralls",
@@ -306,6 +307,27 @@
             "stackable": false,
             "stack_size": 1
         },
+        "utility_pry_bar": {
+            "name": "Utility Pry Bar",
+            "description": "A solid metal bar for lifting panels and opening jammed doors.",
+            "image": null,
+            "weight": 2.0,
+            "volume": 0.0,
+            "value": 50,
+            "tags": [
+                "tool",
+                "metal",
+                "utility"
+            ],
+            "factions": [],
+            "equip_slots": [
+                "main_hand"
+            ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1,
+            "actions": []
+        },
         "trail_boots": {
             "name": "Trail Boots",
             "description": "Quiet-soled boots built for long routes beyond the walls.",
@@ -391,25 +413,6 @@
             ],
             "factions": [],
             "equip_slots": [],
-            "outfit_part": null,
-            "stackable": false,
-            "stack_size": 1
-        },
-        "club": {
-            "name": "Signal Baton",
-            "description": "A weighted baton tuned to knock and tap without harm.",
-            "image": null,
-            "weight": 2.5,
-            "volume": 0.0,
-            "value": 10,
-            "tags": [
-                "tool",
-                "signal"
-            ],
-            "factions": [],
-            "equip_slots": [
-                "main_hand"
-            ],
             "outfit_part": null,
             "stackable": false,
             "stack_size": 1
@@ -634,25 +637,6 @@
             "stackable": false,
             "stack_size": 1
         },
-        "potion": {
-            "name": "Antiseptic Ampoule",
-            "description": "A sealed dose that eases fever and stabilizes wounds.",
-            "image": null,
-            "weight": 0.3,
-            "volume": 0.0,
-            "value": 25,
-            "tags": [
-                "medical",
-                "consumable",
-                "health"
-            ],
-            "factions": [],
-            "equip_slots": [],
-            "outfit_part": null,
-            "stackable": true,
-            "stack_size": 5,
-            "actions": []
-        },
         "sewing_kit": {
             "name": "Sewing Kit",
             "description": "Needle, thread, and a few spare buttons.",
@@ -686,23 +670,6 @@
             "outfit_part": null,
             "stackable": true,
             "stack_size": 6
-        },
-        "ancient_relic": {
-            "name": "Ancient Relic",
-            "description": "A pulsing obsidian cube pulsing with a low, rhythmic frequency.",
-            "image": null,
-            "weight": 1.0,
-            "volume": 0.0,
-            "value": 0,
-            "tags": [
-                "lore",
-                "quest_item"
-            ],
-            "factions": [],
-            "equip_slots": [],
-            "outfit_part": null,
-            "stackable": false,
-            "stack_size": 1
         },
         "glow_stick": {
             "name": "Glow Stick",
@@ -904,25 +871,41 @@
             "stackable": false,
             "stack_size": 1
         },
-        "sword": {
-            "name": "Utility Pry Bar",
-            "description": "A solid metal bar for lifting panels and opening jammed doors.",
+        "ration_bar": {
+            "name": "Ration Bar",
+            "description": "A compact calorie bar for quick energy.",
             "image": null,
-            "weight": 2.0,
+            "weight": 0.2,
             "volume": 0.0,
-            "value": 50,
+            "value": 5,
             "tags": [
-                "tool",
-                "metal",
-                "utility"
+                "food",
+                "ration"
             ],
             "factions": [],
-            "equip_slots": [
-                "main_hand"
-            ],
+            "equip_slots": [],
             "outfit_part": null,
-            "stackable": false,
-            "stack_size": 1,
+            "stackable": true,
+            "stack_size": 20,
+            "actions": []
+        },
+        "antiseptic_ampoule": {
+            "name": "Antiseptic Ampoule",
+            "description": "A sealed dose that eases fever and stabilizes wounds.",
+            "image": null,
+            "weight": 0.3,
+            "volume": 0.0,
+            "value": 25,
+            "tags": [
+                "medical",
+                "consumable",
+                "health"
+            ],
+            "factions": [],
+            "equip_slots": [],
+            "outfit_part": null,
+            "stackable": true,
+            "stack_size": 5,
             "actions": []
         },
         "logistics_coat": {
@@ -976,6 +959,23 @@
             "equip_slots": [
                 "head"
             ],
+            "outfit_part": null,
+            "stackable": false,
+            "stack_size": 1
+        },
+        "ancient_relic": {
+            "name": "Ancient Relic",
+            "description": "A pulsing obsidian cube pulsing with a low, rhythmic frequency.",
+            "image": null,
+            "weight": 1.0,
+            "volume": 0.0,
+            "value": 0,
+            "tags": [
+                "lore",
+                "quest_item"
+            ],
+            "factions": [],
+            "equip_slots": [],
             "outfit_part": null,
             "stackable": false,
             "stack_size": 1
@@ -1055,7 +1055,12 @@
             "skin_tone": "light",
             "build": "slim",
             "distinctive_feature": "freckled nose",
-            "equipment": {},
+            "equipment": {
+                "head": "bandana",
+                "torso": "supply_apron",
+                "pants": "work_pants",
+                "feet": "work_boots"
+            },
             "stats": {},
             "affinity": 10,
             "schedule": {},
@@ -1070,7 +1075,7 @@
             "description": "Dedicated to preserving pre-fall data logs and charting the decay of the global transmission grid.",
             "location": "temple",
             "items": [
-                "apple",
+                "ration_bar",
                 "note_card",
                 "map_fragment",
                 "radio_receiver",
@@ -1101,7 +1106,12 @@
             "skin_tone": "light",
             "build": "slim",
             "distinctive_feature": "ink-smudged collar",
-            "equipment": {},
+            "equipment": {
+                "head": "knit_cap",
+                "torso": "archivist_coat",
+                "pants": "slacks",
+                "feet": "sneakers"
+            },
             "stats": {
                 "strength": 8,
                 "dexterity": 10,
@@ -1151,7 +1161,12 @@
             "skin_tone": "medium",
             "build": "slight",
             "distinctive_feature": "scuffed knees",
-            "equipment": {},
+            "equipment": {
+                "head": "knit_cap",
+                "torso": "signal_hoodie",
+                "pants": "track_pants",
+                "feet": "sneakers"
+            },
             "stats": {},
             "affinity": 0,
             "schedule": {},
@@ -1198,7 +1213,12 @@
             "skin_tone": "medium",
             "build": "solid",
             "distinctive_feature": "trimmed beard",
-            "equipment": {},
+            "equipment": {
+                "head": "ball_cap",
+                "torso": "logistics_coat",
+                "pants": "slacks",
+                "feet": "work_boots"
+            },
             "stats": {},
             "affinity": 0,
             "schedule": {},
@@ -1242,7 +1262,12 @@
             "skin_tone": "light",
             "build": "average",
             "distinctive_feature": "ink-stained fingertips",
-            "equipment": {},
+            "equipment": {
+                "head": "ball_cap",
+                "torso": "logistics_coat",
+                "pants": "slacks",
+                "feet": "sneakers"
+            },
             "stats": {},
             "affinity": 0,
             "schedule": {},
@@ -1289,7 +1314,11 @@
             "skin_tone": "light",
             "build": "sturdy",
             "distinctive_feature": "oil-stained knuckles",
-            "equipment": {},
+            "equipment": {
+                "head": "bandana",
+                "two_piece": "coveralls",
+                "feet": "work_boots"
+            },
             "stats": {},
             "affinity": 0,
             "schedule": {},
@@ -1336,7 +1365,12 @@
             "skin_tone": "olive",
             "build": "athletic",
             "distinctive_feature": "sun-faded freckles",
-            "equipment": {},
+            "equipment": {
+                "head": "watch_cap",
+                "torso": "utility_jacket",
+                "pants": "cargo_pants",
+                "feet": "trail_boots"
+            },
             "stats": {},
             "affinity": -5,
             "schedule": {},
@@ -1384,7 +1418,12 @@
             "skin_tone": "medium",
             "build": "sturdy",
             "distinctive_feature": "deep laugh lines",
-            "equipment": {},
+            "equipment": {
+                "head": "watch_cap",
+                "torso": "logistics_coat",
+                "pants": "slacks",
+                "feet": "work_boots"
+            },
             "stats": {},
             "affinity": 0,
             "schedule": {},
@@ -1428,7 +1467,12 @@
             "skin_tone": "light",
             "build": "lean",
             "distinctive_feature": "weathered hands",
-            "equipment": {},
+            "equipment": {
+                "head": "watch_cap",
+                "torso": "rain_shell",
+                "pants": "cargo_pants",
+                "feet": "rubber_boots"
+            },
             "stats": {},
             "affinity": 5,
             "schedule": {},
@@ -1473,7 +1517,12 @@
             "skin_tone": "medium",
             "build": "lean",
             "distinctive_feature": "scar across left eyebrow",
-            "equipment": {},
+            "equipment": {
+                "head": "knit_cap",
+                "torso": "rain_shell",
+                "pants": "cargo_pants",
+                "feet": "trail_boots"
+            },
             "stats": {},
             "affinity": -10,
             "schedule": {},
@@ -1520,7 +1569,12 @@
             "skin_tone": "medium-dark",
             "build": "muscular",
             "distinctive_feature": "scar along jaw",
-            "equipment": {},
+            "equipment": {
+                "head": "watch_cap",
+                "torso": "patrol_jacket",
+                "pants": "patrol_pants",
+                "feet": "patrol_boots"
+            },
             "stats": {},
             "affinity": 0,
             "schedule": {},
@@ -1567,7 +1621,12 @@
             "skin_tone": "dark",
             "build": "fit",
             "distinctive_feature": "sharp cheekbones",
-            "equipment": {},
+            "equipment": {
+                "head": "ball_cap",
+                "torso": "logistics_coat",
+                "pants": "slacks",
+                "feet": "sneakers"
+            },
             "stats": {},
             "affinity": 0,
             "schedule": {},
@@ -1582,7 +1641,7 @@
             "description": "A high-risk courier who uses kinetic force to clear 'Sleeper' blockades.",
             "location": "market",
             "items": [
-                "sword",
+                "utility_pry_bar",
                 "protein_bar",
                 "water_flask",
                 "multitool",
@@ -1614,7 +1673,13 @@
             "skin_tone": "tan",
             "build": "muscular",
             "distinctive_feature": "scarred knuckles",
-            "equipment": {},
+            "equipment": {
+                "head": "watch_cap",
+                "torso": "patrol_jacket",
+                "pants": "patrol_pants",
+                "feet": "patrol_boots",
+                "main_hand": "utility_pry_bar"
+            },
             "stats": {
                 "strength": 14,
                 "dexterity": 12,
@@ -1638,7 +1703,8 @@
                 "water_flask",
                 "ration_pack",
                 "compass",
-                "protein_bar"
+                "protein_bar",
+                "ration_bar"
             ],
             "base_image": "chars/male_fit.png",
             "td_sprite": null,
@@ -1664,12 +1730,20 @@
             "skin_tone": "light",
             "build": "lean",
             "distinctive_feature": "sunburned nose",
-            "equipment": {},
+            "equipment": {
+                "head": "knit_cap",
+                "torso": "utility_jacket",
+                "pants": "cargo_pants",
+                "feet": "trail_boots",
+                "main_hand": "signal_baton"
+            },
             "stats": {
                 "strength": 14,
                 "dexterity": 12,
                 "intelligence": 10,
-                "charisma": 8
+                "charisma": 8,
+                "hp": 100,
+                "max_hp": 100
             },
             "affinity": 0,
             "schedule": {},
@@ -1714,7 +1788,12 @@
             "skin_tone": "light-medium",
             "build": "slender",
             "distinctive_feature": "inked signal lines on wrist",
-            "equipment": {},
+            "equipment": {
+                "head": "knit_cap",
+                "torso": "signal_hoodie",
+                "pants": "track_pants",
+                "feet": "sneakers"
+            },
             "stats": {},
             "affinity": 10,
             "schedule": {},
@@ -1761,7 +1840,12 @@
             "skin_tone": "olive",
             "build": "athletic",
             "distinctive_feature": "clinic tattoo behind ear",
-            "equipment": {},
+            "equipment": {
+                "head": "surgical_cap",
+                "torso": "medical_coat",
+                "pants": "scrub_pants",
+                "feet": "clinic_shoes"
+            },
             "stats": {},
             "affinity": 20,
             "schedule": {},
@@ -1887,8 +1971,8 @@
                     "y": 0,
                     "items": [
                         "camp_kit",
-                        "apple",
-                        "potion"
+                        "ration_bar",
+                        "antiseptic_ampoule"
                     ],
                     "sprite": "images/topdown/chars/male_base.png"
                 }
@@ -2208,7 +2292,7 @@
                     "max": 2
                 },
                 {
-                    "item": "apple",
+                    "item": "ration_bar",
                     "chance": 0.2
                 }
             ],
@@ -2475,43 +2559,6 @@
                 }
             ]
         },
-        "apple_hunt": {
-            "name": "Ration Run",
-            "description": "Gather rations for the shelter.",
-            "category": "side",
-            "giver": null,
-            "location": null,
-            "tags": [],
-            "origin": false,
-            "pc_id": null,
-            "image": null,
-            "prereqs": {
-                "quests": [],
-                "flags": [],
-                "not_flags": [],
-                "cond": null
-            },
-            "rewards": {
-                "gold": 0,
-                "items": {},
-                "flags": []
-            },
-            "start_trigger": {},
-            "ticks": [
-                {
-                    "id": "visit_the_supply_depot",
-                    "name": "Visit the Supply Depot",
-                    "trigger": {},
-                    "label": "QUEST__apple_hunt__visit_the_supply_depot"
-                },
-                {
-                    "id": "collect_rations",
-                    "name": "Collect Rations",
-                    "trigger": {},
-                    "label": "QUEST__apple_hunt__collect_rations"
-                }
-            ]
-        },
         "theo_secret": {
             "name": "Patient Zero",
             "description": "Theo is searching for the first record of the sleepers.",
@@ -2583,6 +2630,43 @@
                     "name": "Speak with Captain Rafi",
                     "trigger": {},
                     "label": "QUEST__formal_intro__speak_with_captain_rafi"
+                }
+            ]
+        },
+        "ration_run": {
+            "name": "Ration Run",
+            "description": "Gather rations for the shelter.",
+            "category": "side",
+            "giver": null,
+            "location": null,
+            "tags": [],
+            "origin": false,
+            "pc_id": null,
+            "image": null,
+            "prereqs": {
+                "quests": [],
+                "flags": [],
+                "not_flags": [],
+                "cond": null
+            },
+            "rewards": {
+                "gold": 0,
+                "items": {},
+                "flags": []
+            },
+            "start_trigger": {},
+            "ticks": [
+                {
+                    "id": "visit_the_supply_depot",
+                    "name": "Visit the Supply Depot",
+                    "trigger": {},
+                    "label": "QUEST__ration_run__visit_the_supply_depot"
+                },
+                {
+                    "id": "collect_rations",
+                    "name": "Collect Rations",
+                    "trigger": {},
+                    "label": "QUEST__ration_run__collect_rations"
                 }
             ]
         },
@@ -3102,26 +3186,26 @@
             "buy_mult": 1.1,
             "sell_mult": 0.6,
             "items": [
-                "apple",
-                "apple",
-                "potion",
-                "potion",
+                "ration_bar",
+                "ration_bar",
+                "antiseptic_ampoule",
+                "antiseptic_ampoule",
                 "camp_kit",
                 "camp_kit",
-                "sword",
-                "club"
+                "utility_pry_bar",
+                "signal_baton"
             ]
         }
     },
     "recipes": {
-        "recipe_club": {
+        "recipe_signal_baton": {
             "name": "Signal Baton",
             "inputs": {
                 "wood": 1,
                 "stone": 1
             },
             "output": {
-                "club": 1
+                "signal_baton": 1
             },
             "req_skill": {
                 "dexterity": 1
