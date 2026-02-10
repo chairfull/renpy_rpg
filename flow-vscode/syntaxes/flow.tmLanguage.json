@@ -1,0 +1,116 @@
+{
+  "scopeName": "source.flow",
+  "name": "Flow",
+  "patterns": [
+    {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.flow"
+    },
+    {
+      "begin": "^\\$ ",
+      "end": "$",
+      "name": "markup.raw.code.flow",
+      "patterns": [
+        {
+          "include": "source.python"
+        }
+      ]
+    },
+    {
+      "begin": "^\\s*([a-zA-Z_][a-zA-Z0-9_]*)(:)",
+      "end": "$",
+      "beginCaptures": {
+        "1": { "name": "markup.bold.flow entity.name.function.flow" },
+        "2": { "name": "comment.punctuation.flow" }
+      },
+      "contentName": "string.quoted.flow",
+      "patterns": [
+        {
+          "match": "\\$[a-zA-Z_][a-zA-Z0-9_]*",
+          "name": "variable.other.flow"
+        },
+        {
+          "match": "\\{[^}]+\\}",
+          "name": "constant.other.placeholder.flow"
+        },
+        {
+          "match": "\\*([^*]+)\\*",
+          "name": "string.quoted.flow entity.name.tag.bold.flow"
+        },
+        {
+          "match": "_([^_]+)_",
+          "name": "markup.italic"
+        }
+      ]
+    },
+    {
+      "begin": "^\\s*([A-Z_]{2,})\\b",
+      "end": "$",
+      "beginCaptures": {
+        "1": { "name": "markup.bold.flow keyword.control.flow" }
+      },
+      "patterns": [
+        {
+          "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)(=)",
+          "captures": {
+            "1": { "name": "variable.parameter.flow" },
+            "2": { "name": "punctuation.separator.key-value.flow variable.parameter.flow" }
+          }
+        },
+        {
+          "match": "\\b(true|false)\\b",
+          "name": "constant.language.boolean.flow"
+        },
+        {
+          "match": "\\b\\d+\\.\\d+\\b",
+          "name": "constant.numeric.float.flow"
+        },
+        {
+          "match": "\\b\\d+\\b",
+          "name": "constant.numeric.integer.flow"
+        },
+        {
+          "match": "[><=!]+",
+          "name": "keyword.operator.comparison.flow"
+        },
+        {
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.flow"
+        },
+        {
+          "match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b",
+          "name": "constant.other.flow"
+        }
+      ]
+    },
+    {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.flow"
+    },
+    {
+      "begin": "^\\s*(?![A-Z_]{2,}\\b)(?![a-zA-Z_][a-zA-Z0-9_]*:)(?!#)(?!\\$)",
+      "end": "$",
+      "contentName": "string.unquoted.narrative.flow",
+      "patterns": [
+        {
+          "match": "\\$[a-zA-Z_][a-zA-Z0-9_]*",
+          "name": "variable.other.flow"
+        },
+        {
+          "match": "\\{[^}]+\\}",
+          "name": "constant.other.placeholder.flow"
+        },
+        {
+          "match": "\\*([^*]+)\\*",
+          "name": "string.unquoted.narrative.flow entity.name.tag.bold.flow"
+        },
+        {
+          "match": "_([^_]+)_",
+          "name": "markup.italic"
+        }
+      ]
+    }
+  ]
+}

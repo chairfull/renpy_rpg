@@ -455,9 +455,9 @@ screen journal_content():
         null height 10
 
         if journal_tab == "notes":
-             use notes_sub_content
+            use notes_sub_content
         elif journal_tab == "people":
-             use people_sub_content
+            use people_sub_content
 screen notes_sub_content():
     hbox:
         spacing 20
@@ -474,11 +474,11 @@ screen notes_sub_content():
                 vbox:
                     spacing 5
                     for note in wiki_manager.get_unlocked_notes():
-                         textbutton "[note.name]":
-                             action SetVariable("selected_note", note)
-                             xfill True
-                             background ("#333" if globals().get("selected_note") == note else "#111")
-                             text_style "inventory_item_text"
+                        textbutton "[note.name]":
+                            action SetVariable("selected_note", note)
+                            xfill True
+                            background ("#333" if globals().get("selected_note") == note else "#111")
+                            text_style "inventory_item_text"
 
         # Note Details
         frame:
@@ -515,11 +515,11 @@ screen people_sub_content():
                 vbox:
                     spacing 5
                     for name, desc in wiki_manager.met_list:
-                         textbutton "[name]":
-                             action SetVariable("selected_person", name)
-                             xfill True
-                             background ("#333" if globals().get("selected_person") == name else "#111")
-                             text_style "inventory_item_text"
+                        textbutton "[name]":
+                            action SetVariable("selected_person", name)
+                            xfill True
+                            background ("#333" if globals().get("selected_person") == name else "#111")
+                            text_style "inventory_item_text"
 
         # People Details
         frame:
@@ -821,7 +821,7 @@ screen char_interaction_menu(char, show_preview=True, show_backdrop=True):
                                 givable = bool(label)
                                 action = (
                                     [Function(char_interaction_queue_label, label),
-                                     Function(char_interaction_set_state, "menu")]
+                                    Function(char_interaction_set_state, "menu")]
                                     if givable else NullAction()
                                 )
                                 grid_entries.append({

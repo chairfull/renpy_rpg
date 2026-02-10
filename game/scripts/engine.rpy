@@ -516,6 +516,12 @@ init -10 python:
         item_id = item_manager.get_id_of(item)
         inspect_label = f"ITEM__{item_id}__inspect"
         
+        # Fallback to title case if lowercase not found
+        if not renpy.has_label(inspect_label):
+            alt_label = f"ITEM__{item_id}__Inspect"
+            if renpy.has_label(alt_label):
+                inspect_label = alt_label
+        
         # Hide phone UI during inspection
         old_phone_state = getattr(store, "phone_state", "mini")
         old_phone_app = getattr(store, "phone_current_app", None)

@@ -1,0 +1,91 @@
+SET score=0
+SET health=100.5
+SET difficulty="hard"
+SET tutorial_complete=false
+
+narrator: Welcome to *the* _adventure_! Let's see what you can do.
+This is text without a speaker.
+
+We should *check* everywhere _or else_ we may die. And $mary asked for {asn}.
+
+# comment
+$ code = code.code(123)
+
+SHOW_ITEM sword at=right scale=1.5
+PLAY_SOUND sword_pickup volume=0.8
+
+alice: I found this old sword in the ruins.
+bob: That looks dangerous. Are you sure you want to keep it?
+
+MENU id=first_choice timeout=30
+    What should Alice do?
+    Keep the sword
+        alice: It might come in handy later.
+        AWARD brave_choice
+        ADD_ITEM sword damage=15 durability=100
+        SET score=10
+    Leave it behind
+        alice: You're right, it's too risky.
+        AWARD cautious_choice
+        SET score=5
+
+IF score > 7
+    narrator: Alice's confidence grew with her decision.
+    GIVE_ITEM confidence_boost
+    PLAY_ANIMATION alice happy duration=2.0
+
+IF health <= 50.0
+    narrator: Alice was feeling weak.
+    SHOW_WARNING low_health
+
+IF tutorial_complete == false
+    JUMP tutorial_section
+
+alice: Let's explore the east wing.
+HIDE_ITEM sword
+MOVE_TO eastern_corridor speed=normal
+
+WAIT 1.5
+
+mysterious_voice: Who dares enter my domain?
+SHAKE_SCREEN intensity=3 duration=0.5
+
+MENU id=encounter
+    How do you respond?
+    Stand your ground
+        alice: I'm not afraid of you!
+        SET courage=true
+        JUMP brave_path
+    Run away
+        alice: This is too much for me!
+        SET courage=false
+        JUMP escape_path
+    Try to negotiate
+        alice: Maybe we can talk about this?
+        JUMP diplomatic_path
+
+LABEL brave_path
+    mysterious_voice: Impressive. Very few show such bravery.
+    AWARD fearless
+    ADD_XP amount=100
+    UNLOCK_ACHIEVEMENT hero_badge
+    JUMP ending
+
+LABEL escape_path
+    narrator: Sometimes discretion is the better part of valor.
+    REDUCE_HEALTH amount=20
+    JUMP safe_exit
+
+LABEL diplomatic_path
+    IF score >= 10
+        mysterious_voice: Your wisdom serves you well.
+        AWARD diplomat
+        GIVE_ITEM ancient_key rarity="legendary"
+    ELSE
+        mysterious_voice: You lack the experience for negotiation.
+        JUMP escape_path
+
+LABEL ending
+    narrator: And so, Alice's journey continued...
+    FADE_OUT duration=2.0
+    ROLL_CREDITS

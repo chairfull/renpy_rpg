@@ -12,6 +12,7 @@ tags:
 ---
 
 # Inspect
+
 ```flow
 SHOW_ITEM apple
 Sealed, sweet, and a little chalky.
