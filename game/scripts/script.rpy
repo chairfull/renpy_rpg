@@ -1,9 +1,12 @@
-﻿init python:
-    config.layers = [ 'master', 'transient', 'topdown', 'screens', 'overlay' ]
+﻿define config.layers = [ 'master', 'transient', 'topdown', 'screens', 'overlay' ]    
 
+define narr = Character("Narrator")
 
 label start:
     "Welcome to the AI RPG."
+    narr "This is a text-based adventure game where you can explore a world, interact with characters, and embark on quests."
+    narr "Before we begin, let's set up your character and choose your story."
+    
     # Reload data to ensure latest changes are picked up
     $ instantiate_all()
     
@@ -25,5 +28,6 @@ label start:
 label world_loop:
     window hide
     $ loc = rpg_world.current_location
+    show screen quest_panel onlayer overlay
     call screen top_down_map(loc) onlayer topdown
     jump world_loop

@@ -1190,15 +1190,28 @@ def compile(lint_only=False):
                 for tick in (data.get('ticks') or []):
                     label_name = tick.get('label')
                     flow_lines = tick.get('flow_lines') or []
-                    if not label_name or not flow_lines:
+                    if not label_name:
                         continue
                     if label_name in generated_labels:
                         continue
                     generated_labels.add(label_name)
                     label_line_no = flow_lines[0][0] if flow_lines else None
                     _append_script_line(f"label {label_name}:", source_path, label_line_no)
-                    _emit_flow(flow_lines, source_path)
-                    return_line_no = flow_lines[-1][0] if flow_lines else label_line_no
+
+                    # Inject standard GOAL flow commands so UI / guidance reacts
+                    # when a tick's flow is called at runtime. We inject a show,
+                    # an event dispatch (to mirror QUEST_TICK_COMPLETED), and
+                    # a complete call so the goal state updates visibly.
+                    qid = oid
+                    tid = tick.get('id')
+                    injected = []
+                    injected.append((label_line_no, f"GOAL: show {qid!r} {tid!r}"))
+                    injected.append((label_line_no, f"@event QUEST_TICK_COMPLETED quest={qid!r} tick={tid!r}"))
+                    injected.append((label_line_no, f"GOAL: complete {qid!r} {tid!r}"))
+
+                    # Emit injected lines first, then any author-provided flow lines
+                    _emit_flow(injected + flow_lines, source_path)
+                    return_line_no = (flow_lines[-1][0] if flow_lines else label_line_no)
                     _append_script_line("    return", source_path, return_line_no)
                     script_parts.append("\n")
 

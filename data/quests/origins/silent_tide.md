@@ -1,3 +1,4 @@
+````markdown
 ---
 type: quest
 id: silent_tide
@@ -27,6 +28,14 @@ trigger:
   event: CHAR_MET
   char_id: clerk
 ```
+```flow
+GOAL_SHOW silent_tide 1
+STORY The records in the shop are endless, their weight familiar and heavy.
+pc: Perhaps the clerk knows something about the patterns in our city.
+clerk: The archives hold many secrets. Few listen anymore.
+ANIM pc_nod
+GOAL_TICK silent_tide 1
+```
 The archives are quiet, the records heavy, and the city survives by listening more than shouting.
 
 
@@ -38,6 +47,15 @@ trigger:
   event: LOCATION_VISITED
   location: market
 ```
+```flow
+GOAL_SHOW silent_tide 2
+ANIM camera_pan market_to_harbor
+STORY A sound rises from the harbor—not quite music, not quite breathing.
+pc: There's a rhythm here... something old and patient.
+NOTIFY "You sense a pattern in the air, pulling your attention to the sea."
+ANIM pulse_waves harbor
+GOAL_TICK silent_tide 2
+```
 A new rhythm rises from the harbor. Track it before it swells.
 
 
@@ -48,6 +66,16 @@ guidance:
 trigger:
   event: LOCATION_VISITED
   location: shop
+```
+```flow
+GOAL_SHOW silent_tide 3
+ANIM pc_hesitate
+STORY The safety of the archives calls you back. Outside, the unknown waits.
+pc: Maybe it's safer to stay here. Record, catalog, preserve.
+clerk: The city has always needed watchers, not hunters.
+STORY You feel the weight of habit holding you in place.
+ANIM fade_to_shadows
+GOAL_TICK silent_tide 3
 ```
 Leaving the stacks feels like leaving the past. The risk is real, and so is the fear.
 
@@ -61,6 +89,17 @@ trigger:
   event: CHAR_MET
   char_id: ash
 ```
+```flow
+GOAL_SHOW silent_tide 4
+ANIM pc_enter_tavern
+STORY Ash sits quietly, listening to a sound only they can hear.
+pc: I've been tracking the rhythm from the harbor. Do you hear it?
+ash: For years. It's an old music, and the sleepers are its instrument.
+ash: Move slow. Breathe low. The tide carries wisdom, not anger.
+ANIM ash_hand_gesture_slow
+NOTIFY "Ash taught you the ways of the drift."
+GOAL_TICK silent_tide 4
+```
 Ash shares drift wisdom - move slow, breathe low, and let the sleepers pass.
 
 
@@ -71,6 +110,17 @@ guidance:
 trigger:
   event: LOCATION_VISITED
   location: docks
+```
+```flow
+GOAL_SHOW silent_tide 5
+ANIM camera_approach_docks
+STORY The docks are vast and still. No ships move. No voices rise. Only the pulse.
+pc: Here. I feel it strongest here.
+STORY The sleepers drift nearby, their steps synchronized to something unseen.
+ANIM sleepers_appear_distant
+NOTIFY "The rhythm grows clearer at the threshold between city and sea."
+ANIM pc_steady_breath
+GOAL_TICK silent_tide 5
 ```
 You step onto the silent docks, where the tide hums against empty hulls.
 
@@ -83,6 +133,17 @@ trigger:
   event: LOCATION_VISITED
   location: tavern
 ```
+```flow
+GOAL_SHOW silent_tide 6
+STORY You return to gather stories from those who witness the sleepers' rhythm.
+pc: I need to hear what others know about the tide. Will you tell me?
+ash: Every keeper in this city hears it differently. That's the secret.
+ANIM pc_listen_gesture
+STORY The testimonies weave together like a pattern only visible from far away.
+NOTIFY "Testimonies recorded: The rhythm is collective, not singular."
+ANIM threads_weave_together
+GOAL_TICK silent_tide 6
+```
 Gather quiet testimonies from the tavern and the clinic. The pattern is shared, not owned.
 
 
@@ -93,6 +154,17 @@ guidance:
 trigger:
   event: LOCATION_VISITED
   location: mage_tower
+```
+```flow
+GOAL_SHOW silent_tide 7
+ANIM camera_pan_to_tower
+STORY The tower looms above the city, its old transmitters silent but still potent.
+pc: The rhythm connects to the signal corridors. They all run through the tower.
+STORY You trace the pulse lines on ancient maps, seeing the architecture of sound.
+ANIM pc_draw_pattern
+NOTIFY "Signal corridors mapped: The broadcast system still remembers how to sing."
+ANIM glow_lines_pulse
+GOAL_TICK silent_tide 7
 ```
 You chart the pulse lines back toward the Broadcast Tower and the old signal corridors.
 
@@ -106,6 +178,18 @@ trigger:
   location: mage_tower
   cond: "flag_get('broadcast_tower_reached')"
 ```
+```flow
+GOAL_SHOW silent_tide 8
+ANIM darkness_descend tower_interior
+STORY The stairwell is labyrinthine, and the sleepers are everywhere here, drifting in spirals.
+pc: Stay calm. Move like the tide moves. Don't disturb the drift.
+STORY Your breath synchronizes with theirs. Your steps match their steps. You become part of the rhythm.
+ANIM pc_fade_into_crowd
+NOTIFY "You are one voice in the tide now."
+ANIM harmony_achieved
+STORY At last, you reach the inner console, untouched and still humming.
+GOAL_TICK silent_tide 8
+```
 The stairwell is still. You reach the inner console without waking the drift.
 
 
@@ -114,6 +198,17 @@ The stairwell is still. You reach the inner console without waking the drift.
 trigger:
   event: FLAG_SET
   flag: "harmonic_key_obtained"
+```
+```flow
+GOAL_SHOW silent_tide 9
+ANIM light_break_console
+STORY The console yields its secret—a frequency pattern written in old code, waiting generations for this moment.
+pc: Here. This is how to guide them, not drag them.
+STORY The harmonic key sings in your hands, no longer a weapon but a song.
+ANIM key_resonates_light
+NOTIFY "The Harmonic Key obtained: A frequency that guides without force."
+ANIM aura_harmonic
+GOAL_TICK silent_tide 9
 ```
 The harmonic key is clear at last - a tone that guides, not commands.
 
@@ -125,6 +220,17 @@ guidance:
 trigger:
   event: LOCATION_VISITED
   location: temple
+```
+```flow
+GOAL_SHOW silent_tide 10
+ANIM pc_walk_toward_temple
+STORY The temple is a place where voices gather. You carry something precious back to it.
+pc: I have a teaching to share. Will you listen?
+STORY The gathered fold listen as you explain the rhythm, the pattern, the way forward.
+ANIM circle_form_light
+NOTIFY "The pattern is translated: From archive to action, from silence to song."
+ANIM knowledge_spreads
+GOAL_TICK silent_tide 10
 ```
 Bring the pattern to the settlement and translate it for those who only hear silence.
 
@@ -138,6 +244,17 @@ trigger:
   location: market
   cond: "flag_get('broadcast_success')"
 ```
+```flow
+GOAL_SHOW silent_tide 11
+ANIM broadcast_frequency_activate
+STORY The harmonic frequency spreads through the city via signal corridors old and new.
+pc: Does it work? Do they follow the new rhythm?
+STORY The sleepers shift, slower, gentler, guided by a frequency that respects their choice.
+ANIM sleepers_redirect_slow
+NOTIFY "The broadcast succeeds: No force, no violence, only the rhythm continuing."
+ANIM city_harmonize
+GOAL_TICK silent_tide 11
+```
 The first broadcast is a trial of trust. The tide turns without panic.
 
 
@@ -148,6 +265,17 @@ guidance:
 trigger:
   event: LOCATION_VISITED
   location: temple
+```
+```flow
+GOAL_SHOW silent_tide 12
+ANIM temple_gather_all
+STORY The city assembles in the temple. The wisdom you bring is not conquest but coexistence.
+pc: The sleepers are not our enemy. They are part of the rhythm we all share.
+STORY A new way of being settles over the city like fog becoming rain.
+ANIM healing_light_spread
+NOTIFY "The Elixir shared: Wisdom without dominion, listening without control."
+ANIM city_transforms_gentle
+GOAL_TICK silent_tide 12
 ```
 You teach the city to listen, and the sleepers to follow a gentler path.
 
@@ -201,3 +329,5 @@ EVENT GAME_STARTED broadcast_attempt=true
 FLAG SET broadcast_attempted True
 GIVE protocol_deciphered 1
 ```
+
+````

@@ -95,19 +95,30 @@ style frame:
 ##
 ## https://www.renpy.org/doc/html/screen_special.html#say
 
+transform say_dissolve:
+    alpha 0.0
+    easeout_back 0.3 alpha 1.0
+    on hide:
+        linear 0.15 alpha 0.0
+
 screen say(who, what):
 
-    window:
+    window at say_dissolve:
         id "window"
 
-        if who is not None:
+        vbox:
+            xalign 0.5
+            spacing -8
+            yminimum 0
+            
+            if who is not None:
 
-            window:
-                id "namebox"
-                style "namebox"
-                text who id "who"
+                window:
+                    id "namebox"
+                    style "namebox"
+                    text who id "who"
 
-        text what id "what"
+            text what id "what" xalign 0.5 text_align 0.5 xmaximum gui.dialogue_width xfill True
 
 
     ## If there's a side image, display it above the text. Do not display on
@@ -138,26 +149,30 @@ style window:
     background Image("gui/textbox.png", xalign=0.5, yalign=1.0)
 
 style namebox:
-    xpos gui.name_xpos
-    xanchor gui.name_xalign
+    xalign 0.5
+    xanchor 0.5
     xsize gui.namebox_width
     ypos gui.name_ypos
     ysize gui.namebox_height
 
-    background Frame("gui/namebox.png", gui.namebox_borders, tile=gui.namebox_tile, xalign=gui.name_xalign)
+    background Frame("gui/namebox.png", gui.namebox_borders, tile=gui.namebox_tile, xalign=0.5)
     padding gui.namebox_borders.padding
 
 style say_label:
     properties gui.text_properties("name", accent=True)
-    xalign gui.name_xalign
+    xalign 0.5
     yalign 0.5
+    outlines text_outline_fx("#ffffff")
 
 style say_dialogue:
     properties gui.text_properties("dialogue")
 
-    xpos gui.dialogue_xpos
-    xsize gui.dialogue_width
+    xalign 0.5
+    xfill True
+    xmaximum gui.dialogue_width
     ypos gui.dialogue_ypos
+    text_align 0.5
+    outlines text_outline_fx("#000000")
 
     adjust_spacing False
 

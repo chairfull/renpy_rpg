@@ -114,7 +114,25 @@ screen phone_screen():
             
             # Status Bar
             hbox:
-                xfill True
+                spacing 10
+                $ selected = phone_selected_quest or quest_manager.get_active_quest()
+                $ next_tick = quest_next_tick(selected) if selected else None
+                if next_tick:
+                    vbox:
+                        spacing 8
+                        text "Goal: [next_tick.name]" size 16 color "#c9d3dd"
+                        if getattr(next_tick, 'required_value', None) and getattr(next_tick, 'current_value', None) is not None:
+                            $ cur = float(next_tick.current_value or 0.0)
+                            $ req = float(next_tick.required_value or 1.0)
+                            bar value (cur/ max(1.0, req)) xmaximum 420 yminimum 12
+                            text "Progress: [int(cur)] / [int(req)]" size 14 color "#c9d3dd"
+                        if next_tick.guidance and next_tick.guidance.get('location'):
+                            hbox:
+                                spacing 8
+                                textbutton "Jump To Location":
+                                    action [Function(rpg_world.move_to, next_tick.guidance.get('location')), SetVariable('phone_transition', 'to_mini'), SetVariable('phone_selected_quest', None)]
+                                    text_size 14
+                null xminimum 8
                 text "📱" size 18 color "#666"
                 text "[time_manager.time_string]" size 18 color "#888" xalign 0.5
                 text "🔋" size 18 color "#666" xalign 1.0
@@ -144,6 +162,7 @@ screen phone_screen():
                         xalign 0.5
                         use phone_app_icon("❤️", "Health", "health")
                         use phone_app_icon("🎒", "Inventory", "inventory")
+                        use phone_app_icon("🛡️", "Equipment", "equipment")
                     
                     # Row 3
                     hbox:
@@ -223,6 +242,7 @@ screen phone_landscape_ui():
                 use phone_nav_icon("📋", "Tasks", "tasks")
                 use phone_nav_icon("❤️", "Health", "health")
                 use phone_nav_icon("🎒", "Inventory", "inventory")
+                use phone_nav_icon("🛡️", "Equipment", "equipment")
                 use phone_nav_icon("🔍", "Search", "search")
                 use phone_nav_icon("👥", "Team", "companions")
                 use phone_nav_icon("📘", "Journal", "journal")
@@ -253,6 +273,8 @@ screen phone_landscape_content():
         use phone_companions_content
     elif phone_current_app == "inventory":
         use inventory_content
+    elif phone_current_app == "equipment":
+        use equipment_content
     elif phone_current_app == "stats":
         use phone_health_content
     elif phone_current_app == "journal":
@@ -296,6 +318,11 @@ screen phone_contact_list():
                 spacing 5
                 for char_id, char in rpg_world.characters.items():
                     if char.name != "Player":
+                        # Show only characters we've met or whose location has been revealed
+                        $ met = (str(char_id) in (persistent.met_characters or set()))
+                        $ known_loc = (persistent.known_character_locations and str(char_id) in persistent.known_character_locations)
+                        if not (met or known_loc):
+                            continue
                         button:
                             action SetVariable("phone_selected_contact", char)
                             hovered SetVariable("hovered_contact", char)
@@ -313,6 +340,11 @@ screen phone_contact_list():
                                     $ loc_name = rpg_world.locations.get(char.location_id, None)
                                     if loc_name:
                                         text "📍 [loc_name.name]" size 12 color "#666"
+                                    elif known_loc:
+                                        $ known_id = persistent.known_character_locations.get(str(char_id))
+                                        $ known_loc_obj = rpg_world.locations.get(known_id)
+                                        if known_loc_obj:
+                                            text "📍 [known_loc_obj.name] (reported)" size 12 color "#888"
 
 screen phone_contact_detail():
     $ char = phone_selected_contact
@@ -412,10 +444,12 @@ screen phone_tasks_fullscreen():
                                 $ next_tick = quest_next_tick(q)
                                 $ status = quest_status_label(q)
                                 $ is_active = (quest_manager.active_quest_id == q.id)
+                                # Highlight entry if this quest has the active tick
+                                $ entry_bg = ("#223326" if (next_tick and next_tick.state in ['active','shown']) else ("#1a2a1a" if q.state == "passed" else "#151a23"))
                                 button:
                                     action SetVariable("phone_selected_quest", q)
                                     xfill True
-                                    background ("#1a2a1a" if q.state == "passed" else "#151a23")
+                                    background entry_bg
                                     hover_background "#1e2633"
                                     padding (14, 12)
                                     vbox:
@@ -426,6 +460,14 @@ screen phone_tasks_fullscreen():
                                             text status size 12 color ("#4f4" if q.state == "passed" else "#9bb2c7") xalign 1.0
                                         if next_tick:
                                             text "Next: [next_tick.name]" size 14 color "#c9d3dd"
+                                            # Show compact progress if tick exposes values
+                                            if getattr(next_tick, 'required_value', None) and getattr(next_tick, 'current_value', None) is not None:
+                                                $ cur = float(next_tick.current_value or 0.0)
+                                                $ req = float(next_tick.required_value or 1.0)
+                                                hbox:
+                                                    spacing 6
+                                                    bar value (cur/ max(1.0, req)) xmaximum 140 yminimum 8
+                                                    text "[int(cur)]/[int(req)]" size 12 color "#c9d3dd"
                                         hbox:
                                             xfill True
                                             textbutton "Active":
@@ -472,6 +514,17 @@ screen phone_tasks_fullscreen():
                                 text next_tick.name size 18 color "#ffffff"
                                 if next_tick.required_value > 1:
                                     text "Progress: [next_tick.current_value]/[next_tick.required_value]" size 13 color "#9bb2c7"
+                                $ guidance = quest_manager.get_current_guidance()
+                                if guidance and guidance.get('quest') == selected.id and guidance.get('tick') == next_tick.id:
+                                    $ loc = rpg_world.locations.get(guidance.get('location')) if guidance.get('location') else None
+                                    if loc:
+                                        hbox:
+                                            spacing 8
+                                            text "Guidance:" size 13 color "#9bb2c7"
+                                            text loc.name size 13 color "#fff"
+                                            textbutton "Show on Map":
+                                                action Function(map_manager.select_location, loc)
+                                                text_size 13
 
                     text "Objectives" size 16 color "#9bb2c7"
                     vbox:

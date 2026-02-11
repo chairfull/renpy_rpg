@@ -115,6 +115,15 @@ screen meta_menu():
                 hovered Function(set_tooltip, "Quests, notes, and people")
                 unhovered Function(set_tooltip, None)
             
+            textbutton "Equipment":
+                action SetVariable("meta_menu_tab", "equipment")
+                style "tab_button"
+                text_style "tab_button_text"
+                selected (meta_menu_tab == "equipment")
+                tooltip "Manage equipped items"
+                hovered Function(set_tooltip, "Manage equipped items")
+                unhovered Function(set_tooltip, None)
+
             textbutton "🏆":
                 action SetVariable("meta_menu_tab", "achievements")
                 style "tab_button"
@@ -133,6 +142,8 @@ screen meta_menu():
             
             if meta_menu_tab == "inventory":
                 use inventory_content
+            elif meta_menu_tab == "equipment":
+                use equipment_content
             elif meta_menu_tab == "stats":
                 use stats_content
             elif meta_menu_tab == "crafting":
@@ -284,27 +295,7 @@ screen inventory_content():
             xfill True
             yfill True
             
-            frame:
-                background "#1a1a25"
-                xsize 320
-                yfill True
-                padding (14, 14)
-                vbox:
-                    spacing 10
-                    text "Equipped" size 18 color "#ffd700"
-                    $ body_slots = slot_registry.get_slots_for_body(pc.body_type)
-                    $ equipped_any = False
-                    for slot_id in body_slots:
-                        $ item = pc.equipped_slots.get(slot_id)
-                        if item:
-                            $ equipped_any = True
-                            $ slot_def = slot_registry.slots.get(slot_id, {})
-                            hbox:
-                                spacing 8
-                                text slot_def.get("name", slot_id) size 14 color "#aaa"
-                                text item.name size 14 color "#fff" xalign 1.0
-                    if not equipped_any:
-                        text "Nothing equipped" size 14 color "#666"
+            # Equipped box removed from main inventory; use Equipment tab instead
             
             vbox:
                 spacing 12

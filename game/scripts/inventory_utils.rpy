@@ -10,6 +10,16 @@ init python:
         renpy.notify(msg)
         renpy.restart_interaction()
 
+    def _unequip_and_refresh(slot_id):
+        try:
+            pc.unequip(slot_id)
+        except Exception:
+            pass
+        try:
+            renpy.restart_interaction()
+        except Exception:
+            pass
+
     def build_inventory_entries(inv):
         grouped = {}
         for item in inv.items:

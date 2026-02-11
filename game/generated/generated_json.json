@@ -2962,7 +2962,32 @@
                         ]
                     },
                     "label": "QUEST__silent_tide__ordinary_world",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 1"
+                        ],
+                        [
+                            null,
+                            "STORY The records in the shop are endless, their weight familiar and heavy."
+                        ],
+                        [
+                            null,
+                            "pc: Perhaps the clerk knows something about the patterns in our city."
+                        ],
+                        [
+                            null,
+                            "clerk: The archives hold many secrets. Few listen anymore."
+                        ],
+                        [
+                            null,
+                            "ANIM pc_nod"
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 1"
+                        ]
+                    ]
                 },
                 {
                     "id": "call_to_adventure",
@@ -2975,7 +3000,36 @@
                         "location": "market"
                     },
                     "label": "QUEST__silent_tide__call_to_adventure",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 2"
+                        ],
+                        [
+                            null,
+                            "ANIM camera_pan market_to_harbor"
+                        ],
+                        [
+                            null,
+                            "STORY A sound rises from the harbor\u2014not quite music, not quite breathing."
+                        ],
+                        [
+                            null,
+                            "pc: There's a rhythm here... something old and patient."
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"You sense a pattern in the air, pulling your attention to the sea.\""
+                        ],
+                        [
+                            null,
+                            "ANIM pulse_waves harbor"
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 2"
+                        ]
+                    ]
                 },
                 {
                     "id": "refusal_of_the_call",
@@ -2988,7 +3042,40 @@
                         "location": "shop"
                     },
                     "label": "QUEST__silent_tide__refusal_of_the_call",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 3"
+                        ],
+                        [
+                            null,
+                            "ANIM pc_hesitate"
+                        ],
+                        [
+                            null,
+                            "STORY The safety of the archives calls you back. Outside, the unknown waits."
+                        ],
+                        [
+                            null,
+                            "pc: Maybe it's safer to stay here. Record, catalog, preserve."
+                        ],
+                        [
+                            null,
+                            "clerk: The city has always needed watchers, not hunters."
+                        ],
+                        [
+                            null,
+                            "STORY You feel the weight of habit holding you in place."
+                        ],
+                        [
+                            null,
+                            "ANIM fade_to_shadows"
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 3"
+                        ]
+                    ]
                 },
                 {
                     "id": "meeting_the_mentor",
@@ -3004,7 +3091,44 @@
                         ]
                     },
                     "label": "QUEST__silent_tide__meeting_the_mentor",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 4"
+                        ],
+                        [
+                            null,
+                            "ANIM pc_enter_tavern"
+                        ],
+                        [
+                            null,
+                            "STORY Ash sits quietly, listening to a sound only they can hear."
+                        ],
+                        [
+                            null,
+                            "pc: I've been tracking the rhythm from the harbor. Do you hear it?"
+                        ],
+                        [
+                            null,
+                            "ash: For years. It's an old music, and the sleepers are its instrument."
+                        ],
+                        [
+                            null,
+                            "ash: Move slow. Breathe low. The tide carries wisdom, not anger."
+                        ],
+                        [
+                            null,
+                            "ANIM ash_hand_gesture_slow"
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"Ash taught you the ways of the drift.\""
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 4"
+                        ]
+                    ]
                 },
                 {
                     "id": "crossing_the_threshold",
@@ -3017,7 +3141,44 @@
                         "location": "docks"
                     },
                     "label": "QUEST__silent_tide__crossing_the_threshold",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 5"
+                        ],
+                        [
+                            null,
+                            "ANIM camera_approach_docks"
+                        ],
+                        [
+                            null,
+                            "STORY The docks are vast and still. No ships move. No voices rise. Only the pulse."
+                        ],
+                        [
+                            null,
+                            "pc: Here. I feel it strongest here."
+                        ],
+                        [
+                            null,
+                            "STORY The sleepers drift nearby, their steps synchronized to something unseen."
+                        ],
+                        [
+                            null,
+                            "ANIM sleepers_appear_distant"
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"The rhythm grows clearer at the threshold between city and sea.\""
+                        ],
+                        [
+                            null,
+                            "ANIM pc_steady_breath"
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 5"
+                        ]
+                    ]
                 },
                 {
                     "id": "tests_and_allies",
@@ -3030,7 +3191,44 @@
                         "location": "tavern"
                     },
                     "label": "QUEST__silent_tide__tests_and_allies",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 6"
+                        ],
+                        [
+                            null,
+                            "STORY You return to gather stories from those who witness the sleepers' rhythm."
+                        ],
+                        [
+                            null,
+                            "pc: I need to hear what others know about the tide. Will you tell me?"
+                        ],
+                        [
+                            null,
+                            "ash: Every keeper in this city hears it differently. That's the secret."
+                        ],
+                        [
+                            null,
+                            "ANIM pc_listen_gesture"
+                        ],
+                        [
+                            null,
+                            "STORY The testimonies weave together like a pattern only visible from far away."
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"Testimonies recorded: The rhythm is collective, not singular.\""
+                        ],
+                        [
+                            null,
+                            "ANIM threads_weave_together"
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 6"
+                        ]
+                    ]
                 },
                 {
                     "id": "approach",
@@ -3043,7 +3241,44 @@
                         "location": "mage_tower"
                     },
                     "label": "QUEST__silent_tide__approach",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 7"
+                        ],
+                        [
+                            null,
+                            "ANIM camera_pan_to_tower"
+                        ],
+                        [
+                            null,
+                            "STORY The tower looms above the city, its old transmitters silent but still potent."
+                        ],
+                        [
+                            null,
+                            "pc: The rhythm connects to the signal corridors. They all run through the tower."
+                        ],
+                        [
+                            null,
+                            "STORY You trace the pulse lines on ancient maps, seeing the architecture of sound."
+                        ],
+                        [
+                            null,
+                            "ANIM pc_draw_pattern"
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"Signal corridors mapped: The broadcast system still remembers how to sing.\""
+                        ],
+                        [
+                            null,
+                            "ANIM glow_lines_pulse"
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 7"
+                        ]
+                    ]
                 },
                 {
                     "id": "ordeal",
@@ -3057,7 +3292,48 @@
                         "location": "mage_tower"
                     },
                     "label": "QUEST__silent_tide__ordeal",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 8"
+                        ],
+                        [
+                            null,
+                            "ANIM darkness_descend tower_interior"
+                        ],
+                        [
+                            null,
+                            "STORY The stairwell is labyrinthine, and the sleepers are everywhere here, drifting in spirals."
+                        ],
+                        [
+                            null,
+                            "pc: Stay calm. Move like the tide moves. Don't disturb the drift."
+                        ],
+                        [
+                            null,
+                            "STORY Your breath synchronizes with theirs. Your steps match their steps. You become part of the rhythm."
+                        ],
+                        [
+                            null,
+                            "ANIM pc_fade_into_crowd"
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"You are one voice in the tide now.\""
+                        ],
+                        [
+                            null,
+                            "ANIM harmony_achieved"
+                        ],
+                        [
+                            null,
+                            "STORY At last, you reach the inner console, untouched and still humming."
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 8"
+                        ]
+                    ]
                 },
                 {
                     "id": "reward",
@@ -3068,7 +3344,44 @@
                     },
                     "guidance": {},
                     "label": "QUEST__silent_tide__reward",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 9"
+                        ],
+                        [
+                            null,
+                            "ANIM light_break_console"
+                        ],
+                        [
+                            null,
+                            "STORY The console yields its secret\u2014a frequency pattern written in old code, waiting generations for this moment."
+                        ],
+                        [
+                            null,
+                            "pc: Here. This is how to guide them, not drag them."
+                        ],
+                        [
+                            null,
+                            "STORY The harmonic key sings in your hands, no longer a weapon but a song."
+                        ],
+                        [
+                            null,
+                            "ANIM key_resonates_light"
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"The Harmonic Key obtained: A frequency that guides without force.\""
+                        ],
+                        [
+                            null,
+                            "ANIM aura_harmonic"
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 9"
+                        ]
+                    ]
                 },
                 {
                     "id": "the_road_back",
@@ -3081,7 +3394,44 @@
                         "location": "temple"
                     },
                     "label": "QUEST__silent_tide__the_road_back",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 10"
+                        ],
+                        [
+                            null,
+                            "ANIM pc_walk_toward_temple"
+                        ],
+                        [
+                            null,
+                            "STORY The temple is a place where voices gather. You carry something precious back to it."
+                        ],
+                        [
+                            null,
+                            "pc: I have a teaching to share. Will you listen?"
+                        ],
+                        [
+                            null,
+                            "STORY The gathered fold listen as you explain the rhythm, the pattern, the way forward."
+                        ],
+                        [
+                            null,
+                            "ANIM circle_form_light"
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"The pattern is translated: From archive to action, from silence to song.\""
+                        ],
+                        [
+                            null,
+                            "ANIM knowledge_spreads"
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 10"
+                        ]
+                    ]
                 },
                 {
                     "id": "resurrection",
@@ -3095,7 +3445,44 @@
                         "location": "market"
                     },
                     "label": "QUEST__silent_tide__resurrection",
-                    "flow_lines": []
+                    "flow_lines": [
+                        [
+                            null,
+                            "GOAL_SHOW silent_tide 11"
+                        ],
+                        [
+                            null,
+                            "ANIM broadcast_frequency_activate"
+                        ],
+                        [
+                            null,
+                            "STORY The harmonic frequency spreads through the city via signal corridors old and new."
+                        ],
+                        [
+                            null,
+                            "pc: Does it work? Do they follow the new rhythm?"
+                        ],
+                        [
+                            null,
+                            "STORY The sleepers shift, slower, gentler, guided by a frequency that respects their choice."
+                        ],
+                        [
+                            null,
+                            "ANIM sleepers_redirect_slow"
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"The broadcast succeeds: No force, no violence, only the rhythm continuing.\""
+                        ],
+                        [
+                            null,
+                            "ANIM city_harmonize"
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 11"
+                        ]
+                    ]
                 },
                 {
                     "id": "return_with_the_elixir",
@@ -3111,7 +3498,39 @@
                     "flow_lines": [
                         [
                             null,
-                            "The Silent Tide becomes a living practice, and the city learns to survive without violence."
+                            "GOAL_SHOW silent_tide 12"
+                        ],
+                        [
+                            null,
+                            "ANIM temple_gather_all"
+                        ],
+                        [
+                            null,
+                            "STORY The city assembles in the temple. The wisdom you bring is not conquest but coexistence."
+                        ],
+                        [
+                            null,
+                            "pc: The sleepers are not our enemy. They are part of the rhythm we all share."
+                        ],
+                        [
+                            null,
+                            "STORY A new way of being settles over the city like fog becoming rain."
+                        ],
+                        [
+                            null,
+                            "ANIM healing_light_spread"
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"The Elixir shared: Wisdom without dominion, listening without control.\""
+                        ],
+                        [
+                            null,
+                            "ANIM city_transforms_gentle"
+                        ],
+                        [
+                            null,
+                            "GOAL_TICK silent_tide 12"
                         ]
                     ]
                 },
@@ -3204,19 +3623,19 @@
                     "label": "QUEST__silent_tide__ask_clerk",
                     "flow_lines": [
                         [
-                            170,
+                            298,
                             "pc: Excuse me \u2014 have you noticed the sleepers' rhythm?"
                         ],
                         [
-                            171,
+                            299,
                             "clerk: It's old as the docks. Folks hush and follow it when the moon leans right."
                         ],
                         [
-                            172,
+                            300,
                             "FLAG SET asked_clerk True"
                         ],
                         [
-                            173,
+                            301,
                             "NOTIFY \"Clerk: They remember a tune from the sea.\""
                         ]
                     ]
@@ -3229,19 +3648,19 @@
                     "label": "QUEST__silent_tide__share_with_ash",
                     "flow_lines": [
                         [
-                            184,
+                            312,
                             "pc: I tracked the tide lines \u2014 I think I can shape them without force."
                         ],
                         [
-                            185,
+                            313,
                             "ash: If you can hum it slow enough, maybe they follow a kinder path."
                         ],
                         [
-                            186,
+                            314,
                             "FLAG SET shared_with_ash True"
                         ],
                         [
-                            187,
+                            315,
                             "NOTIFY \"Ash: We can try a gentle frequency.\""
                         ]
                     ]
@@ -3254,23 +3673,23 @@
                     "label": "QUEST__silent_tide__attempt_broadcast",
                     "flow_lines": [
                         [
-                            198,
+                            326,
                             "pc: I can try the harmonic broadcast \u2014 hand me the key."
                         ],
                         [
-                            199,
+                            327,
                             "clerk: If it works, it could guide them. If it fails..."
                         ],
                         [
-                            200,
+                            328,
                             "EVENT GAME_STARTED broadcast_attempt=true"
                         ],
                         [
-                            201,
+                            329,
                             "FLAG SET broadcast_attempted True"
                         ],
                         [
-                            202,
+                            330,
                             "GIVE protocol_deciphered 1"
                         ]
                     ]

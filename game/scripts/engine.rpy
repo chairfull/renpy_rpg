@@ -1,5 +1,6 @@
 default persistent.met_characters = set()
 default persistent.unlocked_notes = set()
+default persistent.known_character_locations = {}
 default persistent.achievement_progress = {}
 default persistent.unlocked_scenes = set()
 default world_flags = {}
@@ -1370,6 +1371,48 @@ init -10 python:
         except Exception as e:
             renpy.log(f"Error while gathering quest choices for menu {menu_id}: {e}")
         return res
+
+    # Small UI toast for goal/tick updates to give micro-feedback to the player.
+    def _on_quest_tick(etype, **kwargs):
+        try:
+            qid = kwargs.get('quest')
+            tick_id = kwargs.get('tick')
+            q = quest_manager.quests.get(qid)
+            t = None
+            if q:
+                for tt in q.ticks:
+                    if tt.id == tick_id:
+                        t = tt
+                        break
+            if q and t:
+                renpy.notify(f"Goal updated: {q.name} — {t.name}")
+            elif q:
+                renpy.notify(f"Goal updated: {q.name}")
+            else:
+                renpy.notify(f"Goal updated")
+        except Exception:
+            pass
+
+    event_manager.subscribe("QUEST_TICK_COMPLETED", _on_quest_tick)
+
+    def set_character_known_location(char_id, location_id):
+        """Mark a character's location as known (persisted) and notify systems.
+        Can be called from flows or quest code to reveal where a person is even
+        if the player hasn't met them yet.
+        """
+        try:
+            if persistent.known_character_locations is None:
+                persistent.known_character_locations = {}
+            persistent.known_character_locations[str(char_id)] = str(location_id)
+            # Update runtime object if present
+            if getattr(rpg_world, 'characters', None) and str(char_id) in rpg_world.characters:
+                setattr(rpg_world.characters[str(char_id)], 'known_location_id', str(location_id))
+            renpy.notify(f"Location revealed: {char_id} @ {location_id}")
+            event_manager.dispatch("CHAR_LOCATION_KNOWN", char=char_id, location=location_id)
+            return True
+        except Exception as e:
+            renpy.log(f"Error setting known location for {char_id}: {e}")
+            return False
 
     # --- DEBUG HELPERS ---
     def q_force_tick(qid, tick_idx):
