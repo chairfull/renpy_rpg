@@ -6,397 +6,93 @@ import argparse
 import sys
 import shlex
 
-def parse_markdown(filepath):
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            raw_lines = f.read().splitlines()
-    except Exception as e:
-        print(f"Error reading {filepath}: {e}")
-        return None, None, None, None
-    
-    delim_idxs = [i for i, line in enumerate(raw_lines) if line.strip() == "---"]
-    if len(delim_idxs) < 2:
-        return None, None, None, None
-    
-    start = delim_idxs[0]
-    end = delim_idxs[1]
-    props_lines = raw_lines[start + 1:end]
-    body_raw_lines = raw_lines[end + 1:]
-    body_start_line = end + 2  # 1-based
-    
-    props = {}
-    i = 0
-    while i < len(props_lines):
-        line = props_lines[i]
-        if not line.strip():
-            i += 1
-            continue
-        if ':' in line and not line.strip().startswith('-'):
-            k, v = line.split(':', 1)
-            k, v = k.strip(), v.strip().strip('"').strip("'")
-            if not v: # Block value
-                block = []
-                j = i + 1
-                while j < len(props_lines) and (not props_lines[j].strip() or props_lines[j].startswith(' ') or props_lines[j].strip().startswith('-')):
-                    if props_lines[j].strip():
-                        block.append(props_lines[j])
-                    j += 1
-                props[k] = block
-                i = j
-                continue
-            props[k] = v
-        i += 1
-    
-    body = "\n".join(body_raw_lines).strip()
-    body_lines = [(body_start_line + i, line) for i, line in enumerate(body_raw_lines)]
-    return props, body, body_start_line, body_lines
+try:
+    from .compile_helpers import (
+        parse_markdown,
+        parse_yaml_list,
+        parse_yaml_block,
+        parse_counts,
+        parse_csv,
+        parse_bool,
+        parse_int,
+        parse_float,
+        parse_kv_block,
+        slugify_segment,
+        label_safe,
+        _lines_to_text,
+        extract_locations_section,
+        extract_named_section,
+        find_named_section,
+        split_sections,
+        extract_flow_blocks,
+        extract_yaml_block,
+    )
+except Exception:
+    from compile_helpers import (
+        parse_markdown,
+        parse_yaml_list,
+        parse_yaml_block,
+        parse_counts,
+        parse_csv,
+        parse_bool,
+        parse_int,
+        parse_float,
+        parse_kv_block,
+        slugify_segment,
+        label_safe,
+        _lines_to_text,
+        extract_locations_section,
+        extract_named_section,
+        find_named_section,
+        split_sections,
+        extract_flow_blocks,
+        extract_yaml_block,
+    )
 
-def parse_yaml_list(lines):
-    """Safely parse a block of YAML lines into a list of dictionaries."""
-    if not lines:
-        return []
-    try:
-        # Join the lines with newlines to form a valid YAML block string
-        yaml_content = "\n".join(lines)
-        data = yaml.safe_load(yaml_content)
-        if isinstance(data, list):
-            return data
-        elif isinstance(data, dict):
-             # Sometimes it might be a single dict if not starting with "-"
-             return [data]
-        return []
-    except Exception as e:
-        print(f"Error parsing YAML list block: {e}")
-        return []
+def parse_quest_ticks(body, qid, source_path=None):
+    def slug(s):
+        return s.lower().replace(' ', '_')
+    ticks = []
+    sections = re.split(r'(?m)^##\s*', body)
+    for sec in sections[1:]:  # Skip intro
+        lines = sec.split('\n', 1)
+        name = lines[0].strip()
+        sid = slug(name)
+        content = lines[1] if len(lines) > 1 else ""
 
-def parse_yaml_block(value, default=None):
-    """Safely parse a block of YAML lines into a dict or list."""
-    if value is None:
-        return default if default is not None else {}
-    if isinstance(value, dict):
-        return value
-
-    if isinstance(value, str):
-        try:
-            data = yaml.safe_load(value)
-            return data if data is not None else (default if default is not None else {})
-        except Exception as e:
-            print(f"Error parsing YAML block: {e}")
-            return default if default is not None else {}
-    if isinstance(value, list):
-        try:
-            data = yaml.safe_load("\n".join(value))
-            return data if data is not None else (default if default is not None else {})
-        except Exception as e:
-            print(f"Error parsing YAML block: {e}")
-            return default if default is not None else {}
-    return default if default is not None else {}
-
-def parse_counts(val):
-    """Parse a YAML list/dict of counts into a {id: count} dict."""
-    res = {}
-    if isinstance(val, list):
-        for item in val:
-            if isinstance(item, dict):
-                for k, v in item.items():
-                    try:
-                        res[str(k).strip()] = int(v)
-                    except Exception:
-                        continue
-            elif isinstance(item, str) and ':' in item:
-                k, v = item.split(':', 1)
+        # Extract metadata from yaml or trigger blocks
+        meta = {}
+        for block_type in ['yaml', 'trigger', 'guidance']:
+            matches = re.finditer(r'```' + block_type + r'\s*\n(.*?)\n```', content, re.DOTALL)
+            for m in matches:
                 try:
-                    res[k.strip()] = int(v.strip())
-                except Exception:
-                    continue
-    elif isinstance(val, dict):
-        for k, v in val.items():
-            try:
-                res[str(k).strip()] = int(v)
-            except Exception:
-                continue
-    return res
+                    data = yaml.safe_load(m.group(1))
+                    if isinstance(data, dict):
+                        meta.update(data)
+                except Exception as e:
+                    src = f" in {source_path}" if source_path else ""
+                    print(f"Error parsing {block_type} for {qid}:{sid}{src}: {e}")
 
-def parse_csv(value):
-    """Safely parse a comma-separated value that might be a string, list, or empty."""
-    if not value:
-        return []
-    if isinstance(value, list):
-        # Already a list - flatten and clean
-        result = []
-        for item in value:
-            # Convert to string if not already
-            item_str = str(item)
-            # Clean YAML list markers if present
-            cleaned = item_str.strip()
-            if cleaned.startswith('- '):
-                cleaned = cleaned[2:].strip()
-            elif cleaned.startswith('-'):
-                cleaned = cleaned[1:].strip()
-            
-            # Split by comma in case it's a mix
-            result.extend([x.strip() for x in cleaned.split(',') if x.strip()])
-        return result
-    if isinstance(value, str):
-        cleaned = value.strip()
-        if cleaned.startswith('[') and cleaned.endswith(']'):
-            cleaned = cleaned[1:-1]
-        return [x.strip() for x in cleaned.split(',') if x.strip()]
-    return []
+        trigger = meta.get('trigger', meta if 'event' in meta else {})
+        guidance = meta.get('guidance', meta.get('highlight', {}))
 
-def parse_bool(value, default=False):
-    if value is None:
-        return default
-    if isinstance(value, bool):
-        return value
-    return str(value).strip().lower() in ("1", "true", "yes", "y", "on")
+        # Attempt to extract any flow block attached to this goal so the compiler
+        # can emit a Ren'Py label that runs when the tick triggers.
+        # Build a simple (line_no, line) list for extract_flow_blocks.
+        content_lines = [(None, l) for l in (content or "").splitlines()]
+        flow_blocks = extract_flow_blocks(content_lines)
+        flow_lines = flow_blocks[0].get('lines') if flow_blocks else []
 
-def parse_int(value, default=None):
-    if value is None or value == "":
-        return default
-    try:
-        return int(value)
-    except Exception:
-        return default
-
-def parse_float(value, default=None):
-    if value is None or value == "":
-        return default
-    try:
-        return float(value)
-    except Exception:
-        return default
-
-def parse_kv_block(lines):
-    result = {}
-    if not isinstance(lines, list):
-        return result
-    for line in lines:
-        line = line.strip()
-        if ':' in line:
-            k, v = line.split(':', 1)
-            k = k.strip().replace('- ', '')
-            try:
-                result[k] = int(v.strip())
-            except ValueError:
-                try:
-                    result[k] = float(v.strip())
-                except ValueError:
-                    result[k] = v.strip()
-    return result
-
-def slugify_segment(text):
-    if text is None:
-        return "loc"
-    s = str(text).strip().lower()
-    s = re.sub(r'[^a-z0-9\s_-]', '', s)
-    s = s.replace('_', '-')
-    s = re.sub(r'\s+', '-', s)
-    s = re.sub(r'-+', '-', s).strip('-')
-    return s or "loc"
-
-def label_safe(text):
-    if text is None:
-        return "id"
-    s = re.sub(r'[^0-9a-zA-Z_]+', '_', str(text))
-    s = re.sub(r'_+', '_', s).strip('_')
-    return s or "id"
-
-def _lines_to_text(lines_with_no):
-    return "\n".join(line for _, line in lines_with_no).strip()
-
-def extract_locations_section(body_lines):
-    if not body_lines:
-        return [], body_lines
-    start = None
-    base_level = None
-    for i, (_, line) in enumerate(body_lines):
-        m = re.match(r'^(#+)\s*Locations\s*$', line.strip(), re.IGNORECASE)
-        if m:
-            start = i
-            base_level = len(m.group(1))
-            break
-    if start is None:
-        return [], body_lines
-    end = len(body_lines)
-    for j in range(start + 1, len(body_lines)):
-        m = re.match(r'^(#+)\s+', body_lines[j][1])
-        if m and len(m.group(1)) <= base_level:
-            end = j
-            break
-    section_lines = body_lines[start + 1:end]
-    clean_lines = body_lines[:start] + body_lines[end:]
-    nodes = []
-    stack = []
-    current = None
-    for line_no, line in section_lines:
-        m = re.match(r'^(#+)\s+(.*)$', line)
-        if m:
-            level = len(m.group(1))
-            title = m.group(2).strip()
-            if level <= base_level:
-                break
-            while stack and stack[-1]["level"] >= level:
-                stack.pop()
-            parent = stack[-1] if stack else None
-            node = {
-                "title": title,
-                "level": level,
-                "slug": slugify_segment(title),
-                "content_lines": [],
-                "parent": parent,
-                "children": []
-            }
-            nodes.append(node)
-            if parent:
-                parent["children"].append(node)
-            stack.append(node)
-            current = node
-            continue
-        if current:
-            current["content_lines"].append((line_no, line))
-    return nodes, clean_lines
-
-def extract_named_section(body_lines, title):
-    """Extract a markdown section by heading title, return (section_lines, clean_lines, base_level)."""
-    if not body_lines:
-        return [], body_lines, None
-    start = None
-    base_level = None
-    title_re = re.compile(r'^(#+)\s*' + re.escape(title) + r'\s*$', re.IGNORECASE)
-    for i, (_, line) in enumerate(body_lines):
-        m = title_re.match(line.strip())
-        if m:
-            start = i
-            base_level = len(m.group(1))
-            break
-    if start is None:
-        return [], body_lines, None
-    end = len(body_lines)
-    for j in range(start + 1, len(body_lines)):
-        m = re.match(r'^(#+)\s+', body_lines[j][1])
-        if m and len(m.group(1)) <= base_level:
-            end = j
-            break
-    section_lines = body_lines[start + 1:end]
-    clean_lines = body_lines[:start] + body_lines[end:]
-    return section_lines, clean_lines, base_level
-
-def find_named_section(body_lines, title):
-    """Find a markdown section by heading title, return (section_lines, base_level)."""
-    if not body_lines:
-        return [], None
-    start = None
-    base_level = None
-    title_re = re.compile(r'^(#+)\s*' + re.escape(title) + r'\s*$', re.IGNORECASE)
-    for i, (_, line) in enumerate(body_lines):
-        m = title_re.match(line.strip())
-        if m:
-            start = i
-            base_level = len(m.group(1))
-            break
-    if start is None:
-        return [], None
-    end = len(body_lines)
-    for j in range(start + 1, len(body_lines)):
-        m = re.match(r'^(#+)\s+', body_lines[j][1])
-        if m and len(m.group(1)) <= base_level:
-            end = j
-            break
-    section_lines = body_lines[start + 1:end]
-    return section_lines, base_level
-
-def split_sections(body_lines):
-    sections = []
-    stack = [] # (level, slug)
-    current = None
-    for line_no, line in body_lines:
-        m = re.match(r'^(#+)\s+(.*)$', line)
-        if m:
-            level = len(m.group(1))
-            title = m.group(2).strip()
-            slug = label_safe(title).lower()
-            
-            while stack and stack[-1][0] >= level:
-                stack.pop()
-            stack.append((level, slug))
-            
-            # Create a path of slugs separated by __
-            path = "__".join(item[1] for item in stack)
-            
-            if current:
-                sections.append(current)
-            current = {
-                "heading": title,
-                "path": path,
-                "heading_line": line_no,
-                "lines": []
-            }
-            continue
-        if current:
-            current["lines"].append((line_no, line))
-    if current:
-        sections.append(current)
-    return sections
-
-def extract_flow_blocks(lines_with_no):
-    blocks = []
-    in_block = False
-    block_lines = []
-    start_line = None
-    for line_no, line in lines_with_no:
-        if not in_block:
-            if re.match(r'^\s*```flow\b', line):
-                in_block = True
-                block_lines = []
-                start_line = (line_no + 1) if line_no is not None else None
-            continue
-        if line.strip().startswith("```"):
-            end_line = block_lines[-1][0] if block_lines else start_line
-            blocks.append({
-                "lines": block_lines,
-                "start_line": start_line,
-                "end_line": end_line
-            })
-            in_block = False
-            block_lines = []
-            start_line = None
-            continue
-        block_lines.append((line_no, line))
-    if in_block:
-        end_line = block_lines[-1][0] if block_lines else start_line
-        blocks.append({
-            "lines": block_lines,
-            "start_line": start_line,
-            "end_line": end_line
+        ticks.append({
+            "id": sid,
+            "name": name,
+            "trigger": trigger,
+            "guidance": guidance,
+            "label": f"QUEST__{label_safe(qid)}__{label_safe(sid)}",
+            "flow_lines": flow_lines
         })
-    return blocks
 
-def extract_yaml_block(lines_with_no):
-    if not lines_with_no:
-        return {}, lines_with_no
-    start = None
-    end = None
-    for i, (_, line) in enumerate(lines_with_no):
-        if line.strip().startswith("```yaml"):
-            start = i
-            break
-    if start is None:
-        return {}, lines_with_no
-    for j in range(start + 1, len(lines_with_no)):
-        if lines_with_no[j][1].strip().startswith("```"):
-            end = j
-            break
-    if end is None:
-        return {}, lines_with_no
-    yaml_lines = [line for _, line in lines_with_no[start + 1:end]]
-    yaml_text = "\n".join(yaml_lines)
-    try:
-        data = yaml.safe_load(yaml_text) or {}
-    except Exception:
-        data = {}
-    cleaned_lines = lines_with_no[:start] + lines_with_no[end + 1:]
-    return data, cleaned_lines
+    return ticks
 
 FLOW_COMMANDS = {
     "event",
@@ -751,41 +447,7 @@ def compile(lint_only=False):
         rel_norm = rel_path.replace(os.sep, "/")
         return rel_norm.startswith("quests/origins/")
     
-    def parse_quest_ticks(body, qid):
-        def slug(s): return s.lower().replace(' ', '_')
-        ticks = []
-        sections = re.split(r'(?m)^##\s*', body)
-        for sec in sections[1:]: # Skip intro
-            lines = sec.split('\n', 1)
-            name = lines[0].strip()
-            sid = slug(name)
-            content = lines[1] if len(lines) > 1 else ""
-            
-            # Extract metadata from yaml or trigger blocks
-            meta = {}
-            # Check for multiple blocks and merge them
-            for block_type in ['yaml', 'trigger', 'guidance']:
-                matches = re.finditer(r'```' + block_type + r'\s*\n(.*?)\n```', content, re.DOTALL)
-                for m in matches:
-                    try:
-                        data = yaml.safe_load(m.group(1))
-                        if isinstance(data, dict):
-                            meta.update(data)
-                    except:
-                        print(f"Error parsing {block_type} for {qid}:{sid}")
-            
-            trigger = meta.get('trigger', meta if 'event' in meta else {})
-            guidance = meta.get('guidance', meta.get('highlight', {}))
-            
-            ticks.append({
-                "id": sid,
-                "name": name,
-                "trigger": trigger,
-                "guidance": guidance,
-                "label": f"QUEST__{qid}__{sid}"
-            })
-
-        return ticks
+    # parse_quest_ticks is provided at module-level to allow tests and re-use
 
     for root, dirs, files in os.walk(data_dir):
         for f in files:
@@ -1111,7 +773,7 @@ def compile(lint_only=False):
                             "memory": config.get('memory', False),
                             "reason": config.get('reason'),
                             "cond": str(config.get('cond', 'True')),
-                            "label": f"CHOICE__{opt_id}",
+                            "label": f"CHOICE__{label_safe(obj_id)}__{label_safe(opt_name)}",
                             "body": f"```flow\n{flow_content}\n```"
                         }
                         source_info[("dialogue", opt_id)] = {
@@ -1139,7 +801,7 @@ def compile(lint_only=False):
                     "location": props.get('location'),
                     "tags": tags,
                     "origin": origin_flag,
-                    "pc_id": props.get('pc_id'),
+                    "character": props.get('character') or props.get('pc_id'),
                     "image": props.get('image'),
                     "prereqs": {
                         "quests": parse_csv(prereqs_raw.get('quests', [])) if isinstance(prereqs_raw, dict) else [],
@@ -1153,13 +815,62 @@ def compile(lint_only=False):
                         "flags": reward_flags,
                     },
                     "start_trigger": start_trigger if isinstance(start_trigger, dict) else {},
-                    "ticks": parse_quest_ticks(body, obj_id),
+                    "outcomes": parse_yaml_block(props.get('outcomes'), []),
+                    "ticks": parse_quest_ticks(body, obj_id, source_path=source_path),
+                    "choices": [],
                     "body": body
                 }
                 source_info[("quests", obj_id)] = {
                     "path": source_path,
                     "body_lines": body_lines
                 }
+                # Extract Choices section (sub-headings with YAML + flow blocks)
+                choices_section, choices_base = find_named_section(body_lines, "Choices")
+                parsed_choices = []
+                if choices_section and choices_base is not None:
+                    current = None
+                    opts = []
+                    for line_no, line in choices_section:
+                        m = re.match(r'^(#+)\s+(.*)$', line)
+                        if m and len(m.group(1)) > choices_base:
+                            if current:
+                                opts.append(current)
+                            current = {"title": m.group(2).strip(), "content_lines": []}
+                            continue
+                        if current:
+                            current["content_lines"].append((line_no, line))
+                    if current:
+                        opts.append(current)
+
+                    for opt in opts:
+                        title = opt.get("title", "").strip()
+                        if not title:
+                            continue
+                        # Extract YAML config and flow
+                        cfg, remaining = extract_yaml_block(opt.get("content_lines") or [])
+                        flow_blocks = extract_flow_blocks(remaining)
+                        if not flow_blocks:
+                            # try extracting from content_lines directly
+                            flow_blocks = extract_flow_blocks(opt.get("content_lines") or [])
+                        if not flow_blocks:
+                            continue
+                        cfg = cfg or {}
+                        cid = (cfg.get('id') or cfg.get('name') or title).strip()
+                        menu = cfg.get('menu') or cfg.get('char') or cfg.get('menu_id')
+                        text = cfg.get('text') or cfg.get('short') or title
+                        cond = cfg.get('cond', True)
+                        label_name = f"QUEST__{label_safe(obj_id)}__{label_safe(cid)}"
+                        flow_lines = flow_blocks[0].get('lines') or []
+                        parsed_choices.append({
+                            "id": cid,
+                            "menu": menu,
+                            "text": text,
+                            "cond": str(cond),
+                            "label": label_name,
+                            "flow_lines": flow_lines
+                        })
+                if parsed_choices:
+                    data_consolidated["quests"][obj_id]["choices"] = parsed_choices
             elif otype == 'container':
                 pos = props.get('pos', '0,0').split(',')
                 data_consolidated["containers"][obj_id] = {
@@ -1182,12 +893,15 @@ def compile(lint_only=False):
                     "body_lines": body_lines
                 }
             elif otype == 'stat':
-                data_consolidated["stats"][obj_id] = {
-                    "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
-                    "default": int(props.get('default', 10)),
-                    "min": int(props.get('min', 0)),
-                    "max": int(props.get('max', 100))
+                stats = parse_kv_block(props.get('stats', [])) if isinstance(props.get('stats', []), list) else {}
+                # Relations block can be a YAML list of relation dicts
+                relations = parse_yaml_block(props.get('relations', []), [])
+                data_consolidated["bonds"][obj_id] = {
+                    "a": props.get('a'),
+                    "b": props.get('b'),
+                    "tags": parse_csv(props.get('tags', '')),
+                    "stats": stats,
+                    "relations": relations
                 }
             elif otype == 'faction':
                 data_consolidated["factions"][obj_id] = {
@@ -1227,7 +941,7 @@ def compile(lint_only=False):
                 data_consolidated["story_origins"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
-                    "pc_id": props.get('pc_id'),
+                    "character": props.get('character') or props.get('pc_id'),
                     "intro_label": props.get('intro_label'),
                     "image": props.get('image'),
                     "body": body
@@ -1393,9 +1107,15 @@ def compile(lint_only=False):
             if flow_blocks:
                 # Determine label name based on type
                 if otype == 'dialogue':
-                    label_name = f"CHOICE__{safe_oid}"
-                    if not data.get('label'):
-                        data['label'] = label_name
+                    # Prefer explicit label (set during parsing). Fallback to splitting oid into char and choice
+                    if data.get('label'):
+                        label_name = data.get('label')
+                    else:
+                        parts = oid.split('_', 1)
+                        if len(parts) > 1:
+                            label_name = f"CHOICE__{label_safe(parts[0])}__{label_safe(parts[1])}"
+                        else:
+                            label_name = f"CHOICE__{safe_oid}"
                 elif otype == 'story_origin':
                     label_name = f"QUEST__{safe_oid}__started"
                 elif otype == 'character':
@@ -1448,6 +1168,40 @@ def compile(lint_only=False):
                 if "give_flows" in data:
                     data.pop("give_flows", None)
 
+            # Quest choice flows (from # Choices section)
+            if otype == "quest":
+                for choice in (data.get("choices") or []):
+                    label_name = choice.get('label')
+                    flow_lines = choice.get('flow_lines') or []
+                    if not label_name or not flow_lines:
+                        continue
+                    if label_name in generated_labels:
+                        continue
+                    generated_labels.add(label_name)
+                    label_line_no = flow_lines[0][0] if flow_lines else None
+                    _append_script_line(f"label {label_name}:", source_path, label_line_no)
+                    _emit_flow(flow_lines, source_path)
+                    return_line_no = flow_lines[-1][0] if flow_lines else label_line_no
+                    _append_script_line("    return", source_path, return_line_no)
+                    script_parts.append("\n")
+
+                # Per-goal/tick flows: if a tick defined a flow, emit it as a label so
+                # the runtime can call it when the goal triggers.
+                for tick in (data.get('ticks') or []):
+                    label_name = tick.get('label')
+                    flow_lines = tick.get('flow_lines') or []
+                    if not label_name or not flow_lines:
+                        continue
+                    if label_name in generated_labels:
+                        continue
+                    generated_labels.add(label_name)
+                    label_line_no = flow_lines[0][0] if flow_lines else None
+                    _append_script_line(f"label {label_name}:", source_path, label_line_no)
+                    _emit_flow(flow_lines, source_path)
+                    return_line_no = flow_lines[-1][0] if flow_lines else label_line_no
+                    _append_script_line("    return", source_path, return_line_no)
+                    script_parts.append("\n")
+
             sections = split_sections(body_lines)
             for sec in sections:
                 heading_raw = sec.get("heading", "").strip()
@@ -1458,14 +1212,28 @@ def compile(lint_only=False):
 
                 flow_blocks = extract_flow_blocks(content_lines)
                 if flow_blocks:
-                    for block in flow_blocks:
-                        if otype == "dialogue":
-                            label_name = f"CHOICE__{safe_oid}"
-                            # Set label on the dialogue option object if not set
-                            if not data.get('label'):
-                                data['label'] = label_name
+                        for block in flow_blocks:
+                            if otype == "dialogue":
+                                # Prefer stored label or construct from oid
+                                if data.get('label'):
+                                    label_name = data.get('label')
+                                else:
+                                    parts = oid.split('_', 1)
+                                    if len(parts) > 1:
+                                        label_name = f"CHOICE__{label_safe(parts[0])}__{label_safe(parts[1])}"
+                                    else:
+                                        label_name = f"CHOICE__{safe_oid}"
+                                # Ensure data has label
+                                if not data.get('label'):
+                                    data['label'] = label_name
                         else:
-                            label_name = f"{prefix}__{safe_oid}__{sec.get('path')}"
+                            # For quests, prefer goal-based labels so they match tick.labels
+                            if otype == 'quest':
+                                # heading is the section title; slug it to match parse_quest_ticks
+                                heading_slug = heading_raw.strip().lower().replace(' ', '_')
+                                label_name = f"{prefix}__{safe_oid}__{label_safe(heading_slug)}"
+                            else:
+                                label_name = f"{prefix}__{safe_oid}__{sec.get('path')}"
                         
                         # Skip if this label was already generated
                         if label_name in generated_labels:
@@ -1551,6 +1319,20 @@ def compile(lint_only=False):
             if slot not in slot_ids:
                 warnings.append(f"item {iid}: unknown slot '{slot}'")
 
+    # Validate quest outcomes for duplicate ids
+    for qid, q in data_consolidated.get('quests', {}).items():
+        outcomes = q.get('outcomes') or []
+        seen = set()
+        if isinstance(outcomes, list):
+            for o in outcomes:
+                if not isinstance(o, dict):
+                    continue
+                oid = o.get('id') or o.get('name')
+                if oid:
+                    if oid in seen:
+                        warnings.append(f"quest {qid}: duplicate outcome id '{oid}'")
+                    seen.add(oid)
+
     if lint_only:
         if errors:
             print("Lint failed:")
@@ -1576,6 +1358,57 @@ def compile(lint_only=False):
     print(f"Compiled labels to {labels_file}")
     
     # Write JSON
+    # Build a trigger index for faster runtime lookup: event -> list of {quest,tick,trigger}
+    trigger_index = {}
+    # Helper sets for validation
+    loc_ids = set(data_consolidated["locations"].keys())
+    char_ids = set(data_consolidated["characters"].keys())
+    item_ids = set(data_consolidated["items"].keys())
+
+    for qid, p in data_consolidated.get("quests", {}).items():
+        # validate start_trigger
+        st = p.get('start_trigger') or {}
+        if st and isinstance(st, dict):
+            sev = st.get('event')
+            if not sev:
+                warnings.append(f"quest {qid}: start_trigger missing 'event' key")
+            else:
+                ev_key = str(sev).upper()
+                trigger_index.setdefault(ev_key, []).append({
+                    "quest": qid,
+                    "tick": None,
+                    "trigger": st
+                })
+            # validate referenced ids in start_trigger
+            for k, v in st.items():
+                if k in ['char', 'character'] and v and str(v) not in char_ids:
+                    warnings.append(f"quest {qid}: start_trigger references unknown character '{v}'")
+                if k in ['location'] and v and str(v) not in loc_ids:
+                    warnings.append(f"quest {qid}: start_trigger references unknown location '{v}'")
+
+        for tp in (p.get('ticks') or []):
+            trig = tp.get('trigger') or {}
+            ev = trig.get('event')
+            if not ev:
+                warnings.append(f"quest {qid}:{tp.get('id')}: trigger missing 'event' key")
+                continue
+            ev_key = str(ev).upper()
+            trigger_index.setdefault(ev_key, []).append({
+                "quest": qid,
+                "tick": tp.get('id'),
+                "trigger": trig
+            })
+            # Validate referenced ids in triggers
+            for k, v in trig.items():
+                if k in ['char', 'character'] and v and str(v) not in char_ids:
+                    warnings.append(f"quest {qid}:{tp.get('id')}: trigger references unknown character '{v}'")
+                if k in ['location'] and v and str(v) not in loc_ids:
+                    warnings.append(f"quest {qid}:{tp.get('id')}: trigger references unknown location '{v}'")
+                if k in ['item'] and v and str(v) not in item_ids:
+                    warnings.append(f"quest {qid}:{tp.get('id')}: trigger references unknown item '{v}'")
+
+    data_consolidated["quest_trigger_index"] = trigger_index
+
     with open(json_file, "w", encoding="utf-8") as out:
         json.dump(data_consolidated, out, indent=4)
     print(f"Compiled data to {json_file}")

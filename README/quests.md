@@ -6,7 +6,7 @@ This document describes how to create and manage quests and origins in the AI-RP
 
 - **Quests (`type: quest`)**: Standard mission logic with goals and triggers. They live in `data/quests/`.
 - **Origins (`type: origin`)**: New-game starting points. They live in `data/quests/origins/`.
-  - Required: `pc_id` (character id) and `intro_label` (label to jump to).
+  - Required: `character` (character id) and `intro_label` (label to jump to).
   - Optional: `image` (shown on the selection screen).
   - Origins should contain a single ` ```flow` block for the intro.
 - If a quest with the same `id` exists in `data/quests/`, it will auto-start when that origin is chosen. Otherwise, call `QUEST START <id>` in the origin flow.
@@ -19,7 +19,7 @@ This document describes how to create and manage quests and origins in the AI-RP
 type: origin
 id: long_dawn
 name: The Long Dawn
-pc_id: warrior
+character: warrior
 intro_label: SCENE__long_dawn__intro
 image: chars/male_fit.png
 ---

@@ -5,7 +5,7 @@ name: The Silent Tide
 description: Follow the sleepers' rhythm to craft a non-violent way to guide them away from the city.
 category: main
 origin: true
-pc_id: theo
+character: theo
 image: chars/male_thin.png
 ---
 
@@ -155,4 +155,49 @@ You teach the city to listen, and the sleepers to follow a gentler path.
 # Passed
 ```flow
 The Silent Tide becomes a living practice, and the city learns to survive without violence.
+```
+
+# Choices
+
+## Ask the Clerk
+```yaml
+menu: clerk
+id: ask_clerk
+text: "Ask the clerk about the sleepers' rhythm."
+cond: "True"
+```
+```flow
+pc: Excuse me — have you noticed the sleepers' rhythm?
+clerk: It's old as the docks. Folks hush and follow it when the moon leans right.
+FLAG SET asked_clerk True
+NOTIFY "Clerk: They remember a tune from the sea."
+```
+
+## Share the Pattern with Ash
+```yaml
+menu: ash
+id: share_with_ash
+text: "Share the pattern you've recorded with Ash."
+cond: "bond_get_stat('theo','ash','affinity') > 10"
+```
+```flow
+pc: I tracked the tide lines — I think I can shape them without force.
+ash: If you can hum it slow enough, maybe they follow a kinder path.
+FLAG SET shared_with_ash True
+NOTIFY "Ash: We can try a gentle frequency."
+```
+
+## Attempt Harmonic Broadcast
+```yaml
+menu: clerk
+id: attempt_broadcast
+text: "Offer to run the harmonic broadcast (requires harmonic key)."
+cond: "flag_get('harmonic_key_obtained')"
+```
+```flow
+pc: I can try the harmonic broadcast — hand me the key.
+clerk: If it works, it could guide them. If it fails...
+EVENT GAME_STARTED broadcast_attempt=true
+FLAG SET broadcast_attempted True
+GIVE protocol_deciphered 1
 ```

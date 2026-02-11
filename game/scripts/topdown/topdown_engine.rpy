@@ -95,7 +95,7 @@ init -5 python:
             _run_action(entity.action)
 
     class TopDownEntity(object):
-        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None, depth=None, is_player=False, rotation=0, requires_approach=False, hit_anchor=(0.5, 0.5), hit_size=(120, 120)):
+        def __init__(self, x, y, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None, depth=None, is_player=False, rotation=0, requires_approach=False, hit_anchor=(0.5, 0.5), hit_size=(120, 120), id=None):
             self.x = x
             self.y = y
             self.sprite = sprite
@@ -110,6 +110,7 @@ init -5 python:
             self.requires_approach = requires_approach
             self.hit_anchor = hit_anchor
             self.hit_size = hit_size
+            self.id = id
 
     class TopDownManager(object):
         def __init__(self):
@@ -178,7 +179,8 @@ init -5 python:
                                         action=Function(self.walk_to_exit, dest_id),
                                         tooltip=tooltip_text,
                                         sprite_tint=TintMatrix("#00ff00"),
-                                        requires_approach=False)
+                                        requires_approach=False,
+                                        id=dest_id)
                     self.entities.append(ent)
                 
                 else:
@@ -199,7 +201,8 @@ init -5 python:
                                         tooltip=item.get('name', "Entity"),
                                         idle_anim=item.get('idle_anim', True),
                                         label=item.get('label'),
-                                        requires_approach=True)
+                                        requires_approach=True,
+                                        id=iid)
                     self.entities.append(ent)
 
             for char in location.characters:
@@ -211,7 +214,8 @@ init -5 python:
                                     label=f"char_{char.id}_interact",
                                     requires_approach=True,
                                     hit_anchor=(0.5, 1.0),
-                                    hit_size=(120, 160))
+                                    hit_size=(120, 160),
+                                    id=char.id)
                 self.entities.append(ent)
             
             # Create player entity and add to entities list
@@ -224,7 +228,8 @@ init -5 python:
                 is_player=True,
                 requires_approach=False,
                 hit_anchor=(0.5, 1.0),
-                hit_size=(120, 160)
+                hit_size=(120, 160),
+                id=getattr(pc, 'id', 'player')
             )
             self.entities.append(self.player_entity)
 

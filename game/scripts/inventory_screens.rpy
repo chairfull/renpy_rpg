@@ -752,6 +752,25 @@ screen char_interaction_menu(char, show_preview=True, show_backdrop=True):
                         for opt in options:
                             avail, reason = opt.availability_status(char)
                             option_rows.append((opt, avail, reason))
+                        # Poll quest-provided choices for this character/menu
+                        try:
+                            qc_list = quest_get_choices_for_menu(char.id, char)
+                            class _QuestChoiceWrapper(object):
+                                def __init__(self, quest_id, cid, text, label):
+                                    self.quest = quest_id
+                                    self.id = f"quest__{quest_id}__{cid}"
+                                    self.label = label
+                                    self.tags = []
+                                    self.emoji = "❗"
+                                    self.short_text = text
+                                    self.memory = False
+                                def availability_status(self, target_char):
+                                    return True, None
+                            for qc in qc_list:
+                                qcw = _QuestChoiceWrapper(qc.get('quest'), qc.get('id') or 'choice', qc.get('text') or '...', qc.get('label'))
+                                option_rows.append((qcw, True, None))
+                        except Exception:
+                            pass
 
                     if not option_rows:
                         text "You have nothing special to discuss." italic True color "#666" xalign 0.5

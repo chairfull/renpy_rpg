@@ -5,8 +5,8 @@
 init python:
     def finish_story_selection(origin):
         # Set global PC from the origin's character ID
-        if origin.pc_id:
-            char = rpg_world.characters.get(origin.pc_id)
+        if origin.character:
+            char = rpg_world.characters.get(origin.character)
             if char:
                 renpy.store.pc = char
                 # Ensure starting location is set from character

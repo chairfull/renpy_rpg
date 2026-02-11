@@ -406,21 +406,21 @@ label QUEST__iron_and_fire__flow: # @data/quests/iron_and_fire.md:10
     "I can help without harming anyone." # @data/quests/iron_and_fire.md:32
     return # @data/quests/iron_and_fire.md:32
 
+label QUEST__iron_and_fire__collect_wood:
+    "That should be enough wood."
+    return
+
+label QUEST__iron_and_fire__collect_stone:
+    "Got the stone. Back to Greta."
+    return
+
+label QUEST__iron_and_fire__craft_a_signal_baton:
+    greta "Not a weapon. A tool. It can guide sleepers away from people."
+    return
+
 label QUEST__iron_and_fire__started: # @data/quests/iron_and_fire.md:10
     "Greta needs wood and stone for a signal baton." # @data/quests/iron_and_fire.md:10
     return # @data/quests/iron_and_fire.md:10
-
-label QUEST__iron_and_fire__goals__collect_wood: # @data/quests/iron_and_fire.md:17
-    "That should be enough wood." # @data/quests/iron_and_fire.md:17
-    return # @data/quests/iron_and_fire.md:17
-
-label QUEST__iron_and_fire__goals__collect_stone: # @data/quests/iron_and_fire.md:22
-    "Got the stone. Back to Greta." # @data/quests/iron_and_fire.md:22
-    return # @data/quests/iron_and_fire.md:22
-
-label QUEST__iron_and_fire__goals__craft_a_signal_baton: # @data/quests/iron_and_fire.md:27
-    greta "Not a weapon. A tool. It can guide sleepers away from people." # @data/quests/iron_and_fire.md:27
-    return # @data/quests/iron_and_fire.md:27
 
 label QUEST__iron_and_fire__passed: # @data/quests/iron_and_fire.md:32
     "I can help without harming anyone." # @data/quests/iron_and_fire.md:32
@@ -433,13 +433,13 @@ label QUEST__theo_secret__flow: # @data/quests/theo_secret.md:10
     theo "We can use this." # @data/quests/theo_secret.md:23
     return # @data/quests/theo_secret.md:23
 
+label QUEST__theo_secret__find_the_outbreak_note:
+    "This looks like the first entry. The handwriting is frantic."
+    return
+
 label QUEST__theo_secret__started: # @data/quests/theo_secret.md:10
     "Theo believes the first report was archived in a sealed record." # @data/quests/theo_secret.md:10
     return # @data/quests/theo_secret.md:10
-
-label QUEST__theo_secret__goals__find_the_outbreak_note: # @data/quests/theo_secret.md:17
-    "This looks like the first entry. The handwriting is frantic." # @data/quests/theo_secret.md:17
-    return # @data/quests/theo_secret.md:17
 
 label QUEST__theo_secret__passed: # @data/quests/theo_secret.md:22
     theo "This confirms the first wave never turned violent." # @data/quests/theo_secret.md:22
@@ -454,21 +454,21 @@ label QUEST__formal_intro__flow: # @data/quests/formal_intro.md:10
     "I know who holds the line. Now I can move." # @data/quests/formal_intro.md:32
     return # @data/quests/formal_intro.md:32
 
+label QUEST__formal_intro__speak_with_coordinator_mara:
+    "Mara knows the state of every street and every gate."
+    return
+
+label QUEST__formal_intro__visit_the_quarantine_gate:
+    "This is where the lines are held and checked."
+    return
+
+label QUEST__formal_intro__speak_with_captain_rafi:
+    "Rafi will decide if I can pass the outer line."
+    return
+
 label QUEST__formal_intro__started: # @data/quests/formal_intro.md:10
     "Mara asked me to introduce myself to Captain Rafi at the Quarantine Gate." # @data/quests/formal_intro.md:10
     return # @data/quests/formal_intro.md:10
-
-label QUEST__formal_intro__goals__speak_with_coordinator_mara: # @data/quests/formal_intro.md:17
-    "Mara knows the state of every street and every gate." # @data/quests/formal_intro.md:17
-    return # @data/quests/formal_intro.md:17
-
-label QUEST__formal_intro__goals__visit_the_quarantine_gate: # @data/quests/formal_intro.md:22
-    "This is where the lines are held and checked." # @data/quests/formal_intro.md:22
-    return # @data/quests/formal_intro.md:22
-
-label QUEST__formal_intro__goals__speak_with_captain_rafi: # @data/quests/formal_intro.md:27
-    "Rafi will decide if I can pass the outer line." # @data/quests/formal_intro.md:27
-    return # @data/quests/formal_intro.md:27
 
 label QUEST__formal_intro__passed: # @data/quests/formal_intro.md:32
     "I know who holds the line. Now I can move." # @data/quests/formal_intro.md:32
@@ -482,18 +482,18 @@ label QUEST__ration_run__flow: # @data/quests/ration_run.md:11
     "The shelter will eat tonight." # @data/quests/ration_run.md:29
     return # @data/quests/ration_run.md:29
 
+label QUEST__ration_run__visit_the_supply_depot:
+    "This is the depot. If any rations remain, they will be here."
+    return
+
+label QUEST__ration_run__collect_rations:
+    "That should be enough for today."
+    return
+
 label QUEST__ration_run__started: # @data/quests/ration_run.md:11
     "The pantry is low. The shelter needs rations for the sick." # @data/quests/ration_run.md:11
     "I should check the Supply Depot." # @data/quests/ration_run.md:12
     return # @data/quests/ration_run.md:12
-
-label QUEST__ration_run__goals__visit_the_supply_depot: # @data/quests/ration_run.md:19
-    "This is the depot. If any rations remain, they will be here." # @data/quests/ration_run.md:19
-    return # @data/quests/ration_run.md:19
-
-label QUEST__ration_run__goals__collect_rations: # @data/quests/ration_run.md:24
-    "That should be enough for today." # @data/quests/ration_run.md:24
-    return # @data/quests/ration_run.md:24
 
 label QUEST__ration_run__passed: # @data/quests/ration_run.md:29
     "The shelter will eat tonight." # @data/quests/ration_run.md:29
@@ -518,59 +518,59 @@ label QUEST__long_dawn__flow: # @data/quests/origins/long_dawn.md:14
     "The Spire remains a warning, but the settlement now knows how to guide the drift without violence." # @data/quests/origins/long_dawn.md:83
     return # @data/quests/origins/long_dawn.md:83
 
+label QUEST__long_dawn__ordinary_world:
+    "Routines hold the line - logbooks, rations, and quiet rules."
+    return
+
+label QUEST__long_dawn__call_to_adventure:
+    "The Spire shifts again. Find the source and bring back a peaceful answer."
+    return
+
+label QUEST__long_dawn__refusal_of_the_call:
+    "The guardhouse warns that noise means danger. Doubt settles in before the gates."
+    return
+
+label QUEST__long_dawn__meeting_the_mentor:
+    "Lena teaches how to step between beats and mark safe lanes without drawing the drift."
+    return
+
+label QUEST__long_dawn__crossing_the_threshold:
+    "You pass the last sandbags and enter the overgrowth, counting your breaths."
+    return
+
+label QUEST__long_dawn__tests_and_allies:
+    "Greta needs wood and stone to tune a signal baton that guides instead of harms."
+    return
+
+label QUEST__long_dawn__approach:
+    "The safe route narrows. The Broadcast Tower rises ahead, low and listening."
+    return
+
+label QUEST__long_dawn__ordeal:
+    "Inside the lobby, sleepers drift like fog. You move quietly, hands open, heart steady."
+    return
+
+label QUEST__long_dawn__reward:
+    "A data drive holds the broadcast pattern. It is warm with the city's memory."
+    return
+
+label QUEST__long_dawn__the_road_back:
+    "The return run favors patience over speed. Follow the dead zones home."
+    return
+
+label QUEST__long_dawn__resurrection:
+    "Mara and Greta test a soft counter-tone. The sleepers turn without panic."
+    return
+
+label QUEST__long_dawn__return_with_the_elixir:
+    "Routes are updated, the new tone is logged, and the city breathes easier."
+    return
+
 label QUEST__long_dawn__started: # @data/quests/origins/long_dawn.md:14
     "You check your route map and count the turns to the Broadcast Tower." # @data/quests/origins/long_dawn.md:14
     "A mayor at the line says the signal shifted again and wants anything you learn." # @data/quests/origins/long_dawn.md:15
     "Mara sends a runner to learn why the Broadcast Tower changed its pulse and how to guide the sleepers without harm." # @data/quests/origins/long_dawn.md:16
     return # @data/quests/origins/long_dawn.md:16
-
-label QUEST__long_dawn__goals__ordinary_world: # @data/quests/origins/long_dawn.md:23
-    "Routines hold the line - logbooks, rations, and quiet rules." # @data/quests/origins/long_dawn.md:23
-    return # @data/quests/origins/long_dawn.md:23
-
-label QUEST__long_dawn__goals__call_to_adventure: # @data/quests/origins/long_dawn.md:28
-    "The Spire shifts again. Find the source and bring back a peaceful answer." # @data/quests/origins/long_dawn.md:28
-    return # @data/quests/origins/long_dawn.md:28
-
-label QUEST__long_dawn__goals__refusal_of_the_call: # @data/quests/origins/long_dawn.md:33
-    "The guardhouse warns that noise means danger. Doubt settles in before the gates." # @data/quests/origins/long_dawn.md:33
-    return # @data/quests/origins/long_dawn.md:33
-
-label QUEST__long_dawn__goals__meeting_the_mentor: # @data/quests/origins/long_dawn.md:38
-    "Lena teaches how to step between beats and mark safe lanes without drawing the drift." # @data/quests/origins/long_dawn.md:38
-    return # @data/quests/origins/long_dawn.md:38
-
-label QUEST__long_dawn__goals__crossing_the_threshold: # @data/quests/origins/long_dawn.md:43
-    "You pass the last sandbags and enter the overgrowth, counting your breaths." # @data/quests/origins/long_dawn.md:43
-    return # @data/quests/origins/long_dawn.md:43
-
-label QUEST__long_dawn__goals__tests_and_allies: # @data/quests/origins/long_dawn.md:48
-    "Greta needs wood and stone to tune a signal baton that guides instead of harms." # @data/quests/origins/long_dawn.md:48
-    return # @data/quests/origins/long_dawn.md:48
-
-label QUEST__long_dawn__goals__approach: # @data/quests/origins/long_dawn.md:53
-    "The safe route narrows. The Broadcast Tower rises ahead, low and listening." # @data/quests/origins/long_dawn.md:53
-    return # @data/quests/origins/long_dawn.md:53
-
-label QUEST__long_dawn__goals__ordeal: # @data/quests/origins/long_dawn.md:58
-    "Inside the lobby, sleepers drift like fog. You move quietly, hands open, heart steady." # @data/quests/origins/long_dawn.md:58
-    return # @data/quests/origins/long_dawn.md:58
-
-label QUEST__long_dawn__goals__reward: # @data/quests/origins/long_dawn.md:63
-    "A data drive holds the broadcast pattern. It is warm with the city's memory." # @data/quests/origins/long_dawn.md:63
-    return # @data/quests/origins/long_dawn.md:63
-
-label QUEST__long_dawn__goals__the_road_back: # @data/quests/origins/long_dawn.md:68
-    "The return run favors patience over speed. Follow the dead zones home." # @data/quests/origins/long_dawn.md:68
-    return # @data/quests/origins/long_dawn.md:68
-
-label QUEST__long_dawn__goals__resurrection: # @data/quests/origins/long_dawn.md:73
-    "Mara and Greta test a soft counter-tone. The sleepers turn without panic." # @data/quests/origins/long_dawn.md:73
-    return # @data/quests/origins/long_dawn.md:73
-
-label QUEST__long_dawn__goals__return_with_the_elixir: # @data/quests/origins/long_dawn.md:78
-    "Routes are updated, the new tone is logged, and the city breathes easier." # @data/quests/origins/long_dawn.md:78
-    return # @data/quests/origins/long_dawn.md:78
 
 label QUEST__long_dawn__passed: # @data/quests/origins/long_dawn.md:83
     "The Spire remains a warning, but the settlement now knows how to guide the drift without violence." # @data/quests/origins/long_dawn.md:83
@@ -580,20 +580,69 @@ label QUEST__silent_tide__flow: # @data/quests/origins/silent_tide.md:14
     "Your logbook is full of patterns. The sleepers drift to the same pulse each night." # @data/quests/origins/silent_tide.md:14
     "A priestess asks you to keep your steps soft and your breaths even." # @data/quests/origins/silent_tide.md:15
     "The tide of sleepers drifts in a steady pulse, and you set out to learn why." # @data/quests/origins/silent_tide.md:16
-    "The archives are quiet, the records heavy, and the city survives by listening more than shouting." # @data/quests/origins/silent_tide.md:23
-    "A new rhythm rises from the harbor. Track it before it swells." # @data/quests/origins/silent_tide.md:28
-    "Leaving the stacks feels like leaving the past. The risk is real, and so is the fear." # @data/quests/origins/silent_tide.md:33
-    "Ash shares drift wisdom - move slow, breathe low, and let the sleepers pass." # @data/quests/origins/silent_tide.md:38
-    "You step onto the silent docks, where the tide hums against empty hulls." # @data/quests/origins/silent_tide.md:43
-    "Gather quiet testimonies from the tavern and the clinic. The pattern is shared, not owned." # @data/quests/origins/silent_tide.md:48
-    "You chart the pulse lines back toward the Broadcast Tower and the old signal corridors." # @data/quests/origins/silent_tide.md:53
-    "The stairwell is still. You reach the inner console without waking the drift." # @data/quests/origins/silent_tide.md:58
-    "The harmonic key is clear at last - a tone that guides, not commands." # @data/quests/origins/silent_tide.md:63
-    "Bring the pattern to the settlement and translate it for those who only hear silence." # @data/quests/origins/silent_tide.md:68
-    "The first broadcast is a trial of trust. The tide turns without panic." # @data/quests/origins/silent_tide.md:73
-    "You teach the city to listen, and the sleepers to follow a gentler path." # @data/quests/origins/silent_tide.md:78
-    "The Silent Tide becomes a living practice, and the city learns to survive without violence." # @data/quests/origins/silent_tide.md:83
-    return # @data/quests/origins/silent_tide.md:83
+    "The Silent Tide becomes a living practice, and the city learns to survive without violence." # @data/quests/origins/silent_tide.md:157
+    pc "Excuse me — have you noticed the sleepers' rhythm?" # @data/quests/origins/silent_tide.md:170
+    clerk "It's old as the docks. Folks hush and follow it when the moon leans right." # @data/quests/origins/silent_tide.md:171
+    $ flag_set('asked_clerk', True) # @data/quests/origins/silent_tide.md:172
+    notify 'Clerk: They remember a tune from the sea.' # @data/quests/origins/silent_tide.md:173
+    pc "I tracked the tide lines — I think I can shape them without force." # @data/quests/origins/silent_tide.md:184
+    ash "If you can hum it slow enough, maybe they follow a kinder path." # @data/quests/origins/silent_tide.md:185
+    $ flag_set('shared_with_ash', True) # @data/quests/origins/silent_tide.md:186
+    notify 'Ash: We can try a gentle frequency.' # @data/quests/origins/silent_tide.md:187
+    pc "I can try the harmonic broadcast — hand me the key." # @data/quests/origins/silent_tide.md:198
+    clerk "If it works, it could guide them. If it fails..." # @data/quests/origins/silent_tide.md:199
+    $ event_manager.dispatch('GAME_STARTED', broadcast_attempt=True) # @data/quests/origins/silent_tide.md:200
+    $ flag_set('broadcast_attempted', True) # @data/quests/origins/silent_tide.md:201
+    $ give_item('protocol_deciphered', 1) # @data/quests/origins/silent_tide.md:202
+    return # @data/quests/origins/silent_tide.md:202
+
+label QUEST__silent_tide__ask_clerk: # @data/quests/origins/silent_tide.md:170
+    pc "Excuse me — have you noticed the sleepers' rhythm?" # @data/quests/origins/silent_tide.md:170
+    clerk "It's old as the docks. Folks hush and follow it when the moon leans right." # @data/quests/origins/silent_tide.md:171
+    $ flag_set('asked_clerk', True) # @data/quests/origins/silent_tide.md:172
+    notify 'Clerk: They remember a tune from the sea.' # @data/quests/origins/silent_tide.md:173
+    return # @data/quests/origins/silent_tide.md:173
+
+label QUEST__silent_tide__share_with_ash: # @data/quests/origins/silent_tide.md:184
+    pc "I tracked the tide lines — I think I can shape them without force." # @data/quests/origins/silent_tide.md:184
+    ash "If you can hum it slow enough, maybe they follow a kinder path." # @data/quests/origins/silent_tide.md:185
+    $ flag_set('shared_with_ash', True) # @data/quests/origins/silent_tide.md:186
+    notify 'Ash: We can try a gentle frequency.' # @data/quests/origins/silent_tide.md:187
+    return # @data/quests/origins/silent_tide.md:187
+
+label QUEST__silent_tide__attempt_broadcast: # @data/quests/origins/silent_tide.md:198
+    pc "I can try the harmonic broadcast — hand me the key." # @data/quests/origins/silent_tide.md:198
+    clerk "If it works, it could guide them. If it fails..." # @data/quests/origins/silent_tide.md:199
+    $ event_manager.dispatch('GAME_STARTED', broadcast_attempt=True) # @data/quests/origins/silent_tide.md:200
+    $ flag_set('broadcast_attempted', True) # @data/quests/origins/silent_tide.md:201
+    $ give_item('protocol_deciphered', 1) # @data/quests/origins/silent_tide.md:202
+    return # @data/quests/origins/silent_tide.md:202
+
+label QUEST__silent_tide__return_with_the_elixir:
+    "The Silent Tide becomes a living practice, and the city learns to survive without violence."
+    return
+
+label QUEST__silent_tide__ask_the_clerk:
+    pc "Excuse me — have you noticed the sleepers' rhythm?"
+    clerk "It's old as the docks. Folks hush and follow it when the moon leans right."
+    $ flag_set('asked_clerk', True)
+    notify 'Clerk: They remember a tune from the sea.'
+    return
+
+label QUEST__silent_tide__share_the_pattern_with_ash:
+    pc "I tracked the tide lines — I think I can shape them without force."
+    ash "If you can hum it slow enough, maybe they follow a kinder path."
+    $ flag_set('shared_with_ash', True)
+    notify 'Ash: We can try a gentle frequency.'
+    return
+
+label QUEST__silent_tide__attempt_harmonic_broadcast:
+    pc "I can try the harmonic broadcast — hand me the key."
+    clerk "If it works, it could guide them. If it fails..."
+    $ event_manager.dispatch('GAME_STARTED', broadcast_attempt=True)
+    $ flag_set('broadcast_attempted', True)
+    $ give_item('protocol_deciphered', 1)
+    return
 
 label QUEST__silent_tide__started: # @data/quests/origins/silent_tide.md:14
     "Your logbook is full of patterns. The sleepers drift to the same pulse each night." # @data/quests/origins/silent_tide.md:14
@@ -601,72 +650,24 @@ label QUEST__silent_tide__started: # @data/quests/origins/silent_tide.md:14
     "The tide of sleepers drifts in a steady pulse, and you set out to learn why." # @data/quests/origins/silent_tide.md:16
     return # @data/quests/origins/silent_tide.md:16
 
-label QUEST__silent_tide__goals__ordinary_world: # @data/quests/origins/silent_tide.md:23
-    "The archives are quiet, the records heavy, and the city survives by listening more than shouting." # @data/quests/origins/silent_tide.md:23
-    return # @data/quests/origins/silent_tide.md:23
+label QUEST__silent_tide__passed: # @data/quests/origins/silent_tide.md:157
+    "The Silent Tide becomes a living practice, and the city learns to survive without violence." # @data/quests/origins/silent_tide.md:157
+    return # @data/quests/origins/silent_tide.md:157
 
-label QUEST__silent_tide__goals__call_to_adventure: # @data/quests/origins/silent_tide.md:28
-    "A new rhythm rises from the harbor. Track it before it swells." # @data/quests/origins/silent_tide.md:28
-    return # @data/quests/origins/silent_tide.md:28
-
-label QUEST__silent_tide__goals__refusal_of_the_call: # @data/quests/origins/silent_tide.md:33
-    "Leaving the stacks feels like leaving the past. The risk is real, and so is the fear." # @data/quests/origins/silent_tide.md:33
-    return # @data/quests/origins/silent_tide.md:33
-
-label QUEST__silent_tide__goals__meeting_the_mentor: # @data/quests/origins/silent_tide.md:38
-    "Ash shares drift wisdom - move slow, breathe low, and let the sleepers pass." # @data/quests/origins/silent_tide.md:38
-    return # @data/quests/origins/silent_tide.md:38
-
-label QUEST__silent_tide__goals__crossing_the_threshold: # @data/quests/origins/silent_tide.md:43
-    "You step onto the silent docks, where the tide hums against empty hulls." # @data/quests/origins/silent_tide.md:43
-    return # @data/quests/origins/silent_tide.md:43
-
-label QUEST__silent_tide__goals__tests_and_allies: # @data/quests/origins/silent_tide.md:48
-    "Gather quiet testimonies from the tavern and the clinic. The pattern is shared, not owned." # @data/quests/origins/silent_tide.md:48
-    return # @data/quests/origins/silent_tide.md:48
-
-label QUEST__silent_tide__goals__approach: # @data/quests/origins/silent_tide.md:53
-    "You chart the pulse lines back toward the Broadcast Tower and the old signal corridors." # @data/quests/origins/silent_tide.md:53
-    return # @data/quests/origins/silent_tide.md:53
-
-label QUEST__silent_tide__goals__ordeal: # @data/quests/origins/silent_tide.md:58
-    "The stairwell is still. You reach the inner console without waking the drift." # @data/quests/origins/silent_tide.md:58
-    return # @data/quests/origins/silent_tide.md:58
-
-label QUEST__silent_tide__goals__reward: # @data/quests/origins/silent_tide.md:63
-    "The harmonic key is clear at last - a tone that guides, not commands." # @data/quests/origins/silent_tide.md:63
-    return # @data/quests/origins/silent_tide.md:63
-
-label QUEST__silent_tide__goals__the_road_back: # @data/quests/origins/silent_tide.md:68
-    "Bring the pattern to the settlement and translate it for those who only hear silence." # @data/quests/origins/silent_tide.md:68
-    return # @data/quests/origins/silent_tide.md:68
-
-label QUEST__silent_tide__goals__resurrection: # @data/quests/origins/silent_tide.md:73
-    "The first broadcast is a trial of trust. The tide turns without panic." # @data/quests/origins/silent_tide.md:73
-    return # @data/quests/origins/silent_tide.md:73
-
-label QUEST__silent_tide__goals__return_with_the_elixir: # @data/quests/origins/silent_tide.md:78
-    "You teach the city to listen, and the sleepers to follow a gentler path." # @data/quests/origins/silent_tide.md:78
-    return # @data/quests/origins/silent_tide.md:78
-
-label QUEST__silent_tide__passed: # @data/quests/origins/silent_tide.md:83
-    "The Silent Tide becomes a living practice, and the city learns to survive without violence." # @data/quests/origins/silent_tide.md:83
-    return # @data/quests/origins/silent_tide.md:83
-
-label CHOICE__lena_ask_for_a_guide: # @data/characters/lena.md:63
+label CHOICE__lena__Ask_For_A_Guide: # @data/characters/lena.md:63
     lena "Fine. But if you start humming or dragging your feet, I'm leaving you as bait. Keep up." # @data/characters/lena.md:63
     $ companion_add('lena') # @data/characters/lena.md:64
     $ flag_set('scout_joined', True) # @data/characters/lena.md:65
     $ bond_add_stat(pc.id, 'lena', 'trust', 3) # @data/characters/lena.md:66
     return # @data/characters/lena.md:66
 
-label CHOICE__lena_ask_to_part_ways: # @data/characters/lena.md:81
+label CHOICE__lena__Ask_To_Part_Ways: # @data/characters/lena.md:81
     lena "Understood. I'll recalibrate the markers on my way back. Stay quiet." # @data/characters/lena.md:81
     $ companion_remove('lena') # @data/characters/lena.md:82
     $ flag_set('scout_joined', False) # @data/characters/lena.md:83
     return # @data/characters/lena.md:83
 
-label CHOICE__mara_offer_help: # @data/characters/mara.md:63
+label CHOICE__mara__Offer_Help: # @data/characters/mara.md:63
     pc "If you need someone fast, I can run the perimeter." # @data/characters/mara.md:63
     mara "Good. We're blind out there. Take this route map—it's marked with the latest safe-zones and frequency dead-spots." # @data/characters/mara.md:64
     $ mara.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones.")) # @data/characters/mara.md:65
@@ -674,12 +675,12 @@ label CHOICE__mara_offer_help: # @data/characters/mara.md:63
     $ bond_add_stat(pc.id, 'mara', 'trust', 5) # @data/characters/mara.md:67
     return # @data/characters/mara.md:67
 
-label CHOICE__mara_ask_about_the_signal: # @data/characters/mara.md:81
+label CHOICE__mara__Ask_About_The_Signal: # @data/characters/mara.md:81
     mara "It started three nights ago. A rhythmic, low-frequency pulse." # @data/characters/mara.md:81
     mara "It's drawing the sleepers in from the plains. If we can't find a way to shift the frequency, we'll be overrun by the week's end." # @data/characters/mara.md:82
     return # @data/characters/mara.md:82
 
-label CHOICE__mara_report_on_spire: # @data/characters/mara.md:95
+label CHOICE__mara__Report_on_Spire: # @data/characters/mara.md:95
     pc "I have the protocol drive from the Spire. The lobby was full of them—it was like walking through a dream where nobody breathes." # @data/characters/mara.md:95
     mara "Every year we lose more to the drift. This drive... it's the first real data we've had on their resonance in a decade." # @data/characters/mara.md:96
     mara "Give me a moment to patch it into the main console. We need to see if we can broadcast a counter-tone." # @data/characters/mara.md:97
@@ -689,30 +690,30 @@ label CHOICE__mara_report_on_spire: # @data/characters/mara.md:95
     mara "There. It's not just a signal. It's a bridge. We can lead them away, or we can shut their cognitive resonance down entirely." # @data/characters/mara.md:101
     return # @data/characters/mara.md:101
 
-label CHOICE__rafi_request_gate_pass: # @data/characters/rafi.md:63
+label CHOICE__rafi__Request_Gate_Pass: # @data/characters/rafi.md:63
     rafi "I can log a short-term pass. If the sensors pick up a spike in your frequency, don't expect us to open the gate when you come back." # @data/characters/rafi.md:63
     $ flag_set('gate_pass', True) # @data/characters/rafi.md:64
     $ bond_add_stat(pc.id, 'rafi', 'respect', 3) # @data/characters/rafi.md:65
     notify 'Gate pass logged.' # @data/characters/rafi.md:66
     return # @data/characters/rafi.md:66
 
-label CHOICE__rafi_report_a_quiet_route: # @data/characters/rafi.md:80
+label CHOICE__rafi__Report_a_Quiet_Route: # @data/characters/rafi.md:80
     rafi "Good. Every quiet route is a lifeline. I'll update the patrol logs." # @data/characters/rafi.md:80
     $ bond_add_stat(pc.id, 'rafi', 'trust', 2) # @data/characters/rafi.md:81
     return # @data/characters/rafi.md:81
 
-label CHOICE__kael_ask_about_breaching: # @data/characters/kael.md:69
+label CHOICE__kael__Ask_About_Breaching: # @data/characters/kael.md:69
     kael "You don't clear them all. You find the resonance point, hit it hard, and run through the gap before they reset." # @data/characters/kael.md:69
     kael "It's about timing and weight. Stay heavy, move fast." # @data/characters/kael.md:70
     return # @data/characters/kael.md:70
 
-label CHOICE__jun_learn_cadence: # @data/characters/jun.md:62
+label CHOICE__jun__Learn_Cadence: # @data/characters/jun.md:62
     jun "Three beats, then a breath. Let the frequency settle between your steps. Keep it even." # @data/characters/jun.md:62
     $ perk_add('silver_tongue', None) # @data/characters/jun.md:63
     $ flag_set('cadence_learned', True) # @data/characters/jun.md:64
     return # @data/characters/jun.md:64
 
-label CHOICE__elena_checkup: # @data/characters/elena.md:63
+label CHOICE__elena__Checkup: # @data/characters/elena.md:63
     elena "Hold still. It's just a diagnostic sweep." # @data/characters/elena.md:63
     $ status_remove('flu') # @data/characters/elena.md:64
     notify 'Your cognitive resonance stabilizes.' # @data/characters/elena.md:65

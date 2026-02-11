@@ -136,12 +136,23 @@ init -10 python:
         return None
 
     class Bond(object):
-        def __init__(self, id, a_id, b_id, tags=None, stats=None):
+        def __init__(self, id, a_id, b_id, tags=None, stats=None, relations=None):
             self.id = id
             self.a_id = a_id
             self.b_id = b_id
             self.tags = set(tags or [])
             self.stats = stats or {}
+            # relations: list of dicts with keys: id, type, a_label, b_label, weight, note
+            self.relations = []
+            if relations:
+                try:
+                    if isinstance(relations, dict):
+                        # single relation
+                        self.relations = [relations]
+                    elif isinstance(relations, list):
+                        self.relations = relations
+                except Exception:
+                    self.relations = []
         
         def other(self, cid):
             return self.b_id if cid == self.a_id else self.a_id
@@ -167,6 +178,38 @@ init -10 python:
         def remove_tag(self, tag):
             self.tags.discard(tag)
 
+        # Relation helpers
+        def add_relation(self, rel_id, rel_type=None, a_label=None, b_label=None, weight=0, note=None):
+            # Replace if id exists
+            for r in self.relations:
+                if r.get('id') == rel_id:
+                    r.update({
+                        'type': rel_type or r.get('type'),
+                        'a_label': a_label or r.get('a_label'),
+                        'b_label': b_label or r.get('b_label'),
+                        'weight': int(weight or r.get('weight', 0)),
+                        'note': note or r.get('note')
+                    })
+                    return r
+            r = {'id': rel_id, 'type': rel_type, 'a_label': a_label, 'b_label': b_label, 'weight': int(weight or 0), 'note': note}
+            self.relations.append(r)
+            return r
+
+        def get_relations(self):
+            return list(self.relations)
+
+        def get_relation(self, rel_id):
+            for r in self.relations:
+                if r.get('id') == rel_id:
+                    return r
+            return None
+
+        def remove_relation(self, rel_id):
+            for i, r in enumerate(self.relations):
+                if r.get('id') == rel_id:
+                    return self.relations.pop(i)
+            return None
+
     class BondManager:
         def __init__(self):
             self.bonds = {}
@@ -176,6 +219,33 @@ init -10 python:
         
         def register(self, bond):
             self.bonds[self._key(bond.a_id, bond.b_id)] = bond
+
+        def set_relation(self, a, b, rel_id, rel_type=None, a_label=None, b_label=None, weight=0, note=None):
+            bobj = self.ensure(a, b)
+            if not bobj:
+                return None
+            return bobj.add_relation(rel_id, rel_type=rel_type, a_label=a_label, b_label=b_label, weight=weight, note=note)
+
+        def remove_relation(self, a, b, rel_id):
+            bobj = self.get_between(a, b)
+            if not bobj:
+                return None
+            return bobj.remove_relation(rel_id)
+
+        def get_relations_for(self, a, b):
+            bobj = self.get_between(a, b)
+            return bobj.get_relations() if bobj else []
+
+        def get_primary_relation(self, a, b):
+            """Return the highest-weight relation between a and b or None."""
+            rels = self.get_relations_for(a, b)
+            if not rels:
+                return None
+            try:
+                rels_sorted = sorted(rels, key=lambda r: int(r.get('weight', 0)), reverse=True)
+                return rels_sorted[0]
+            except Exception:
+                return rels[0]
         
         def get_between(self, a, b):
             if not a or not b or a == b:
@@ -243,6 +313,19 @@ init -10 python:
         b = bond_manager.get_between(a_id, b_id)
         return list(b.tags) if b else []
 
+    def bond_add_relation(a_id, b_id, rel_id, rel_type=None, a_label=None, b_label=None, weight=0, note=None):
+        return bond_manager.set_relation(a_id, b_id, rel_id, rel_type=rel_type, a_label=a_label, b_label=b_label, weight=weight, note=note)
+
+    def bond_get_relations(a_id, b_id):
+        return bond_manager.get_relations_for(a_id, b_id)
+
+    def bond_get_primary(a_id, b_id):
+        rel = bond_manager.get_primary_relation(a_id, b_id)
+        return rel
+
+    def bond_remove_relation(a_id, b_id, rel_id):
+        return bond_manager.remove_relation(a_id, b_id, rel_id)
+
     def bond_level_from_value(val):
         if val <= -50: return "Hostile"
         if val <= -20: return "Cold"
@@ -269,7 +352,7 @@ init -10 python:
         return pc.gold
 
     def cond_jump(expr, label_true, label_false=None):
-        ok = safe_eval_bool(expr, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level})
+        ok = safe_eval_bool(expr, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation})
         if ok and label_true and renpy.has_label(label_true):
             renpy.jump(label_true)
         elif (not ok) and label_false and renpy.has_label(label_false):
@@ -844,14 +927,42 @@ init -10 python:
 
             self.current_value, self.required_value = 0, 1
         def check_trigger(self, etype, **kwargs):
-            if self.state not in ["shown", "active"] or self.trigger_data.get("event") != etype: return False
+            if self.state not in ["shown", "active"]: 
+                return False
+            # event compare (case-insensitive)
+            if str(self.trigger_data.get("event")).upper() != str(etype).upper():
+                return False
             for k, v in self.trigger_data.items():
-                if k not in ["event", "cond", "total"] and str(kwargs.get(k)) != str(v): return False
+                if k in ["event", "cond", "total"]: 
+                    continue
+                actual = kwargs.get(k)
+                if isinstance(v, list):
+                    if actual not in v:
+                        return False
+                else:
+                    try:
+                        if isinstance(actual, (int, float)) and str(v).replace('.', '', 1).isdigit():
+                            if float(actual) != float(v):
+                                return False
+                        else:
+                            if str(actual) != str(v):
+                                return False
+                    except Exception:
+                        if str(actual) != str(v):
+                            return False
             if self.trigger_data.get("cond"):
-                if not safe_eval_bool(self.trigger_data["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level}): 
+                try:
+                    if not safe_eval_bool(self.trigger_data["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation}): 
+                        return False
+                except Exception as e:
+                    renpy.log(f"Error evaluating tick cond for {self.id}: {e}")
                     return False
             self.current_value = int(kwargs.get("total", self.current_value + 1))
-            if self.current_value >= int(self.trigger_data.get("total", self.required_value)):
+            try:
+                required = int(self.trigger_data.get("total", self.required_value))
+            except Exception:
+                required = self.required_value
+            if self.current_value >= required:
                 self.state = "complete"
                 return True
             return False
@@ -873,14 +984,14 @@ init -10 python:
             if self.chars and char.id not in self.chars and "*" not in self.chars:
                 return False
             if self.cond and str(self.cond).strip() and str(self.cond) != "True":
-                return safe_eval_bool(self.cond, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level})
+                return safe_eval_bool(self.cond, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation})
             return True
 
         def availability_status(self, char):
             if self.chars and char.id not in self.chars and "*" not in self.chars:
                 return False, "Not for this character."
             if self.cond and str(self.cond).strip() and str(self.cond) != "True":
-                ok = safe_eval_bool(self.cond, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager, "flags": world_flags, "flag_get": flag_get})
+                ok = safe_eval_bool(self.cond, {"pc": pc, "char": char, "rpg_world": rpg_world, "quest_manager": quest_manager, "flags": world_flags, "flag_get": flag_get, "faction_get": faction_manager.get_reputation})
                 if not ok:
                     return False, self.reason or "Locked."
             return True, "Available."
@@ -900,11 +1011,11 @@ init -10 python:
     dialogue_manager = DialogueManager()
 
     class StoryOrigin(object):
-        def __init__(self, id, name, description, pc_id, intro_label, image=None):
+        def __init__(self, id, name, description, character, intro_label, image=None):
             self.id = id
             self.name = name
             self.description = description
-            self.pc_id = pc_id
+            self.character = character
             self.intro_label = intro_label
             self.image = image
 
@@ -921,7 +1032,7 @@ init -10 python:
     story_origin_manager = StoryOriginManager()
 
     class Quest:
-        def __init__(self, id, name, description="", category="side", giver=None, location=None, tags=None, prereqs=None, rewards=None, start_trigger=None, origin=False, pc_id=None, image=None):
+        def __init__(self, id, name, description="", category="side", giver=None, location=None, tags=None, prereqs=None, rewards=None, start_trigger=None, origin=False, character=None, image=None, outcomes=None):
             self.id = id
             self.name = name
             self.description = description
@@ -931,9 +1042,10 @@ init -10 python:
             self.tags = set(tags or [])
             self.prereqs = prereqs or {}
             self.rewards = rewards or {}
+            self.outcomes = outcomes or []
             self.start_trigger = start_trigger or {}
             self.origin = bool(origin)
-            self.pc_id = pc_id
+            self.character = character
             self.image = image
             self.state = "unknown"
             self.ticks = []
@@ -954,7 +1066,7 @@ init -10 python:
                     return False
             cond = req.get("cond")
             if cond and str(cond).strip():
-                if not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "quest_manager": quest_manager}):
+                if not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "quest_manager": quest_manager, "faction_get": faction_manager.get_reputation}):
                     return False
             return True
         def start(self):
@@ -971,10 +1083,10 @@ init -10 python:
                 if renpy.has_label(f"QUEST__{self.id}__started"): renpy.call(f"QUEST__{self.id}__started")
                 return True
             return False
-        def _apply_rewards(self):
+        def _apply_rewards(self, rewards):
             if self.rewards_applied:
                 return
-            rewards = self.rewards or {}
+            rewards = rewards or {}
             gold = int(rewards.get("gold", 0) or 0)
             if gold:
                 add_gold(gold)
@@ -982,10 +1094,87 @@ init -10 python:
                 give_item(item_id, count)
             for flag in rewards.get("flags", []) or []:
                 flag_set(flag, True)
+            # Reputation changes: allow 'reputation' or 'reputations' mapping
+            rep_map = rewards.get('reputation') or rewards.get('reputations') or {}
+            if isinstance(rep_map, dict):
+                for fid, delta in rep_map.items():
+                    try:
+                        faction_manager.modify_reputation(str(fid), int(delta))
+                    except Exception:
+                        try:
+                            faction_manager.modify_reputation(str(fid), float(delta))
+                        except Exception:
+                            renpy.log(f"Invalid reputation delta for faction {fid}: {delta}")
+            # Faction membership changes
+            for fid in rewards.get('factions_add', []) or []:
+                try:
+                    pc.join_faction(fid)
+                except Exception:
+                    renpy.log(f"Failed to add PC to faction {fid}")
+            for fid in rewards.get('factions_remove', []) or []:
+                try:
+                    pc.leave_faction(fid)
+                except Exception:
+                    renpy.log(f"Failed to remove PC from faction {fid}")
             self.rewards_applied = True
-        def complete(self):
+
+        def _choose_outcome(self, outcome_id=None):
+            """Evaluate outcomes (list of dicts) and return the first matching outcome dict.
+            Each outcome may contain a 'cond' expression evaluated with safe_eval_bool.
+            If none match, return None."""
+            try:
+                for o in (self.outcomes or []):
+                    if not isinstance(o, dict):
+                        continue
+                    # If outcome_id specified, match by id immediately
+                    if outcome_id and (str(o.get('id')) == str(outcome_id) or str(o.get('name')) == str(outcome_id)):
+                        return o
+                    cond = o.get('cond')
+                    if not cond or str(cond).strip() == '':
+                        # No condition -> default outcome (lowest priority)
+                        default = o
+                        continue
+                    try:
+                        ok = safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "quest_manager": quest_manager, "faction_get": faction_manager.get_reputation})
+                    except Exception as e:
+                        renpy.log(f"Error evaluating outcome cond for quest {self.id}: {e}")
+                        ok = False
+                    if ok:
+                        return o
+                # If none matched, return default if present
+                if 'default' in locals() and default:
+                    return default
+            except Exception as e:
+                renpy.log(f"Error choosing outcome for quest {self.id}: {e}")
+            return None
+        def complete(self, outcome_id=None):
             self.state = "passed"
-            self._apply_rewards()
+            # If outcomes are defined, evaluate and apply the matching outcome's rewards/flags
+            outcome = None
+            if self.outcomes:
+                outcome = self._choose_outcome(outcome_id=outcome_id)
+            if outcome and isinstance(outcome, dict):
+                rewards = outcome.get('rewards', {}) or {}
+                self._apply_rewards(rewards)
+                # Apply any additional flags from outcome
+                for flag in outcome.get('flags', []) or []:
+                    flag_set(flag, True)
+                # Apply faction membership changes if present at outcome level
+                for fid in outcome.get('factions_add', []) or []:
+                    try:
+                        pc.join_faction(fid)
+                    except Exception:
+                        renpy.log(f"Failed to add PC to faction {fid} via outcome")
+                for fid in outcome.get('factions_remove', []) or []:
+                    try:
+                        pc.leave_faction(fid)
+                    except Exception:
+                        renpy.log(f"Failed to remove PC from faction {fid} via outcome")
+                renpy.log(f"Quest {self.id} completed with outcome: {outcome.get('id') or outcome.get('name')}")
+            else:
+                # Fallback to default rewards defined on the quest
+                self._apply_rewards(self.rewards)
+
             renpy.notify(f"Quest Completed: {self.name}")
             event_manager.dispatch("QUEST_COMPLETED", quest=self.id)
             if renpy.has_label(f"QUEST__{self.id}__passed"): renpy.call(f"QUEST__{self.id}__passed")
@@ -1003,6 +1192,7 @@ init -10 python:
         def __init__(self):
             self.quests, self.start_triggers = {}, {}
             self.active_quest_id = None
+            self.trigger_index = {}
         def add_quest(self, q): self.quests[q.id] = q
         def get_origins(self):
             origins = [q for q in self.quests.values() if getattr(q, "origin", False)]
@@ -1061,18 +1251,58 @@ init -10 python:
                     if all_c: q.complete()
                 event_manager.dispatch("QUEST_UPDATED", quest=q.id)
         def register_start_trigger(self, qid, data): self.start_triggers[qid] = data
+        def load_trigger_index(self, index):
+            try:
+                self.trigger_index = index or {}
+            except Exception:
+                self.trigger_index = {}
         def handle_event(self, etype, **kwargs):
+            # Start triggers (unchanged)
             for qid, trigger in self.start_triggers.items():
                 q = self.quests.get(qid)
                 if q and q.state == "unknown" and self._match(trigger, etype, **kwargs): q.start()
+
+            # Fast-path: use precompiled trigger index when available
+            processed = set()
+            ev_key = str(etype).upper()
+            entries = self.trigger_index.get(ev_key, []) if getattr(self, 'trigger_index', None) else []
+            if entries:
+                for ent in entries:
+                    qid = ent.get('quest')
+                    tick_id = ent.get('tick')
+                    q = self.quests.get(qid)
+                    if not q or q.state != 'active':
+                        continue
+                    for t in q.ticks:
+                        if t.id != tick_id:
+                            continue
+                        # check trigger with tick's stored trigger data
+                        try:
+                            if t.check_trigger(etype, **kwargs):
+                                processed.add((q.id, t.id))
+                                event_manager.dispatch("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
+                                if t.flow_label:
+                                    if renpy.has_label(t.flow_label):
+                                        renpy.call(t.flow_label)
+                                    else:
+                                        renpy.log(f"Missing flow label for quest {q.id} tick {t.id}: {t.flow_label}")
+                        except Exception as e:
+                            renpy.log(f"Error checking trigger for {q.id}.{t.id}: {e}")
+
+            # Fallback scan for any other active quests/ticks not covered by index
             for q in self.quests.values():
                 if q.state == "active":
                     any_done = False
                     for t in q.ticks:
+                        if (q.id, t.id) in processed:
+                            continue
                         if t.check_trigger(etype, **kwargs):
                             any_done = True
                             event_manager.dispatch("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
-                            if t.flow_label and renpy.has_label(t.flow_label): renpy.call(t.flow_label)
+                            if t.flow_label and renpy.has_label(t.flow_label):
+                                renpy.call(t.flow_label)
+                            elif t.flow_label:
+                                renpy.log(f"Missing flow label for quest {q.id} tick {t.id}: {t.flow_label}")
                     if any_done:
                         all_c = True
                         for t in q.ticks:
@@ -1083,14 +1313,63 @@ init -10 python:
                         if all_c: q.complete()
                         event_manager.dispatch("QUEST_UPDATED", quest=q.id)
         def _match(self, t, etype, **kwargs):
-            if t.get("event") != etype: return False
+            if str(t.get("event")).upper() != str(etype).upper(): return False
             for k, v in t.items():
-                if k not in ["event", "cond"] and str(kwargs.get(k)) != str(v): return False
+                if k in ["event", "cond"]: continue
+                actual = kwargs.get(k)
+                # Support list membership
+                if isinstance(v, list):
+                    if actual not in v:
+                        return False
+                else:
+                    try:
+                        # numeric compare when possible
+                        if isinstance(actual, (int, float)) and str(v).replace('.', '', 1).isdigit():
+                            if float(actual) != float(v):
+                                return False
+                        else:
+                            if str(actual) != str(v):
+                                return False
+                    except Exception:
+                        if str(actual) != str(v):
+                            return False
             if t.get("cond"):
-                return safe_eval_bool(t["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level})
+                try:
+                    return safe_eval_bool(t["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation})
+                except Exception as e:
+                    renpy.log(f"Error evaluating start trigger cond for {t}: {e}")
+                    return False
             return True
 
     quest_manager = QuestManager()
+
+    def quest_get_choices_for_menu(menu_id, char=None):
+        """Return list of available quest-provided choices for a given menu target (char id or menu id).
+        Each entry: {quest, id, text, label}.
+        """
+        res = []
+        try:
+            for q in quest_manager.quests.values():
+                if q.state != 'active':
+                    continue
+                for choice in getattr(q, 'choices', []) or []:
+                    # Menu matching: None means global; allow list or single
+                    menu = choice.get('menu')
+                    if menu:
+                        if isinstance(menu, list):
+                            if str(menu_id) not in [str(m) for m in menu]:
+                                continue
+                        else:
+                            if str(menu) != str(menu_id) and not (hasattr(char, 'id') and str(menu) == str(getattr(char, 'id'))):
+                                continue
+                    # Evaluate condition
+                    cond = choice.get('cond', True)
+                    ok = safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation, "char": (getattr(char, 'id', None))})
+                    if ok:
+                        res.append({"quest": q.id, "id": choice.get('id'), "text": choice.get('text'), "label": choice.get('label')})
+        except Exception as e:
+            renpy.log(f"Error while gathering quest choices for menu {menu_id}: {e}")
+        return res
 
     # --- DEBUG HELPERS ---
     def q_force_tick(qid, tick_idx):
@@ -2152,7 +2431,7 @@ init -10 python:
                 if enc.get("once") and enc_id in encounter_history:
                     continue
                 cond = enc.get("cond")
-                if cond and not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level}):
+                if cond and not safe_eval_bool(cond, {"pc": pc, "rpg_world": rpg_world, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation}):
                     continue
                 try:
                     chance = float(enc.get("chance", 1.0))
@@ -2280,7 +2559,7 @@ init -10 python:
                     return False
             # Check condition if present
             if self.trigger.get("cond"):
-                if not safe_eval_bool(self.trigger["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level}):
+                if not safe_eval_bool(self.trigger["cond"], {"player": pc, "rpg_world": rpg_world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation}):
                     return False
             return True
     
@@ -2530,6 +2809,31 @@ init -10 python:
     wiki_manager = JournalManager()
     journal_manager = wiki_manager # Alias
 
+    class FactionManager:
+        def __init__(self):
+            self.factions = {}
+        def register(self, fid, data):
+            self.factions[fid] = data or {}
+        def get(self, fid):
+            return self.factions.get(fid)
+        def get_all(self):
+            return list(self.factions.values())
+        def ensure_reputation_store(self):
+            if not hasattr(persistent, 'faction_reputation') or persistent.faction_reputation is None:
+                persistent.faction_reputation = {}
+        def get_reputation(self, fid):
+            self.ensure_reputation_store()
+            return int(persistent.faction_reputation.get(fid, 0) or 0)
+        def set_reputation(self, fid, val):
+            self.ensure_reputation_store()
+            persistent.faction_reputation[fid] = int(val)
+        def modify_reputation(self, fid, delta):
+            self.ensure_reputation_store()
+            cur = int(persistent.faction_reputation.get(fid, 0) or 0)
+            persistent.faction_reputation[fid] = int(cur + delta)
+
+    faction_manager = FactionManager()
+
     def from_dict(cls, data, id=None, **defaults):
         """
         Convert a YAML dict to class constructor kwargs.
@@ -2573,7 +2877,7 @@ init -10 python:
             if not renpy.loadable(json_path):
                 # Fallback check
                 json_path = game_dir + "/generated/generated_json.json"
-            
+
             with renpy.file(json_path) as f:
                 content = f.read().decode('utf-8')
                 data = json.loads(content)
@@ -2581,6 +2885,12 @@ init -10 python:
             with open("debug_load.txt", "a") as df:
                 df.write("JSON Load Error: {}\n".format(str(e)))
             return
+
+        # Load precompiled trigger index (event -> quest ticks)
+        try:
+            quest_manager.load_trigger_index(data.get("quest_trigger_index", {}))
+        except Exception:
+            pass
 
         # Slots (must be loaded before body types and characters)
         for oid, p in data.get("slots", {}).items():
@@ -2698,7 +3008,7 @@ init -10 python:
                 oid,
                 name=p.get('name', oid),
                 description=p.get('description', ''),
-                pc_id=p.get('pc_id'),
+                character=(p.get('character') or p.get('pc_id')),
                 intro_label=p.get('intro_label'),
                 image=p.get('image')
             ))
@@ -2752,8 +3062,9 @@ init -10 python:
                     prereqs=p.get('prereqs', {}),
                     rewards=p.get('rewards', {}),
                     start_trigger=p.get('start_trigger', {}),
+                    outcomes=p.get('outcomes', []),
                     origin=p.get('origin', False),
-                    pc_id=p.get('pc_id'),
+                    character=(p.get('character') or p.get('pc_id')),
                     image=p.get('image')
                 )
                 for t_idx, tp in enumerate(p.get('ticks', [])):
@@ -2766,10 +3077,15 @@ init -10 python:
                         tick.required_value = 1
                     tick.flow_label = tp.get('label')
                     q.add_tick(tick)
-
+                # Attach compiled choices (if any)
+                try:
+                    q.choices = p.get('choices', []) or []
+                except Exception:
+                    q.choices = []
                 quest_manager.add_quest(q)
                 if q.start_trigger:
                     quest_manager.register_start_trigger(oid, q.start_trigger)
+                # (no-op)
             except Exception as e:
                 with open("debug_load.txt", "a") as df:
                     df.write("Quest Load Error ({}): {}\n".format(oid, str(e)))
@@ -2786,6 +3102,13 @@ init -10 python:
                 trigger=p.get('trigger', {}),
                 ticks_required=p.get('ticks', 1)
             ))
+        # Factions
+        for fid, fdata in data.get('factions', {}).items():
+            try:
+                faction_manager.register(fid, fdata)
+            except Exception as e:
+                with open("debug_load.txt", "a") as df:
+                    df.write("Faction Load Error ({}): {}\n".format(fid, str(e)))
         
         # Perks
         for oid, p in data.get("perks", {}).items():
@@ -2824,13 +3147,15 @@ init -10 python:
             a = p.get("a")
             b = p.get("b")
             if a and b:
-                bond_manager.register(Bond(
+                bond = Bond(
                     oid,
                     a,
                     b,
                     tags=p.get("tags", []),
-                    stats=p.get("stats", {})
-                ))
+                    stats=p.get("stats", {}),
+                    relations=p.get("relations", [])
+                )
+                bond_manager.register(bond)
 
     instantiate_all()
 

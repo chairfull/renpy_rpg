@@ -2524,7 +2524,7 @@
             "location": null,
             "tags": [],
             "origin": false,
-            "pc_id": null,
+            "character": null,
             "image": null,
             "prereqs": {
                 "quests": [],
@@ -2538,26 +2538,49 @@
                 "flags": []
             },
             "start_trigger": {},
+            "outcomes": [],
             "ticks": [
                 {
                     "id": "collect_wood",
                     "name": "Collect Wood",
                     "trigger": {},
-                    "label": "QUEST__iron_and_fire__collect_wood"
+                    "guidance": {},
+                    "label": "QUEST__iron_and_fire__collect_wood",
+                    "flow_lines": [
+                        [
+                            null,
+                            "That should be enough wood."
+                        ]
+                    ]
                 },
                 {
                     "id": "collect_stone",
                     "name": "Collect Stone",
                     "trigger": {},
-                    "label": "QUEST__iron_and_fire__collect_stone"
+                    "guidance": {},
+                    "label": "QUEST__iron_and_fire__collect_stone",
+                    "flow_lines": [
+                        [
+                            null,
+                            "Got the stone. Back to Greta."
+                        ]
+                    ]
                 },
                 {
                     "id": "craft_a_signal_baton",
                     "name": "Craft a Signal Baton",
                     "trigger": {},
-                    "label": "QUEST__iron_and_fire__craft_a_signal_baton"
+                    "guidance": {},
+                    "label": "QUEST__iron_and_fire__craft_a_signal_baton",
+                    "flow_lines": [
+                        [
+                            null,
+                            "Greta: Not a weapon. A tool. It can guide sleepers away from people."
+                        ]
+                    ]
                 }
-            ]
+            ],
+            "choices": []
         },
         "theo_secret": {
             "name": "Patient Zero",
@@ -2567,7 +2590,7 @@
             "location": null,
             "tags": [],
             "origin": false,
-            "pc_id": null,
+            "character": null,
             "image": null,
             "prereqs": {
                 "quests": [],
@@ -2581,14 +2604,23 @@
                 "flags": []
             },
             "start_trigger": {},
+            "outcomes": [],
             "ticks": [
                 {
                     "id": "find_the_outbreak_note",
                     "name": "Find the Outbreak Note",
                     "trigger": {},
-                    "label": "QUEST__theo_secret__find_the_outbreak_note"
+                    "guidance": {},
+                    "label": "QUEST__theo_secret__find_the_outbreak_note",
+                    "flow_lines": [
+                        [
+                            null,
+                            "This looks like the first entry. The handwriting is frantic."
+                        ]
+                    ]
                 }
-            ]
+            ],
+            "choices": []
         },
         "formal_intro": {
             "name": "Chain of Command",
@@ -2598,7 +2630,7 @@
             "location": null,
             "tags": [],
             "origin": false,
-            "pc_id": null,
+            "character": null,
             "image": null,
             "prereqs": {
                 "quests": [],
@@ -2612,26 +2644,49 @@
                 "flags": []
             },
             "start_trigger": {},
+            "outcomes": [],
             "ticks": [
                 {
                     "id": "speak_with_coordinator_mara",
                     "name": "Speak with Coordinator Mara",
                     "trigger": {},
-                    "label": "QUEST__formal_intro__speak_with_coordinator_mara"
+                    "guidance": {},
+                    "label": "QUEST__formal_intro__speak_with_coordinator_mara",
+                    "flow_lines": [
+                        [
+                            null,
+                            "Mara knows the state of every street and every gate."
+                        ]
+                    ]
                 },
                 {
                     "id": "visit_the_quarantine_gate",
                     "name": "Visit the Quarantine Gate",
                     "trigger": {},
-                    "label": "QUEST__formal_intro__visit_the_quarantine_gate"
+                    "guidance": {},
+                    "label": "QUEST__formal_intro__visit_the_quarantine_gate",
+                    "flow_lines": [
+                        [
+                            null,
+                            "This is where the lines are held and checked."
+                        ]
+                    ]
                 },
                 {
                     "id": "speak_with_captain_rafi",
                     "name": "Speak with Captain Rafi",
                     "trigger": {},
-                    "label": "QUEST__formal_intro__speak_with_captain_rafi"
+                    "guidance": {},
+                    "label": "QUEST__formal_intro__speak_with_captain_rafi",
+                    "flow_lines": [
+                        [
+                            null,
+                            "Rafi will decide if I can pass the outer line."
+                        ]
+                    ]
                 }
-            ]
+            ],
+            "choices": []
         },
         "ration_run": {
             "name": "Ration Run",
@@ -2641,7 +2696,7 @@
             "location": null,
             "tags": [],
             "origin": false,
-            "pc_id": null,
+            "character": null,
             "image": null,
             "prereqs": {
                 "quests": [],
@@ -2655,20 +2710,36 @@
                 "flags": []
             },
             "start_trigger": {},
+            "outcomes": [],
             "ticks": [
                 {
                     "id": "visit_the_supply_depot",
                     "name": "Visit the Supply Depot",
                     "trigger": {},
-                    "label": "QUEST__ration_run__visit_the_supply_depot"
+                    "guidance": {},
+                    "label": "QUEST__ration_run__visit_the_supply_depot",
+                    "flow_lines": [
+                        [
+                            null,
+                            "This is the depot. If any rations remain, they will be here."
+                        ]
+                    ]
                 },
                 {
                     "id": "collect_rations",
                     "name": "Collect Rations",
                     "trigger": {},
-                    "label": "QUEST__ration_run__collect_rations"
+                    "guidance": {},
+                    "label": "QUEST__ration_run__collect_rations",
+                    "flow_lines": [
+                        [
+                            null,
+                            "That should be enough for today."
+                        ]
+                    ]
                 }
-            ]
+            ],
+            "choices": []
         },
         "long_dawn": {
             "name": "The Long Dawn",
@@ -2678,7 +2749,7 @@
             "location": null,
             "tags": [],
             "origin": true,
-            "pc_id": "survivor",
+            "character": "survivor",
             "image": "chars/male_fit.png",
             "prereqs": {
                 "quests": [],
@@ -2692,80 +2763,166 @@
                 "flags": []
             },
             "start_trigger": {},
+            "outcomes": [],
             "ticks": [
                 {
                     "id": "ordinary_world",
                     "name": "Ordinary World",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__ordinary_world"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__ordinary_world",
+                    "flow_lines": [
+                        [
+                            null,
+                            "Routines hold the line - logbooks, rations, and quiet rules."
+                        ]
+                    ]
                 },
                 {
                     "id": "call_to_adventure",
                     "name": "Call to Adventure",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__call_to_adventure"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__call_to_adventure",
+                    "flow_lines": [
+                        [
+                            null,
+                            "The Spire shifts again. Find the source and bring back a peaceful answer."
+                        ]
+                    ]
                 },
                 {
                     "id": "refusal_of_the_call",
                     "name": "Refusal of the Call",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__refusal_of_the_call"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__refusal_of_the_call",
+                    "flow_lines": [
+                        [
+                            null,
+                            "The guardhouse warns that noise means danger. Doubt settles in before the gates."
+                        ]
+                    ]
                 },
                 {
                     "id": "meeting_the_mentor",
                     "name": "Meeting the Mentor",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__meeting_the_mentor"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__meeting_the_mentor",
+                    "flow_lines": [
+                        [
+                            null,
+                            "Lena teaches how to step between beats and mark safe lanes without drawing the drift."
+                        ]
+                    ]
                 },
                 {
                     "id": "crossing_the_threshold",
                     "name": "Crossing the Threshold",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__crossing_the_threshold"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__crossing_the_threshold",
+                    "flow_lines": [
+                        [
+                            null,
+                            "You pass the last sandbags and enter the overgrowth, counting your breaths."
+                        ]
+                    ]
                 },
                 {
                     "id": "tests_and_allies",
                     "name": "Tests and Allies",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__tests_and_allies"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__tests_and_allies",
+                    "flow_lines": [
+                        [
+                            null,
+                            "Greta needs wood and stone to tune a signal baton that guides instead of harms."
+                        ]
+                    ]
                 },
                 {
                     "id": "approach",
                     "name": "Approach",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__approach"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__approach",
+                    "flow_lines": [
+                        [
+                            null,
+                            "The safe route narrows. The Broadcast Tower rises ahead, low and listening."
+                        ]
+                    ]
                 },
                 {
                     "id": "ordeal",
                     "name": "Ordeal",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__ordeal"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__ordeal",
+                    "flow_lines": [
+                        [
+                            null,
+                            "Inside the lobby, sleepers drift like fog. You move quietly, hands open, heart steady."
+                        ]
+                    ]
                 },
                 {
                     "id": "reward",
                     "name": "Reward",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__reward"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__reward",
+                    "flow_lines": [
+                        [
+                            null,
+                            "A data drive holds the broadcast pattern. It is warm with the city's memory."
+                        ]
+                    ]
                 },
                 {
                     "id": "the_road_back",
                     "name": "The Road Back",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__the_road_back"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__the_road_back",
+                    "flow_lines": [
+                        [
+                            null,
+                            "The return run favors patience over speed. Follow the dead zones home."
+                        ]
+                    ]
                 },
                 {
                     "id": "resurrection",
                     "name": "Resurrection",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__resurrection"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__resurrection",
+                    "flow_lines": [
+                        [
+                            null,
+                            "Mara and Greta test a soft counter-tone. The sleepers turn without panic."
+                        ]
+                    ]
                 },
                 {
                     "id": "return_with_the_elixir",
                     "name": "Return with the Elixir",
                     "trigger": {},
-                    "label": "QUEST__long_dawn__return_with_the_elixir"
+                    "guidance": {},
+                    "label": "QUEST__long_dawn__return_with_the_elixir",
+                    "flow_lines": [
+                        [
+                            null,
+                            "Routes are updated, the new tone is logged, and the city breathes easier."
+                        ]
+                    ]
                 }
-            ]
+            ],
+            "choices": []
         },
         "silent_tide": {
             "name": "The Silent Tide",
@@ -2775,7 +2932,7 @@
             "location": null,
             "tags": [],
             "origin": true,
-            "pc_id": "theo",
+            "character": "theo",
             "image": "chars/male_thin.png",
             "prereqs": {
                 "quests": [],
@@ -2789,113 +2946,340 @@
                 "flags": []
             },
             "start_trigger": {},
+            "outcomes": [],
             "ticks": [
                 {
                     "id": "ordinary_world",
                     "name": "Ordinary World",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__ordinary_world"
+                    "trigger": {
+                        "event": "CHAR_MET",
+                        "char_id": "clerk"
+                    },
+                    "guidance": {
+                        "location": "shop",
+                        "objects": [
+                            "clerk"
+                        ]
+                    },
+                    "label": "QUEST__silent_tide__ordinary_world",
+                    "flow_lines": []
                 },
                 {
                     "id": "call_to_adventure",
                     "name": "Call to Adventure",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__call_to_adventure"
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "market"
+                    },
+                    "guidance": {
+                        "location": "market"
+                    },
+                    "label": "QUEST__silent_tide__call_to_adventure",
+                    "flow_lines": []
                 },
                 {
                     "id": "refusal_of_the_call",
                     "name": "Refusal of the Call",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__refusal_of_the_call"
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "shop"
+                    },
+                    "guidance": {
+                        "location": "shop"
+                    },
+                    "label": "QUEST__silent_tide__refusal_of_the_call",
+                    "flow_lines": []
                 },
                 {
                     "id": "meeting_the_mentor",
                     "name": "Meeting the Mentor",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__meeting_the_mentor"
+                    "trigger": {
+                        "event": "CHAR_MET",
+                        "char_id": "ash"
+                    },
+                    "guidance": {
+                        "location": "tavern",
+                        "objects": [
+                            "ash"
+                        ]
+                    },
+                    "label": "QUEST__silent_tide__meeting_the_mentor",
+                    "flow_lines": []
                 },
                 {
                     "id": "crossing_the_threshold",
                     "name": "Crossing the Threshold",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__crossing_the_threshold"
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "docks"
+                    },
+                    "guidance": {
+                        "location": "docks"
+                    },
+                    "label": "QUEST__silent_tide__crossing_the_threshold",
+                    "flow_lines": []
                 },
                 {
                     "id": "tests_and_allies",
                     "name": "Tests and Allies",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__tests_and_allies"
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "tavern"
+                    },
+                    "guidance": {
+                        "location": "tavern"
+                    },
+                    "label": "QUEST__silent_tide__tests_and_allies",
+                    "flow_lines": []
                 },
                 {
                     "id": "approach",
                     "name": "Approach",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__approach"
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "mage_tower"
+                    },
+                    "guidance": {
+                        "location": "mage_tower"
+                    },
+                    "label": "QUEST__silent_tide__approach",
+                    "flow_lines": []
                 },
                 {
                     "id": "ordeal",
                     "name": "Ordeal",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__ordeal"
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "mage_tower",
+                        "cond": "flag_get('broadcast_tower_reached')"
+                    },
+                    "guidance": {
+                        "location": "mage_tower"
+                    },
+                    "label": "QUEST__silent_tide__ordeal",
+                    "flow_lines": []
                 },
                 {
                     "id": "reward",
                     "name": "Reward",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__reward"
+                    "trigger": {
+                        "event": "FLAG_SET",
+                        "flag": "harmonic_key_obtained"
+                    },
+                    "guidance": {},
+                    "label": "QUEST__silent_tide__reward",
+                    "flow_lines": []
                 },
                 {
                     "id": "the_road_back",
                     "name": "The Road Back",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__the_road_back"
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "temple"
+                    },
+                    "guidance": {
+                        "location": "temple"
+                    },
+                    "label": "QUEST__silent_tide__the_road_back",
+                    "flow_lines": []
                 },
                 {
                     "id": "resurrection",
                     "name": "Resurrection",
-                    "trigger": {},
-                    "label": "QUEST__silent_tide__resurrection"
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "market",
+                        "cond": "flag_get('broadcast_success')"
+                    },
+                    "guidance": {
+                        "location": "market"
+                    },
+                    "label": "QUEST__silent_tide__resurrection",
+                    "flow_lines": []
                 },
                 {
                     "id": "return_with_the_elixir",
                     "name": "Return with the Elixir",
+                    "trigger": {
+                        "event": "LOCATION_VISITED",
+                        "location": "temple"
+                    },
+                    "guidance": {
+                        "location": "temple"
+                    },
+                    "label": "QUEST__silent_tide__return_with_the_elixir",
+                    "flow_lines": [
+                        [
+                            null,
+                            "The Silent Tide becomes a living practice, and the city learns to survive without violence."
+                        ]
+                    ]
+                },
+                {
+                    "id": "ask_the_clerk",
+                    "name": "Ask the Clerk",
                     "trigger": {},
-                    "label": "QUEST__silent_tide__return_with_the_elixir"
+                    "guidance": {},
+                    "label": "QUEST__silent_tide__ask_the_clerk",
+                    "flow_lines": [
+                        [
+                            null,
+                            "pc: Excuse me \u2014 have you noticed the sleepers' rhythm?"
+                        ],
+                        [
+                            null,
+                            "clerk: It's old as the docks. Folks hush and follow it when the moon leans right."
+                        ],
+                        [
+                            null,
+                            "FLAG SET asked_clerk True"
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"Clerk: They remember a tune from the sea.\""
+                        ]
+                    ]
+                },
+                {
+                    "id": "share_the_pattern_with_ash",
+                    "name": "Share the Pattern with Ash",
+                    "trigger": {},
+                    "guidance": {},
+                    "label": "QUEST__silent_tide__share_the_pattern_with_ash",
+                    "flow_lines": [
+                        [
+                            null,
+                            "pc: I tracked the tide lines \u2014 I think I can shape them without force."
+                        ],
+                        [
+                            null,
+                            "ash: If you can hum it slow enough, maybe they follow a kinder path."
+                        ],
+                        [
+                            null,
+                            "FLAG SET shared_with_ash True"
+                        ],
+                        [
+                            null,
+                            "NOTIFY \"Ash: We can try a gentle frequency.\""
+                        ]
+                    ]
+                },
+                {
+                    "id": "attempt_harmonic_broadcast",
+                    "name": "Attempt Harmonic Broadcast",
+                    "trigger": {},
+                    "guidance": {},
+                    "label": "QUEST__silent_tide__attempt_harmonic_broadcast",
+                    "flow_lines": [
+                        [
+                            null,
+                            "pc: I can try the harmonic broadcast \u2014 hand me the key."
+                        ],
+                        [
+                            null,
+                            "clerk: If it works, it could guide them. If it fails..."
+                        ],
+                        [
+                            null,
+                            "EVENT GAME_STARTED broadcast_attempt=true"
+                        ],
+                        [
+                            null,
+                            "FLAG SET broadcast_attempted True"
+                        ],
+                        [
+                            null,
+                            "GIVE protocol_deciphered 1"
+                        ]
+                    ]
+                }
+            ],
+            "choices": [
+                {
+                    "id": "ask_clerk",
+                    "menu": "clerk",
+                    "text": "Ask the clerk about the sleepers' rhythm.",
+                    "cond": "True",
+                    "label": "QUEST__silent_tide__ask_clerk",
+                    "flow_lines": [
+                        [
+                            170,
+                            "pc: Excuse me \u2014 have you noticed the sleepers' rhythm?"
+                        ],
+                        [
+                            171,
+                            "clerk: It's old as the docks. Folks hush and follow it when the moon leans right."
+                        ],
+                        [
+                            172,
+                            "FLAG SET asked_clerk True"
+                        ],
+                        [
+                            173,
+                            "NOTIFY \"Clerk: They remember a tune from the sea.\""
+                        ]
+                    ]
+                },
+                {
+                    "id": "share_with_ash",
+                    "menu": "ash",
+                    "text": "Share the pattern you've recorded with Ash.",
+                    "cond": "bond_get_stat('theo','ash','affinity') > 10",
+                    "label": "QUEST__silent_tide__share_with_ash",
+                    "flow_lines": [
+                        [
+                            184,
+                            "pc: I tracked the tide lines \u2014 I think I can shape them without force."
+                        ],
+                        [
+                            185,
+                            "ash: If you can hum it slow enough, maybe they follow a kinder path."
+                        ],
+                        [
+                            186,
+                            "FLAG SET shared_with_ash True"
+                        ],
+                        [
+                            187,
+                            "NOTIFY \"Ash: We can try a gentle frequency.\""
+                        ]
+                    ]
+                },
+                {
+                    "id": "attempt_broadcast",
+                    "menu": "clerk",
+                    "text": "Offer to run the harmonic broadcast (requires harmonic key).",
+                    "cond": "flag_get('harmonic_key_obtained')",
+                    "label": "QUEST__silent_tide__attempt_broadcast",
+                    "flow_lines": [
+                        [
+                            198,
+                            "pc: I can try the harmonic broadcast \u2014 hand me the key."
+                        ],
+                        [
+                            199,
+                            "clerk: If it works, it could guide them. If it fails..."
+                        ],
+                        [
+                            200,
+                            "EVENT GAME_STARTED broadcast_attempt=true"
+                        ],
+                        [
+                            201,
+                            "FLAG SET broadcast_attempted True"
+                        ],
+                        [
+                            202,
+                            "GIVE protocol_deciphered 1"
+                        ]
+                    ]
                 }
             ]
         }
     },
     "containers": {},
-    "stats": {
-        "dexterity": {
-            "name": "Dexterity",
-            "description": "Agility, reflexes, and precision.",
-            "default": 10,
-            "min": 1,
-            "max": 100
-        },
-        "intelligence": {
-            "name": "Intelligence",
-            "description": "Mental acuity and magical aptitude.",
-            "default": 10,
-            "min": 1,
-            "max": 100
-        },
-        "charisma": {
-            "name": "Charisma",
-            "description": "Social influence and persuasion.",
-            "default": 10,
-            "min": 1,
-            "max": 100
-        },
-        "strength": {
-            "name": "Strength",
-            "description": "Physical power and carrying capacity.",
-            "default": 10,
-            "min": 1,
-            "max": 100
-        }
-    },
+    "stats": {},
     "factions": {
         "infected": {
             "name": "The Infected",
@@ -3040,7 +3424,7 @@
             "memory": true,
             "reason": "Already traveling with you.",
             "cond": "not flag_get('scout_joined', False)",
-            "label": "CHOICE__lena_ask_for_a_guide"
+            "label": "CHOICE__lena__Ask_For_A_Guide"
         },
         "lena_ask_to_part_ways": {
             "short": "Ask to part ways",
@@ -3055,7 +3439,7 @@
             "memory": true,
             "reason": "Not traveling with you.",
             "cond": "flag_get('scout_joined', False)",
-            "label": "CHOICE__lena_ask_to_part_ways"
+            "label": "CHOICE__lena__Ask_To_Part_Ways"
         },
         "mara_offer_help": {
             "short": "Offer help",
@@ -3070,7 +3454,7 @@
             "memory": true,
             "reason": null,
             "cond": "True",
-            "label": "CHOICE__mara_offer_help"
+            "label": "CHOICE__mara__Offer_Help"
         },
         "mara_ask_about_the_signal": {
             "short": "Ask about the signal",
@@ -3085,7 +3469,7 @@
             "memory": true,
             "reason": null,
             "cond": "True",
-            "label": "CHOICE__mara_ask_about_the_signal"
+            "label": "CHOICE__mara__Ask_About_The_Signal"
         },
         "mara_report_on_spire": {
             "short": "Report on Spire",
@@ -3100,7 +3484,7 @@
             "memory": false,
             "reason": null,
             "cond": "flag_get('protocol_recovered', False) and not flag_get('protocol_deciphered', False)",
-            "label": "CHOICE__mara_report_on_spire"
+            "label": "CHOICE__mara__Report_on_Spire"
         },
         "rafi_request_gate_pass": {
             "short": "Request gate pass",
@@ -3115,7 +3499,7 @@
             "memory": true,
             "reason": "Needs Charisma 10.",
             "cond": "pc.stats.charisma >= 10",
-            "label": "CHOICE__rafi_request_gate_pass"
+            "label": "CHOICE__rafi__Request_Gate_Pass"
         },
         "rafi_report_a_quiet_route": {
             "short": "Report quiet route",
@@ -3130,7 +3514,7 @@
             "memory": true,
             "reason": null,
             "cond": "True",
-            "label": "CHOICE__rafi_report_a_quiet_route"
+            "label": "CHOICE__rafi__Report_a_Quiet_Route"
         },
         "kael_ask_about_breaching": {
             "short": "Ask about breaching",
@@ -3145,7 +3529,7 @@
             "memory": true,
             "reason": null,
             "cond": "True",
-            "label": "CHOICE__kael_ask_about_breaching"
+            "label": "CHOICE__kael__Ask_About_Breaching"
         },
         "jun_learn_cadence": {
             "short": "Learn cadence",
@@ -3160,7 +3544,7 @@
             "memory": true,
             "reason": "You already learned it.",
             "cond": "not flag_get('cadence_learned', False)",
-            "label": "CHOICE__jun_learn_cadence"
+            "label": "CHOICE__jun__Learn_Cadence"
         },
         "elena_checkup": {
             "short": "Ask for a checkup",
@@ -3175,7 +3559,7 @@
             "memory": true,
             "reason": null,
             "cond": "True",
-            "label": "CHOICE__elena_checkup"
+            "label": "CHOICE__elena__Checkup"
         }
     },
     "story_origins": {},
@@ -3330,6 +3714,140 @@
                 "respect": 5,
                 "trust": 5
             }
+        },
+        "dexterity": {
+            "a": null,
+            "b": null,
+            "tags": [],
+            "stats": {},
+            "relations": []
+        },
+        "intelligence": {
+            "a": null,
+            "b": null,
+            "tags": [],
+            "stats": {},
+            "relations": []
+        },
+        "charisma": {
+            "a": null,
+            "b": null,
+            "tags": [],
+            "stats": {},
+            "relations": []
+        },
+        "strength": {
+            "a": null,
+            "b": null,
+            "tags": [],
+            "stats": {},
+            "relations": []
         }
+    },
+    "quest_trigger_index": {
+        "CHAR_MET": [
+            {
+                "quest": "silent_tide",
+                "tick": "ordinary_world",
+                "trigger": {
+                    "event": "CHAR_MET",
+                    "char_id": "clerk"
+                }
+            },
+            {
+                "quest": "silent_tide",
+                "tick": "meeting_the_mentor",
+                "trigger": {
+                    "event": "CHAR_MET",
+                    "char_id": "ash"
+                }
+            }
+        ],
+        "LOCATION_VISITED": [
+            {
+                "quest": "silent_tide",
+                "tick": "call_to_adventure",
+                "trigger": {
+                    "event": "LOCATION_VISITED",
+                    "location": "market"
+                }
+            },
+            {
+                "quest": "silent_tide",
+                "tick": "refusal_of_the_call",
+                "trigger": {
+                    "event": "LOCATION_VISITED",
+                    "location": "shop"
+                }
+            },
+            {
+                "quest": "silent_tide",
+                "tick": "crossing_the_threshold",
+                "trigger": {
+                    "event": "LOCATION_VISITED",
+                    "location": "docks"
+                }
+            },
+            {
+                "quest": "silent_tide",
+                "tick": "tests_and_allies",
+                "trigger": {
+                    "event": "LOCATION_VISITED",
+                    "location": "tavern"
+                }
+            },
+            {
+                "quest": "silent_tide",
+                "tick": "approach",
+                "trigger": {
+                    "event": "LOCATION_VISITED",
+                    "location": "mage_tower"
+                }
+            },
+            {
+                "quest": "silent_tide",
+                "tick": "ordeal",
+                "trigger": {
+                    "event": "LOCATION_VISITED",
+                    "location": "mage_tower",
+                    "cond": "flag_get('broadcast_tower_reached')"
+                }
+            },
+            {
+                "quest": "silent_tide",
+                "tick": "the_road_back",
+                "trigger": {
+                    "event": "LOCATION_VISITED",
+                    "location": "temple"
+                }
+            },
+            {
+                "quest": "silent_tide",
+                "tick": "resurrection",
+                "trigger": {
+                    "event": "LOCATION_VISITED",
+                    "location": "market",
+                    "cond": "flag_get('broadcast_success')"
+                }
+            },
+            {
+                "quest": "silent_tide",
+                "tick": "return_with_the_elixir",
+                "trigger": {
+                    "event": "LOCATION_VISITED",
+                    "location": "temple"
+                }
+            }
+        ],
+        "FLAG_SET": [
+            {
+                "quest": "silent_tide",
+                "tick": "reward",
+                "trigger": {
+                    "event": "FLAG_SET",
+                    "flag": "harmonic_key_obtained"
+                }
+            }
+        ]
     }
 }
