@@ -102,8 +102,8 @@ screen map_browser(view_w=None, view_h=None):
     $ _vw = view_w or config.screen_width
     $ _vh = view_h or config.screen_height
 
-    on "show" action [SetVariable("map_ui_active", True), Function(set_tooltip, None), Function(map_manager.center_on_player, adj_x, adj_y, _vw, _vh, PAD), SetField(map_manager, "zoom", 1.0), SetField(map_manager, "target_zoom", 1.0), Function(map_manager.center_on_player, adj_x, adj_y, _vw, _vh, PAD)]
-    on "hide" action [SetVariable("map_ui_active", False), Function(set_tooltip, None)]
+    on "show" action [SetVariable("map_ui_active", True), Function(map_manager.center_on_player, adj_x, adj_y, _vw, _vh, PAD), SetField(map_manager, "zoom", 1.0), SetField(map_manager, "target_zoom", 1.0), Function(map_manager.center_on_player, adj_x, adj_y, _vw, _vh, PAD)]
+    on "hide" action [SetVariable("map_ui_active", False)]
     
     # Background
     add Solid("#111", xysize=(_vw, _vh))
@@ -150,8 +150,6 @@ screen map_browser(view_w=None, view_h=None):
                     pos (px, py)
                     anchor (0.5, 0.5)
                     tooltip tooltip_text
-                    hovered Function(set_tooltip, tooltip_text)
-                    unhovered Function(set_tooltip, None)
                     focus_mask None
                     if quick_travel_on_click:
                         action Function(map_manager.travel_to_location, loc)
@@ -343,8 +341,8 @@ screen phone_minimap(view_w=None, view_h=None):
     $ _vw = view_w or 1200
     $ _vh = view_h or 700
 
-    on "show" action [SetVariable("map_ui_active", True), Function(set_tooltip, None), SetField(map_manager, "search_query", ""), SetField(map_manager, "zoom", 1.0), SetField(map_manager, "target_zoom", 1.0), Function(map_manager.center_on_player, adj_x, adj_y, _vw, _vh, PAD)]
-    on "hide" action [SetVariable("map_ui_active", False), Function(set_tooltip, None), SetVariable("map_local_tip", None)]
+    on "show" action [SetVariable("map_ui_active", True), SetField(map_manager, "search_query", ""), SetField(map_manager, "zoom", 1.0), SetField(map_manager, "target_zoom", 1.0), Function(map_manager.center_on_player, adj_x, adj_y, _vw, _vh, PAD)]
+    on "hide" action [SetVariable("map_ui_active", False), SetVariable("map_local_tip", None)]
 
     timer 0.01 action Function(map_manager.center_on_player, adj_x, adj_y, _vw, _vh, PAD)
     timer 0.033 repeat True action Function(_map_update_zoom, adj_x, adj_y, _vw, _vh)

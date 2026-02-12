@@ -17,7 +17,7 @@ init python:
             dev_reload_message = f"Compile error: {e}"
             return dev_reload_message
         try:
-            instantiate_all()
+            load_world()
             dev_reload_message = "Content reloaded."
         except Exception as e:
             dev_reload_message = f"Reload error: {e}"

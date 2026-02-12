@@ -486,8 +486,6 @@ screen main_menu():
             textbutton _("Start"):
                 action Start()
                 tooltip _("Start a new game")
-                hovered Function(set_tooltip, _("Start a new game"), True)
-                unhovered Function(set_tooltip, None, True)
                 style "mm_button"
                 text_style "mm_button_text"
                 at menu_hover_flash
@@ -498,10 +496,8 @@ screen main_menu():
                     spacing 6
                     for origin in origins:
                         textbutton "[origin.name]":
-                            hovered Function(set_tooltip, origin.description, True)
-                            unhovered Function(set_tooltip, None, True)
                             tooltip origin.description
-                            action [Function(set_tooltip, None, True), SetVariable("preselected_origin_id", origin.id), Start()]
+                            action [SetVariable("preselected_origin_id", origin.id), Start()]
                             style "mm_button"
                             text_style "mm_button_text"
                             text_size 18
@@ -510,32 +506,24 @@ screen main_menu():
             textbutton _("Load"):
                 action ShowMenu("load")
                 tooltip _("Load a saved game")
-                hovered Function(set_tooltip, _("Load a saved game"), True)
-                unhovered Function(set_tooltip, None, True)
                 style "mm_button"
                 text_style "mm_button_text"
                 at menu_hover_flash
             textbutton _("Wiki"):
                 action ShowMenu("gallery_screen")
                 tooltip _("Open the in-game wiki")
-                hovered Function(set_tooltip, _("Open the in-game wiki"), True)
-                unhovered Function(set_tooltip, None, True)
                 style "mm_button"
                 text_style "mm_button_text"
                 at menu_hover_flash
             textbutton _("Preferences"):
                 action ShowMenu("preferences")
                 tooltip _("Adjust settings")
-                hovered Function(set_tooltip, _("Adjust settings"), True)
-                unhovered Function(set_tooltip, None, True)
                 style "mm_button"
                 text_style "mm_button_text"
                 at menu_hover_flash
             textbutton _("About"):
                 action ShowMenu("about")
                 tooltip _("View credits and info")
-                hovered Function(set_tooltip, _("View credits and info"), True)
-                unhovered Function(set_tooltip, None, True)
                 style "mm_button"
                 text_style "mm_button_text"
                 at menu_hover_flash
@@ -543,8 +531,6 @@ screen main_menu():
                 textbutton _("Help"):
                     action ShowMenu("help")
                     tooltip _("Open help")
-                    hovered Function(set_tooltip, _("Open help"), True)
-                    unhovered Function(set_tooltip, None, True)
                     style "mm_button"
                     text_style "mm_button_text"
                     at menu_hover_flash
@@ -552,8 +538,6 @@ screen main_menu():
                 textbutton _("Quit"):
                     action Quit(confirm=not main_menu)
                     tooltip _("Exit the game")
-                    hovered Function(set_tooltip, _("Exit the game"), True)
-                    unhovered Function(set_tooltip, None, True)
                     style "mm_button"
                     text_style "mm_button_text"
                     at menu_hover_flash

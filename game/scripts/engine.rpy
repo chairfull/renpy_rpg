@@ -2319,48 +2319,6 @@ init -10 python:
 
                 visible.append(loc)
             return visible
-
-        def update_hover(self, adj_x, adj_y, pad, view_w, view_h, radius=28):
-            """Manual hover detection for map markers (robust across viewports)."""
-            try:
-                mx, my = renpy.get_mouse_pos()
-            except Exception:
-                mx, my = None, None
-            if mx is None or my is None:
-                if self.hover_tooltip:
-                    self.hover_tooltip = None
-                    self.hover_location = None
-                    renpy.restart_interaction()
-                return
-
-            nearest = None
-            nearest_dist = None
-            for loc in self.get_visible_markers():
-                px = (loc.map_x + pad) * self.zoom
-                py = (loc.map_y + pad) * self.zoom
-                sx = px - adj_x.value
-                sy = py - adj_y.value
-                if sx < -radius or sx > view_w + radius or sy < -radius or sy > view_h + radius:
-                    continue
-                dist = math.hypot(mx - sx, my - sy)
-                if dist <= radius and (nearest is None or dist < nearest_dist):
-                    nearest = loc
-                    nearest_dist = dist
-
-            if nearest:
-                can_travel = allow_unvisited_travel or nearest.visited or (rpg_world.current_location_id == nearest.id)
-                tip = nearest.name if can_travel else bracket_label("Undiscovered", "#ff3b3b")
-                if tip != self.hover_tooltip:
-                    self.hover_tooltip = tip
-                    self.hover_location = nearest
-                    set_tooltip(tip)
-                    renpy.restart_interaction()
-            else:
-                if self.hover_tooltip:
-                    self.hover_tooltip = None
-                    self.hover_location = None
-                    set_tooltip(None)
-                    renpy.restart_interaction()
             
         def search(self, query):
             self.search_query = query.strip()
@@ -2912,7 +2870,7 @@ init -10 python:
         # Re-register the player to keep references stable across reloads
         rpg_world.add_character(pc)
     
-    def instantiate_all():
+    def load_world():
         reset_game_data()
         try:
             # Use a more robust path check for renpy.file
@@ -3200,7 +3158,7 @@ init -10 python:
                 )
                 bond_manager.register(bond)
 
-    instantiate_all()
+    load_world()
 
 default persistent.achievements = set()
 default persistent.met_characters = set()

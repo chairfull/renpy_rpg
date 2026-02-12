@@ -33,69 +33,56 @@ init python:
             return "KNOWN"
         return "HIDDEN"
 
-    def _clamp01(val):
-        if val < 0.0:
-            return 0.0
-        if val > 1.0:
-            return 1.0
-        return val
-
-    def _ease_in_out_sine(val):
-        return 0.5 - (math.cos(math.pi * val) * 0.5)
-
-    def _lerp(a, b, t):
-        return a + (b - a) * t
-
     def phone_anim_portrait_open(tf, st, at):
-        t = _ease_in_out_sine(_clamp01(st / 0.25))
+        t = ease_in_out_sine(clamp(st / 0.25))
         tf.xanchor = 0.5
         tf.yanchor = 0.5
-        tf.xalign = _lerp(0.06, 0.5, t)
-        tf.yalign = _lerp(0.94, 0.5, t)
-        tf.zoom = _lerp(0.35, 1.0, t)
-        tf.alpha = _lerp(0.0, 1.0, t)
+        tf.xalign = lerp(0.06, 0.5, t)
+        tf.yalign = lerp(0.94, 0.5, t)
+        tf.zoom = lerp(0.35, 1.0, t)
+        tf.alpha = lerp(0.0, 1.0, t)
         return 0
 
     def phone_anim_portrait_close(tf, st, at):
-        t = _ease_in_out_sine(_clamp01(st / 0.22))
+        t = ease_in_out_sine(clamp(st / 0.22))
         tf.xanchor = 0.5
         tf.yanchor = 0.5
-        tf.xalign = _lerp(0.5, 0.06, t)
-        tf.yalign = _lerp(0.5, 0.94, t)
-        tf.zoom = _lerp(1.0, 0.35, t)
-        tf.alpha = _lerp(1.0, 0.0, t)
+        tf.xalign = lerp(0.5, 0.06, t)
+        tf.yalign = lerp(0.5, 0.94, t)
+        tf.zoom = lerp(1.0, 0.35, t)
+        tf.alpha = lerp(1.0, 0.0, t)
         return 0
 
     def phone_anim_rotate_to_landscape(tf, st, at):
-        t = _ease_in_out_sine(_clamp01(st / 0.25))
+        t = ease_in_out_sine(clamp(st / 0.25))
         tf.xanchor = 0.5
         tf.yanchor = 0.5
         tf.xalign = 0.5
         tf.yalign = 0.5
-        tf.rotate = _lerp(0.0, 90.0, t)
-        tf.zoom = _lerp(1.0, 1.15, t)
+        tf.rotate = lerp(0.0, 90.0, t)
+        tf.zoom = lerp(1.0, 1.15, t)
         tf.alpha = 1.0
         return 0
 
     def phone_anim_landscape_open(tf, st, at):
-        t = _ease_in_out_sine(_clamp01(st / 0.18))
+        t = ease_in_out_sine(clamp(st / 0.18))
         tf.xanchor = 0.5
         tf.yanchor = 0.5
         tf.xalign = 0.5
         tf.yalign = 0.5
-        tf.zoom = _lerp(0.95, 1.0, t)
-        tf.alpha = _lerp(0.0, 1.0, t)
+        tf.zoom = lerp(0.95, 1.0, t)
+        tf.alpha = lerp(0.0, 1.0, t)
         return 0
 
     def phone_anim_landscape_close(tf, st, at):
-        t = _ease_in_out_sine(_clamp01(st / 0.22))
+        t = ease_in_out_sine(clamp(st / 0.22))
         tf.xanchor = 0.5
         tf.yanchor = 0.5
-        tf.xalign = _lerp(0.5, 0.06, t)
-        tf.yalign = _lerp(0.5, 0.94, t)
-        tf.rotate = _lerp(90.0, 0.0, t)
-        tf.zoom = _lerp(1.15, 0.35, t)
-        tf.alpha = _lerp(1.0, 0.0, t)
+        tf.xalign = lerp(0.5, 0.06, t)
+        tf.yalign = lerp(0.5, 0.94, t)
+        tf.rotate = lerp(90.0, 0.0, t)
+        tf.zoom = lerp(1.15, 0.35, t)
+        tf.alpha = lerp(1.0, 0.0, t)
         return 0
 
 # --- PHONE HOME SCREEN ---
@@ -187,8 +174,6 @@ screen phone_app_icon(icon, label, app_id):
         xsize 100
         ysize 100
         tooltip label
-        hovered Function(set_tooltip, label)
-        unhovered Function(set_tooltip, None)
         
         vbox at phone_visual_hover:
             align (0.5, 0.5)
@@ -211,8 +196,6 @@ screen phone_nav_icon(icon, label, app_id):
         xsize 110
         ysize 56
         tooltip label
-        hovered Function(set_tooltip, label)
-        unhovered Function(set_tooltip, None)
         background ("#2a2a3a" if is_selected else "#1a1a25")
         hover_background "#2f3442"
         padding (6, 6)
@@ -767,8 +750,6 @@ screen phone_wardrobe_content():
                                     action Notify(f"{item.name}: {item.description}")
                                 
                                 tooltip item_tooltip_text(item, count)
-                                hovered Function(set_tooltip, item_tooltip_text(item, count))
-                                unhovered Function(set_tooltip, None)
                                 
                                 hbox:
                                     xfill True
@@ -891,7 +872,7 @@ screen phone_transition_portrait():
             align (0.5, 0.5)
             at phone_portrait_open
             use phone_screen
-    timer 0.26 action [SetVariable("phone_state", "portrait"), SetVariable("phone_transition", None), Function(set_tooltip, None)]
+    timer 0.26 action [SetVariable("phone_state", "portrait"), SetVariable("phone_transition", None)]
 
 screen phone_transition_landscape():
     fixed:
@@ -904,7 +885,7 @@ screen phone_transition_landscape():
             align (0.5, 0.5)
             at phone_rotate_to_landscape
             use phone_screen
-    timer 0.26 action [SetVariable("phone_state", "landscape"), SetVariable("phone_transition", None), Function(set_tooltip, None)]
+    timer 0.26 action [SetVariable("phone_state", "landscape"), SetVariable("phone_transition", None)]
 
 screen phone_transition_mini():
     fixed:

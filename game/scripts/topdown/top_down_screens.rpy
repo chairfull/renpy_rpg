@@ -35,12 +35,12 @@ screen top_down_map(location):
     key "h" action ToggleVariable("show_reachability")
     
     # Update Loop - Paused when phone is open
-    timer td_update_dt repeat True action [
-        If(map_ui_active or phone_state != "mini",
-            Function(_td_noop),
-            [Function(td_manager.update, td_update_dt), Function(_td_update_hover_tooltip)]
-        )
-    ]
+    # timer td_update_dt repeat True action [
+    #     If(map_ui_active or phone_state != "mini",
+    #         Function(_td_noop),
+    #         [Function(td_manager.update, td_update_dt), Function(_td_update_hover_tooltip)]
+    #     )
+    # ]
     
     # Main Map Container with Zoom/Cinematic
     frame:
@@ -93,8 +93,6 @@ screen top_down_map(location):
                     ysize h_size[1]
                     action Function(_td_click_entity, entity)
                     tooltip entity.tooltip
-                    hovered Function(set_tooltip, entity.tooltip)
-                    unhovered Function(set_tooltip, None)
                     focus_mask None
                     
                     background None
@@ -191,35 +189,6 @@ init python:
     import math
     def _td_noop():
         return None
-    def _td_update_hover_tooltip():
-        if phone_state != "mini":
-            set_tooltip(None)
-            return
-        try:
-            mx, my = renpy.get_mouse_pos()
-        except Exception:
-            set_tooltip(None)
-            return
-        zoom = getattr(store, "td_zoom", 1.0)
-        wx, wy = td_manager.screen_to_world(mx, my, zoom)
-        nearest = None
-        nearest_dist = None
-        for ent in td_manager.entities:
-            dx = ent.x - wx
-            dy = ent.y - wy
-            h_anchor = getattr(ent, "hit_anchor", (0.5, 0.5))
-            h_size = getattr(ent, "hit_size", (120, 120))
-            cx = ent.x + (0.5 - h_anchor[0]) * h_size[0]
-            cy = ent.y + (0.5 - h_anchor[1]) * h_size[1]
-            dist = math.hypot(wx - cx, wy - cy)
-            radius = max(h_size[0], h_size[1]) * 0.5
-            if dist <= radius and (nearest_dist is None or dist < nearest_dist):
-                nearest = ent
-                nearest_dist = dist
-        if nearest and nearest.tooltip:
-            set_tooltip(nearest.tooltip)
-        else:
-            set_tooltip(None)
 
     def _td_click_to_move():
         zoom = getattr(store, "td_zoom", 1.0)

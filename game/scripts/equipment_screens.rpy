@@ -1,6 +1,5 @@
 # Equipment management screen
 screen equipment_content():
-    on "show" action Function(set_tooltip, None)
     $ body_slots = slot_registry.get_slots_for_body(pc.body_type)
     $ entries = build_inventory_entries(pc)
     # Filter equipable items and attach equip actions

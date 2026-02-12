@@ -63,8 +63,6 @@ transform inventory_fade:
 
 screen meta_menu():
     tag menu
-    on "show" action Function(set_tooltip, None)
-    on "hide" action Function(set_tooltip, None)
     add "#0c0c0c"
     
     # Outer Container
@@ -85,8 +83,6 @@ screen meta_menu():
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "inventory")
                 tooltip "View and manage items"
-                hovered Function(set_tooltip, "View and manage items")
-                unhovered Function(set_tooltip, None)
             
             textbutton "Stats":
                 action SetVariable("meta_menu_tab", "stats")
@@ -94,8 +90,6 @@ screen meta_menu():
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "stats")
                 tooltip "Character stats and attributes"
-                hovered Function(set_tooltip, "Character stats and attributes")
-                unhovered Function(set_tooltip, None)
             
             textbutton "Crafting":
                 action SetVariable("meta_menu_tab", "crafting")
@@ -103,8 +97,6 @@ screen meta_menu():
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "crafting")
                 tooltip "Combine items into new ones"
-                hovered Function(set_tooltip, "Combine items into new ones")
-                unhovered Function(set_tooltip, None)
             
             textbutton "Journal":
                 action SetVariable("meta_menu_tab", "journal")
@@ -112,8 +104,6 @@ screen meta_menu():
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "journal")
                 tooltip "Quests, notes, and people"
-                hovered Function(set_tooltip, "Quests, notes, and people")
-                unhovered Function(set_tooltip, None)
             
             textbutton "Equipment":
                 action SetVariable("meta_menu_tab", "equipment")
@@ -121,8 +111,6 @@ screen meta_menu():
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "equipment")
                 tooltip "Manage equipped items"
-                hovered Function(set_tooltip, "Manage equipped items")
-                unhovered Function(set_tooltip, None)
 
             textbutton "🏆":
                 action SetVariable("meta_menu_tab", "achievements")
@@ -130,8 +118,6 @@ screen meta_menu():
                 text_style "tab_button_text"
                 selected (meta_menu_tab == "achievements")
                 tooltip "Unlocked achievements"
-                hovered Function(set_tooltip, "Unlocked achievements")
-                unhovered Function(set_tooltip, None)
 
         # Main Content Area
         frame:
@@ -216,8 +202,8 @@ screen inventory_grid(entries, columns=5, cell_size=110, total_slots=None, selec
                     action action
                     sensitive sensitive
                     tooltip tip
-                    hovered [SetScreenVariable("hover_idx", idx), Function(set_tooltip, tip, True)]
-                    unhovered [SetScreenVariable("hover_idx", None), Function(set_tooltip, None, True)]
+                    hovered [SetScreenVariable("hover_idx", idx)]
+                    unhovered [SetScreenVariable("hover_idx", None)]
                     focus_mask None
                     at phone_visual_hover
                     
@@ -258,7 +244,6 @@ screen inventory_grid(entries, columns=5, cell_size=110, total_slots=None, selec
                         add Solid("#1f1f1f") xysize (cell_size, cell_size)
 
 screen inventory_content():
-    on "show" action Function(set_tooltip, None)
     $ columns = 4
     $ rows = 3
     $ per_page = columns * rows
@@ -649,10 +634,6 @@ init python:
     def char_interaction_queue_label(label_name):
         if not label_name:
             return
-        try:
-            set_tooltip(None, True)
-        except Exception:
-            pass
         store.char_interaction_pending_label = label_name
         try:
             renpy.hide_screen("char_interaction_menu")

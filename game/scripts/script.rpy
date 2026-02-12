@@ -1,15 +1,16 @@
-﻿define config.layers = [ 'master', 'transient', 'topdown', 'screens', 'overlay' ]    
+﻿define config.layers = [ 'master', 'transient', 'topdown', 'screens', 'overlay', 'tooltip' ]    
 
 define narr = Character("Narrator")
 
 label start:
+    # show screen mouse_tracker onlayer tooltip
+    show screen mouse_tooltip onlayer tooltip
+
     "Welcome to the AI RPG."
     narr "This is a text-based adventure game where you can explore a world, interact with characters, and embark on quests."
     narr "Before we begin, let's set up your character and choose your story."
     
-    # Reload data to ensure latest changes are picked up
-    $ instantiate_all()
-    
+    # Handles topdown camera zoom in. Should probably be moved.
     default intro_cinematic_done = False
     
     # Story Selection (skip if a quick-start origin was chosen)
