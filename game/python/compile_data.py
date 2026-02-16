@@ -225,7 +225,7 @@ def directive_to_python(line):
         if len(parts) < 2:
             return None
         loc_id = parts[1]
-        return f"rpg_world.move_to({loc_id!r})"
+        return f"world.move_to({loc_id!r})"
     if cmd == "rest":
         hours = int(parts[1]) if len(parts) > 1 else 1
         return f"rest({hours})"
@@ -351,7 +351,7 @@ def directive_to_python(line):
                 delta = int(parts[4])
             except Exception:
                 return None
-            return f"bond_add_stat(pc.id, {other!r}, {name!r}, {delta})"
+            return f"bond_add_stat(character.id, {other!r}, {name!r}, {delta})"
         if op == "set":
             if len(parts) < 5:
                 return None
@@ -359,17 +359,17 @@ def directive_to_python(line):
                 value = int(parts[4])
             except Exception:
                 return None
-            return f"bond_set_stat(pc.id, {other!r}, {name!r}, {value})"
+            return f"bond_set_stat(character.id, {other!r}, {name!r}, {value})"
         if op == "tag":
             if len(parts) < 5:
                 return None
             tag = parts[4]
-            return f"bond_add_tag(pc.id, {other!r}, {tag!r})"
+            return f"bond_add_tag(character.id, {other!r}, {tag!r})"
         if op == "untag":
             if len(parts) < 5:
                 return None
             tag = parts[4]
-            return f"bond_remove_tag(pc.id, {other!r}, {tag!r})"
+            return f"bond_remove_tag(character.id, {other!r}, {tag!r})"
     if cmd == "item":
         if len(parts) < 2:
             return None
@@ -801,7 +801,7 @@ def compile(lint_only=False):
                     "location": props.get('location'),
                     "tags": tags,
                     "origin": origin_flag,
-                    "character": props.get('character') or props.get('pc_id'),
+                    "character": props.get('character'),
                     "image": props.get('image'),
                     "prereqs": {
                         "quests": parse_csv(prereqs_raw.get('quests', [])) if isinstance(prereqs_raw, dict) else [],
@@ -941,7 +941,7 @@ def compile(lint_only=False):
                 data_consolidated["story_origins"][obj_id] = {
                     "name": props.get('name', obj_id),
                     "description": props.get('description', ''),
-                    "character": props.get('character') or props.get('pc_id'),
+                    "character": props.get('character'),
                     "intro_label": props.get('intro_label'),
                     "image": props.get('image'),
                     "body": body

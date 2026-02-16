@@ -22,8 +22,8 @@ entities:
 
 # Console
 ```flow
-pc: The screen is asking for an override.
-pc: If I can pull the data now, maybe I can make it back before the sleepers shift.
+character: The screen is asking for an override.
+character: If I can pull the data now, maybe I can make it back before the sleepers shift.
 NOTIFY "Recovering protocol..."
 GIVE broadcast_protocol 1
 FLAG SET protocol_recovered true

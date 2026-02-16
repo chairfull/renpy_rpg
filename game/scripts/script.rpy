@@ -6,6 +6,12 @@ label start:
     # show screen mouse_tracker onlayer tooltip
     show screen mouse_tooltip onlayer tooltip
 
+    call screen grid_page(4, 3, [
+        { "item": None, },
+        { "item": None, },
+        { "item": None, },
+    ])
+
     "Welcome to the AI RPG."
     narr "This is a text-based adventure game where you can explore a world, interact with characters, and embark on quests."
     narr "Before we begin, let's set up your character and choose your story."
@@ -28,7 +34,27 @@ label start:
 
 label world_loop:
     window hide
-    $ loc = rpg_world.current_location
+    $ loc = world.current_location
     show screen quest_panel onlayer overlay
     call screen top_down_map(loc) onlayer topdown
     jump world_loop
+
+init -5 python:
+    import math
+
+    class FlowQueueManager(object):
+        def __init__(self):
+            self.queue = []
+            self.active_label = None
+
+        def queue_label(self, label_name):
+            if label_name and renpy.has_label(label_name):
+                self.queue.append(label_name)
+
+        def process(self):
+            if not self.active_label and self.queue:
+                self.active_label = self.queue.pop(0)
+                renpy.call_in_new_context(self.active_label)
+                self.active_label = None
+
+default flow_queue = FlowQueueManager()

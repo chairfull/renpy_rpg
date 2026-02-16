@@ -47,5 +47,5 @@ items:
 ---
 # Talk
 ```flow
-pc: I've walked the quiet roads since the first pattern broke. These 'Sleepers'... they're just echoes of us, waiting for the right tone to wake up.
+character: I've walked the quiet roads since the first pattern broke. These 'Sleepers'... they're just echoes of us, waiting for the right tone to wake up.
 ```

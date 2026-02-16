@@ -60,7 +60,7 @@ cond: true
 ```
 
 ```flow
-pc: If you need someone fast, I can run the perimeter.
+character: If you need someone fast, I can run the perimeter.
 mara: Good. We're blind out there. Take this route map—it's marked with the latest safe-zones and frequency dead-spots.
 $ mara.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
 $ quest_manager.start_quest("long_dawn")
@@ -92,7 +92,7 @@ cond: "flag_get('protocol_recovered', False) and not flag_get('protocol_decipher
 ```
 
 ```flow
-pc: I have the protocol drive from the Spire. The lobby was full of them—it was like walking through a dream where nobody breathes.
+character: I have the protocol drive from the Spire. The lobby was full of them—it was like walking through a dream where nobody breathes.
 mara: Every year we lose more to the drift. This drive... it's the first real data we've had on their resonance in a decade.
 mara: Give me a moment to patch it into the main console. We need to see if we can broadcast a counter-tone.
 NOTIFY "Deciphering protocol..."

@@ -108,7 +108,7 @@ screen dev_items_view():
                     
                     textbutton "ADD TO INVENTORY":
                         align (1.0, 0.5)
-                        action Function(pc.add_item, item_manager.get(item_id))
+                        action Function(character.add_item, item_manager.get(item_id))
                         text_size 16
 
 screen dev_locations_view():
@@ -118,18 +118,18 @@ screen dev_locations_view():
         scrollbars "vertical"
         vbox:
             spacing 10
-            for loc_id in sorted(rpg_world.locations.keys()):
-                $ loc = rpg_world.locations[loc_id]
+            for loc_id in sorted(world.locations.keys()):
+                $ loc = world.locations[loc_id]
                 hbox:
                     xfill True
                     vbox:
                         text "[loc.name] ([loc_id])" size 20 color "#eee"
-                        if rpg_world.current_location_id == loc_id:
+                        if world.current_location_id == loc_id:
                             text "CURRENTLY HERE" color "#44ff44" size 14
                     
                     textbutton "TELEPORT":
                         align (1.0, 0.5)
-                        action [Function(rpg_world.move_to, loc_id), Return()]
+                        action [Function(world.move_to, loc_id), Return()]
                         text_size 16
 
 screen dev_quests_view():
@@ -173,8 +173,8 @@ screen dev_chars_view():
         scrollbars "vertical"
         vbox:
             spacing 10
-            for c_name in sorted(rpg_world.characters.keys()):
-                $ c = rpg_world.characters[c_name]
+            for c_name in sorted(world.characters.keys()):
+                $ c = world.characters[c_name]
                 if c.name != "Player":
                     hbox:
                         xfill True

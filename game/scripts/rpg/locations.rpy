@@ -1,0 +1,290 @@
+default location_manager = LocationManager()
+
+init -10 python:
+    add_meta_menu_tab("locations", "🗺️", "Locations", locations_screen)
+
+    class Gate:
+        def __init__(self, ltype="physical", difficulty=1, keys=None, locked=True):
+            self.type = ltype
+            self.difficulty = difficulty
+            self.keys = set(keys or [])
+            self.locked = locked
+        
+        def unlock(self, key_id):
+            if key_id in self.keys:
+                self.locked = False
+                return True
+            return False
+            
+        def pick(self, skill_level=0):
+            # Simple check for now (placeholder for minigame)
+            # Roll or stat check
+            if skill_level + renpy.random.randint(1, 20) >= self.difficulty + 10:
+                self.locked = False
+                return True
+            return False
+            
+        def lock(self):
+            self.locked = True
+
+    class Fixture:
+        """A place or object a character can fixate to (seat, bed, table, floor spot)."""
+        def __init__(self, id, name, fixture_type="seat", location_id=None, x=0, y=0, tags=None):
+            self.id = id
+            self.name = name
+            self.fixture_type = fixture_type or "seat"
+            self.location_id = location_id
+            self.x = x
+            self.y = y
+            self.tags = set(tags or [])
+            self.occupied_by = None
+
+        def is_occupied(self):
+            return self.occupied_by is not None
+
+        def fixate(self, char):
+            if self.occupied_by and self.occupied_by != char.id:
+                return False, "Occupied"
+            # Unfixate from previous fixture if needed
+            if getattr(char, "fixated_to", None) and getattr(char, "fixated_to") != self.id:
+                fixture_manager.unfixate_char(char)
+            self.occupied_by = char.id
+            char.fixated_to = self.id
+            if self.x is not None and self.y is not None:
+                char.x, char.y = self.x, self.y
+            event_manager.dispatch("CHARACTER_FIXATED", actor=char.id, fixture=self.id, fixture_type=self.fixture_type, location=self.location_id)
+            return True, "Fixated"
+
+        def unfixate(self, char=None):
+            target_id = self.occupied_by
+            if char is not None and target_id and target_id != char.id:
+                return False, "Not occupied by this character"
+            self.occupied_by = None
+            if char is not None:
+                char.fixated_to = None
+            event_manager.dispatch("CHARACTER_UNFIXATED", actor=target_id, fixture=self.id, fixture_type=self.fixture_type, location=self.location_id)
+            return True, "Unfixated"
+
+    class Location(SpatialObject, TaggedObject):
+        def __init__(self, id, name, description, map_image=None, obstacles=None, entities=None, encounters=None, scavenge=None, x=0, y=0, tags=None, factions=None,
+                parent_id=None, ltype="world", map_x=0, map_y=0, zoom_range=(0.0, 99.0), floor_idx=0):
+            SpatialObject.__init__(self, x, y)
+            TaggedObject.__init__(self, tags)
+            self.factions = set(factions or [])
+            self.id, self.name, self.description = id, name, description
+            self.map_image = map_image
+            self.gates = {}
+            self.fixtures = {}
+            self.flags = {}
+            self.obstacles = obstacles or set()
+            self.entities = entities or []
+            self.visited = False
+            
+            # Map Hierarchy Fields
+            self.parent_id = parent_id
+            self.ltype = ltype # world, country, city, structure, floor
+            self.map_x = map_x
+            self.map_y = map_y
+            self.min_zoom, self.max_zoom = zoom_range
+            self.floor_idx = floor_idx
+        
+        def flag_get(self, name, default=False):
+            return self.flags.get(name, default)
+
+        def flag_set(self, name, value=True):
+            self.flags[name] = value
+            return value
+
+        def flag_clear(self, name):
+            if name in self.flags:
+                del self.flags[name]
+    
+        def flag_toggle(self, name):
+            self.flags[name] = not self.flags.get(name, False)
+            return self.flags[name]
+        
+        @property
+        def characters(self):
+            return [c for c in world.characters.values() if getattr(c, 'location_id', None) == self.id and c.id != character.id]
+        
+        def get_entities_with_tag(self, tag):
+            return [e for e in self.entities if hasattr(e, 'tags') and tag in e.get('tags', [])]
+        
+        @property
+        def children(self):
+            # Return immediate children based on parent_id
+            return [l for l in world.locations.values() if l.parent_id == self.id]
+    
+    class LocationManager:
+        def __init__(self):
+            self.locations = {}
+    
+    def reload_location_manager(data):
+        location_manager.locations = {}
+        for oid, p in data.get("locations", {}).items():
+            try:
+                loc = from_dict(Location, p, id=oid)
+                location_manager.locations[oid] = loc
+            except Exception as e:
+                with open("debug_load.txt", "a") as df:
+                    df.write("Location Load Error ({}): {}\n".format(oid, str(e)))
+
+screen locations_screen():
+    frame:
+        background "#0f141b"
+        xfill True
+        yfill True
+        padding (16, 16)
+
+        vbox:
+            spacing 12
+
+            # Top mode buttons
+            hbox:
+                spacing 10
+                xalign 0.5
+                button:
+                    action SetVariable("phone_map_mode", "overworld")
+                    background ("#2a2a3a" if phone_map_mode == "overworld" else "#1a1a25")
+                    hover_background "#2f3442"
+                    padding (12, 8)
+                    vbox:
+                        spacing 2
+                        text "OVERWORLD" size 18 color "#fff"
+                        $ _ov = world.locations.get(phone_map_overworld) if phone_map_overworld else None
+                        text ((_ov.name if _ov else "—")) size 12 color "#aaa"
+                button:
+                    action SetVariable("phone_map_mode", "location")
+                    background ("#2a2a3a" if phone_map_mode == "location" else "#1a1a25")
+                    hover_background "#2f3442"
+                    padding (12, 8)
+                    vbox:
+                        spacing 2
+                        text "LOCATION" size 18 color "#fff"
+                        $ _loc = world.locations.get(phone_map_location) if phone_map_location else None
+                        text ((_loc.name if _loc else "—")) size 12 color "#aaa"
+                button:
+                    action SetVariable("phone_map_mode", "areas")
+                    background ("#2a2a3a" if phone_map_mode == "areas" else "#1a1a25")
+                    hover_background "#2f3442"
+                    padding (12, 8)
+                    vbox:
+                        spacing 2
+                        text "AREAS" size 18 color "#fff"
+                        $ _ar = world.locations.get(phone_map_area) if phone_map_area else None
+                        text ((_ar.name if _ar else "—")) size 12 color "#aaa"
+
+            # Grid
+            frame:
+                background "#111722"
+                xfill True
+                yfill True
+                padding (12, 12)
+                viewport:
+                    mousewheel True
+                    scrollbars "vertical"
+                    draggable True
+                    vpgrid:
+                        cols 3
+                        xspacing 10
+                        yspacing 10
+                        xfill True
+                        python:
+                            locs = list(world.locations.values())
+                            mode = phone_map_mode
+                            if mode == "overworld":
+                                locs = []
+                            elif mode == "location":
+                                locs = [l for l in world.locations.values() if l.ltype not in ("room", "floor") and not l.parent_id]
+                            else:
+                                # areas: rooms under selected location (any depth)
+                                if phone_map_location:
+                                    locs = [l for l in locs if l.ltype == "room" and _loc_is_descendant(l, phone_map_location)]
+                                else:
+                                    locs = []
+                            locs = sorted(locs, key=lambda l: (l.name or ""))
+                        for loc in locs:
+                            $ can_travel = allow_unvisited_travel or loc.visited or (world.current_location_id == loc.id)
+                            $ display_name = loc.name or loc.id
+                            button:
+                                xfill True
+                                ysize 110
+                                background ("#1f2a38" if can_travel else "#151a22")
+                                hover_background "#2a3646"
+                                padding (10, 8)
+                                action [
+                                    If(phone_map_mode == "overworld", SetVariable("phone_map_overworld", loc.id), NullAction()),
+                                    If(phone_map_mode == "location", SetVariable("phone_map_location", loc.id), NullAction()),
+                                    If(phone_map_mode == "areas", SetVariable("phone_map_area", loc.id), NullAction()),
+                                    If(phone_map_mode == "areas", Function(map_manager.select_location, loc), NullAction())
+                                ]
+                                vbox:
+                                    spacing 4
+                                    text "[display_name]" size 16 color ("#fff" if can_travel else "#666")
+                                    text "[loc.ltype!u]" size 12 color "#888"
+
+    if map_manager.selected_location:
+        use location_info_popup(map_manager.selected_location)
+# Location Info Popup Screen
+screen location_info_popup(loc):
+    # Click outside to close - full screen button behind the popup
+    button:
+        xfill True
+        yfill True
+        action Function(map_manager.close_location_popup)
+        background "#00000066"
+    
+    # Popup Frame
+    frame:
+        align (0.5, 0.5)
+        xsize 500
+        background "#1a1a2e"
+        padding (30, 30)
+        
+        vbox:
+            spacing 15
+            
+            # Header
+            hbox:
+                xfill True
+                text "[loc.name]" size 28 color "#ffd700" bold True
+                textbutton "✕":
+                    align (1.0, 0.0)
+                    action Function(map_manager.close_location_popup)
+                    text_size 24
+                    text_color "#888"
+                    text_hover_color "#fff"
+            
+            # Type Badge
+            frame:
+                background "#333"
+                padding (10, 5)
+                text "[loc.ltype!u]" size 14 color "#aaa"
+            
+            null height 5
+            
+            # Description
+            text "[loc.description]" size 18 color "#ccc" text_align 0.0
+            
+            null height 15
+            
+            $ can_travel = allow_unvisited_travel or loc.visited or (world.current_location_id == loc.id)
+            if not can_travel:
+                text "Undiscovered" size 16 color "#ff6666"
+
+            # Travel Button
+            textbutton "🚶 TRAVEL HERE":
+                xfill True
+                action Function(map_manager.travel_to_location, loc)
+                sensitive can_travel
+                background ("#2d5a27" if can_travel else "#222")
+                hover_background ("#3d7a37" if can_travel else "#333")
+                padding (20, 15)
+                text_size 22
+                text_color ("#fff" if can_travel else "#666")
+                text_xalign 0.5
+
+label map_search_input_label:
+    $ q = renpy.input("Search map:", default=map_manager.search_query, length=20)
+    $ map_manager.search(q)
+    return

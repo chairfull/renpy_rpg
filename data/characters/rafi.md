@@ -55,7 +55,7 @@ long: I need a clearance pass for the Dead Zone fence. (Requires Charisma 10)
 tags:
   - Gate
 memory: true
-cond: pc.stats.charisma >= 10
+cond: character.stats.charisma >= 10
 reason: "Needs Charisma 10."
 ```
 

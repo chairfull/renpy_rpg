@@ -11,9 +11,9 @@ init python:
     def roll_dice_minigame(stat_name, difficulty):
         roll = random.randint(1, 20)
         try:
-            stat_value = rpg_world.actor.get_stat_total(stat_name)
+            stat_value = world.actor.get_stat_total(stat_name)
         except Exception:
-            stat_value = getattr(rpg_world.actor.stats, stat_name)
+            stat_value = getattr(world.actor.stats, stat_name)
         total = roll + (stat_value - 10) // 2
         
         renpy.say(None, f"Rolling for {stat_name}... You rolled a {roll} + { (stat_value - 10) // 2 } bonus.")
@@ -34,5 +34,3 @@ label test_minigame:
     else:
         "Maybe next time."
     jump world_loop
-
-# The training dummy is now handled through the square.md data file.

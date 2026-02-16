@@ -25,7 +25,7 @@ image: chars/male_fit.png
 ---
 
 ```flow
-$ renpy.store.td_manager.setup(rpg_world.current_location)
+$ renpy.store.td_manager.setup(world.current_location)
 FLAG SET origin long_dawn
 EVENT GAME_STARTED origin=long_dawn
 QUEST START long_dawn
@@ -50,7 +50,7 @@ item: Ration Bar
 total: 5
 ```
 ```flow
-pc: That should be enough for today.
+character: That should be enough for today.
 ```
 ```
 

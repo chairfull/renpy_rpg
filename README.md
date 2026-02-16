@@ -108,7 +108,7 @@ NOTIFY "You feel a cold draft."
 Oh! Generous indeed. The town council will remember this.
 
 ```python
-pc.gold -= 10
+character.gold -= 10
 mayor.relation += 5
 ```
 ```

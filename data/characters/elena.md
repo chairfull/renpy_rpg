@@ -70,6 +70,6 @@ NOTIFY "Your cognitive resonance stabilizes."
 ## Battery Cell
 ```flow
 elena: Good. I can keep the clinic lights stable for another night.
-GIVE battery_cell from:pc to:elena count:1
+GIVE battery_cell from=character to=elena count=1
 NOTIFY "You gave Elena a Battery Cell."
 ```

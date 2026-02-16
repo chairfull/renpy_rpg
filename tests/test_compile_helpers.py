@@ -8,7 +8,7 @@ def test_extract_flow_blocks():
     lines = [
         (10, "Some intro"),
         (11, "```flow"),
-        (12, "$ pc.gold = 10"),
+        (12, "$ character.gold = 10"),
         (13, "Renpy: text"),
         (14, "```"),
     ]

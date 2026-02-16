@@ -37,7 +37,7 @@ screen lock_interaction_screen(lock_obj, item_name):
                 $ key_id = None
                 python:
                     for k_id in lock_obj.keys:
-                        for item in pc.items:
+                        for item in character.items:
                             item_id = getattr(item, 'id', None) or getattr(item, 'name', '').lower().replace(' ', '_')
                             if item_id == k_id:
                                 has_key = True
@@ -60,7 +60,7 @@ screen lock_interaction_screen(lock_obj, item_name):
                     text ("Requires key." if not has_key else "Guaranteed unlock.") size 12 color "#888"
                 
                 # 2. Pick Lock
-                $ pick_skill = pc.get_stat_total("dexterity")
+                $ pick_skill = character.get_stat_total("dexterity")
                 $ pick_target = lock_obj.difficulty * 3 + 5
                 $ pick_chance = check_chance(pick_skill, pick_target)
                 vbox:
@@ -78,7 +78,7 @@ screen lock_interaction_screen(lock_obj, item_name):
                         text "Only for physical locks." size 12 color "#888"
 
                 # 3. Hack
-                $ hack_skill = pc.get_stat_total("intelligence")
+                $ hack_skill = character.get_stat_total("intelligence")
                 $ hack_target = lock_obj.difficulty * 3 + 5
                 $ hack_chance = check_chance(hack_skill, hack_target)
                 vbox:
@@ -116,13 +116,13 @@ init python:
         return False
 
     def attempt_lockpick(lock_obj):
-        skill = pc.get_stat_total("dexterity")
+        skill = character.get_stat_total("dexterity")
         target = lock_obj.difficulty * 3 + 5
         if _attempt_check(skill, target, "Lock picked.", "Lockpick failed."):
             lock_obj.locked = False
 
     def attempt_hack(lock_obj):
-        skill = pc.get_stat_total("intelligence")
+        skill = character.get_stat_total("intelligence")
         target = lock_obj.difficulty * 3 + 5
         if _attempt_check(skill, target, "Hack successful.", "Hack failed."):
             lock_obj.locked = False

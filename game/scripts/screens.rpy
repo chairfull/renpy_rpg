@@ -314,43 +314,43 @@ screen navigation():
 
         if main_menu:
 
-            textbutton _("Start") action Start() at phone_visual_hover
+            textbutton _("Start") action Start() at button_hover_effect
 
         else:
 
-            textbutton _("History") action ShowMenu("history") at phone_visual_hover
+            textbutton _("History") action ShowMenu("history") at button_hover_effect
 
-            textbutton _("Save") action ShowMenu("save") at phone_visual_hover
+            textbutton _("Save") action ShowMenu("save") at button_hover_effect
 
-        textbutton _("Load") action ShowMenu("load") at phone_visual_hover
+        textbutton _("Load") action ShowMenu("load") at button_hover_effect
 
-        textbutton _("Wiki") action ShowMenu("gallery_screen") at phone_visual_hover
+        textbutton _("Wiki") action ShowMenu("gallery_screen") at button_hover_effect
 
         if not main_menu:
-            textbutton _("DEV MODE") action ShowMenu("dev_mode_screen") text_color "#ff3333" at phone_visual_hover
+            textbutton _("DEV MODE") action ShowMenu("dev_mode_screen") text_color "#ff3333" at button_hover_effect
 
-        textbutton _("Preferences") action ShowMenu("preferences") at phone_visual_hover
+        textbutton _("Preferences") action ShowMenu("preferences") at button_hover_effect
 
         if _in_replay:
 
-            textbutton _("End Replay") action EndReplay(confirm=True) at phone_visual_hover
+            textbutton _("End Replay") action EndReplay(confirm=True) at button_hover_effect
 
         elif not main_menu:
 
-            textbutton _("Main Menu") action MainMenu() at phone_visual_hover
+            textbutton _("Main Menu") action MainMenu() at button_hover_effect
 
-        textbutton _("About") action ShowMenu("about") at phone_visual_hover
+        textbutton _("About") action ShowMenu("about") at button_hover_effect
 
         if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
 
             ## Help isn't necessary or relevant to mobile devices.
-            textbutton _("Help") action ShowMenu("help") at phone_visual_hover
+            textbutton _("Help") action ShowMenu("help") at button_hover_effect
 
         if renpy.variant("pc"):
 
             ## The quit button is banned on iOS and unnecessary on Android and
             ## Web.
-            textbutton _("Quit") action Quit(confirm=not main_menu) at phone_visual_hover
+            textbutton _("Quit") action Quit(confirm=not main_menu) at button_hover_effect
 
 
 style navigation_button is gui_button
@@ -446,17 +446,9 @@ screen main_menu():
 
     ## This ensures that any other menu screen is replaced.
     tag menu
-    on "show" action [SetVariable("tooltip_force_refresh", True), SetVariable("tooltip_force_min_dt", 0.03)]
-    on "hide" action [SetVariable("tooltip_force_refresh", False), SetVariable("tooltip_force_min_dt", 0.05)]
-    timer 0.05 repeat True action Function(renpy.restart_interaction)
-    on "show" action SetVariable("tooltip_force_refresh", True)
-    on "hide" action SetVariable("tooltip_force_refresh", False)
-    on "show" action SetVariable("tooltip_manual", "")
-    on "hide" action SetVariable("tooltip_manual", "")
 
     # Layered background panels for a modern game-menu feel.
     add Solid("#0b0f14")
-    use double_helix_bg
     add Solid("#102030cc") at Transform(xsize=1400, ysize=700, rotate=8, xpos=-320, ypos=-260)
     add Solid("#1a2b3bcc") at Transform(xsize=1100, ysize=620, rotate=-6, xpos=420, ypos=80)
     add Solid("#0b0f14aa") at Transform(xsize=1400, ysize=900, xpos=0, ypos=0)
@@ -550,11 +542,8 @@ screen main_menu():
         text "Build: [config.version]" style "mm_footer"
         text "Data: [config.name!t]" style "mm_footer"
 
-    # Tooltips are handled by the global overlay.
-
-    # Tooltips are handled by the global overlay.
-    
-    # Main menu tooltips are handled by the global overlay.
+    # Render tooltip above the menu.
+    use mouse_tooltip
 
 
 style main_menu_frame is empty
