@@ -2965,7 +2965,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 1"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -2973,7 +2973,7 @@
                         ],
                         [
                             null,
-                            "pc: Perhaps the clerk knows something about the patterns in our city."
+                            "theo: Perhaps the clerk knows something about the patterns in our city."
                         ],
                         [
                             null,
@@ -2981,11 +2981,11 @@
                         ],
                         [
                             null,
-                            "ANIM pc_nod"
+                            "PLAY theo nod"
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 1"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3003,11 +3003,11 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 2"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
-                            "ANIM camera_pan market_to_harbor"
+                            "CAMERA pan market_to_harbor"
                         ],
                         [
                             null,
@@ -3015,7 +3015,7 @@
                         ],
                         [
                             null,
-                            "pc: There's a rhythm here... something old and patient."
+                            "theo: There's a rhythm here... something old and patient."
                         ],
                         [
                             null,
@@ -3027,7 +3027,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 2"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3045,7 +3045,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 3"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -3057,7 +3057,7 @@
                         ],
                         [
                             null,
-                            "pc: Maybe it's safer to stay here. Record, catalog, preserve."
+                            "theo: Maybe it's safer to stay here. Record, catalog, preserve."
                         ],
                         [
                             null,
@@ -3073,7 +3073,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 3"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3094,7 +3094,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 4"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -3106,7 +3106,7 @@
                         ],
                         [
                             null,
-                            "pc: I've been tracking the rhythm from the harbor. Do you hear it?"
+                            "theo: I've been tracking the rhythm from the harbor. Do you hear it?"
                         ],
                         [
                             null,
@@ -3126,7 +3126,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 4"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3144,7 +3144,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 5"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -3156,7 +3156,7 @@
                         ],
                         [
                             null,
-                            "pc: Here. I feel it strongest here."
+                            "theo: Here. I feel it strongest here."
                         ],
                         [
                             null,
@@ -3176,7 +3176,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 5"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3194,7 +3194,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 6"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -3202,7 +3202,7 @@
                         ],
                         [
                             null,
-                            "pc: I need to hear what others know about the tide. Will you tell me?"
+                            "theo: I need to hear what others know about the tide. Will you tell me?"
                         ],
                         [
                             null,
@@ -3226,7 +3226,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 6"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3244,7 +3244,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 7"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -3256,7 +3256,7 @@
                         ],
                         [
                             null,
-                            "pc: The rhythm connects to the signal corridors. They all run through the tower."
+                            "theo: The rhythm connects to the signal corridors. They all run through the tower."
                         ],
                         [
                             null,
@@ -3276,7 +3276,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 7"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3295,7 +3295,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 8"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -3307,7 +3307,7 @@
                         ],
                         [
                             null,
-                            "pc: Stay calm. Move like the tide moves. Don't disturb the drift."
+                            "theo: Stay calm. Move like the tide moves. Don't disturb the drift."
                         ],
                         [
                             null,
@@ -3331,7 +3331,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 8"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3347,7 +3347,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 9"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -3359,7 +3359,7 @@
                         ],
                         [
                             null,
-                            "pc: Here. This is how to guide them, not drag them."
+                            "theo: Here. This is how to guide them, not drag them."
                         ],
                         [
                             null,
@@ -3379,7 +3379,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 9"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3397,7 +3397,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 10"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -3409,7 +3409,7 @@
                         ],
                         [
                             null,
-                            "pc: I have a teaching to share. Will you listen?"
+                            "theo: I have a teaching to share. Will you listen?"
                         ],
                         [
                             null,
@@ -3429,7 +3429,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 10"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3448,7 +3448,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 11"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -3460,7 +3460,7 @@
                         ],
                         [
                             null,
-                            "pc: Does it work? Do they follow the new rhythm?"
+                            "theo: Does it work? Do they follow the new rhythm?"
                         ],
                         [
                             null,
@@ -3480,7 +3480,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 11"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3498,7 +3498,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "GOAL_SHOW silent_tide 12"
+                            "GOAL_SHOW silent_tide"
                         ],
                         [
                             null,
@@ -3510,7 +3510,7 @@
                         ],
                         [
                             null,
-                            "pc: The sleepers are not our enemy. They are part of the rhythm we all share."
+                            "theo: The sleepers are not our enemy. They are part of the rhythm we all share."
                         ],
                         [
                             null,
@@ -3530,7 +3530,7 @@
                         ],
                         [
                             null,
-                            "GOAL_TICK silent_tide 12"
+                            "GOAL_TICK silent_tide"
                         ]
                     ]
                 },
@@ -3543,7 +3543,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "pc: Excuse me \u2014 have you noticed the sleepers' rhythm?"
+                            "theo: Excuse me \u2014 have you noticed the sleepers' rhythm?"
                         ],
                         [
                             null,
@@ -3568,7 +3568,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "pc: I tracked the tide lines \u2014 I think I can shape them without force."
+                            "theo: I tracked the tide lines \u2014 I think I can shape them without force."
                         ],
                         [
                             null,
@@ -3593,7 +3593,7 @@
                     "flow_lines": [
                         [
                             null,
-                            "pc: I can try the harmonic broadcast \u2014 hand me the key."
+                            "theo: I can try the harmonic broadcast \u2014 hand me the key."
                         ],
                         [
                             null,
@@ -3624,7 +3624,7 @@
                     "flow_lines": [
                         [
                             298,
-                            "pc: Excuse me \u2014 have you noticed the sleepers' rhythm?"
+                            "theo: Excuse me \u2014 have you noticed the sleepers' rhythm?"
                         ],
                         [
                             299,
@@ -3649,7 +3649,7 @@
                     "flow_lines": [
                         [
                             312,
-                            "pc: I tracked the tide lines \u2014 I think I can shape them without force."
+                            "theo: I tracked the tide lines \u2014 I think I can shape them without force."
                         ],
                         [
                             313,
@@ -3674,7 +3674,7 @@
                     "flow_lines": [
                         [
                             326,
-                            "pc: I can try the harmonic broadcast \u2014 hand me the key."
+                            "theo: I can try the harmonic broadcast \u2014 hand me the key."
                         ],
                         [
                             327,
@@ -3917,7 +3917,7 @@
             ],
             "memory": true,
             "reason": "Needs Charisma 10.",
-            "cond": "pc.stats.charisma >= 10",
+            "cond": "character.stats.charisma >= 10",
             "label": "CHOICE__rafi__Request_Gate_Pass"
         },
         "rafi_report_a_quiet_route": {

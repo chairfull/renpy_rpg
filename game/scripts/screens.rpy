@@ -442,8 +442,27 @@ transform menu_hover_flash:
     on idle:
         ease 0.125 matrixcolor BrightnessMatrix(0.0) * SaturationMatrix(1.0) * HueMatrix(0)
 
-screen main_menu():
+default is_initialised = False
 
+init -1000 python:
+    _early = []
+    def onstart(*args, **kwargs):
+        _early.append((args, kwargs))
+
+screen main_menu():
+    python:
+        global is_initialised
+        if not is_initialised:
+            is_initialised = True
+            for args, kwargs in _early:
+                fn = args[0]
+                if callable(fn):
+                    try:
+                        fn(*args[1:], **kwargs)
+                    except Exception:
+                        pass
+            reload_world_data()
+    
     ## This ensures that any other menu screen is replaced.
     tag menu
 

@@ -29,5 +29,21 @@ total: 5
         self.assertEqual(trig.get('event'), 'ITEM_GAINED')
         self.assertEqual(str(trig.get('total')), '5')
 
+    def test_cond_directive_uses_resolver(self):
+        def resolver(expr, source_path=None, line_no=None):
+            self.assertEqual(expr, "flag_get('x')")
+            self.assertEqual(source_path, "data/test.md")
+            self.assertEqual(line_no, 42)
+            return "_cond_expr_deadbeef"
+
+        line = "@cond \"flag_get('x')\" SOME_LABEL OTHER_LABEL"
+        out = compile_data.directive_to_python(
+            line,
+            cond_resolver=resolver,
+            source_path="data/test.md",
+            line_no=42,
+        )
+        self.assertEqual(out, "cond_jump(_cond_expr_deadbeef, 'SOME_LABEL', 'OTHER_LABEL')")
+
 if __name__ == '__main__':
     unittest.main()

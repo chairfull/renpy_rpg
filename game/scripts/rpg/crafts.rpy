@@ -1,7 +1,7 @@
 default craft_manager = CraftManager()
 
-init -10 python:
-    add_meta_menu_tab("crafting", "🪡", "Craft", crafting_screen,
+init 10 python:
+    onstart(add_meta_menu_tab, "crafting", "🪡", "Craft",
         selected_craft=None)
 
     class Craft:
@@ -52,10 +52,10 @@ init -10 python:
                 inventory.add_item(new_item, count=count, force=True, reason="craft")
         
         renpy.notify(f"Crafted {recipe.name}")
-        event_manager.dispatch("ITEM_CRAFTED", item=recipe.output, recipe=recipe.id)
+        signal("ITEM_CRAFTED", item=recipe.output, recipe=recipe.id)
         return True
 
-screen crafting_screen():
+screen crafting_screen(mmtab=None):
     hbox:
         spacing 20
         # Recipe List

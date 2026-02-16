@@ -19,42 +19,42 @@ label LOC__home__mirror: # @data/locations/home.md:150
 label LOC__market__flow: # @data/locations/market.md:47
     "A volunteer presses a ration bar into your hand." # @data/locations/market.md:47
     "\"Take it,\" she says. \"You look like you run far.\"" # @data/locations/market.md:48
-    $ event_manager.dispatch('ITEM_GAINED', item='ration_bar', total=1) # @data/locations/market.md:49
+    $ signal('ITEM_GAINED', item='ration_bar', total=1) # @data/locations/market.md:49
     $ flag_set('market_swap', True) # @data/locations/market.md:50
     return # @data/locations/market.md:50
 
 label LOC__market__encounter_swap: # @data/locations/market.md:47
     "A volunteer presses a ration bar into your hand." # @data/locations/market.md:47
     "\"Take it,\" she says. \"You look like you run far.\"" # @data/locations/market.md:48
-    $ event_manager.dispatch('ITEM_GAINED', item='ration_bar', total=1) # @data/locations/market.md:49
+    $ signal('ITEM_GAINED', item='ration_bar', total=1) # @data/locations/market.md:49
     $ flag_set('market_swap', True) # @data/locations/market.md:50
     return # @data/locations/market.md:50
 
 label LOC__forest_edge__flow: # @data/locations/forest_edge.md:28
     "The fence gives a soft rattle." # @data/locations/forest_edge.md:28
     "A sleeper drifts by, head tilted toward a far away tone." # @data/locations/forest_edge.md:29
-    $ event_manager.dispatch('LOCATION_EVENT', location='forest_edge', tag='rattle') # @data/locations/forest_edge.md:30
+    $ signal('LOCATION_EVENT', location='forest_edge', tag='rattle') # @data/locations/forest_edge.md:30
     $ flag_set('fence_rattle', True) # @data/locations/forest_edge.md:31
     return # @data/locations/forest_edge.md:31
 
 label LOC__forest_edge__encounter_rattle: # @data/locations/forest_edge.md:28
     "The fence gives a soft rattle." # @data/locations/forest_edge.md:28
     "A sleeper drifts by, head tilted toward a far away tone." # @data/locations/forest_edge.md:29
-    $ event_manager.dispatch('LOCATION_EVENT', location='forest_edge', tag='rattle') # @data/locations/forest_edge.md:30
+    $ signal('LOCATION_EVENT', location='forest_edge', tag='rattle') # @data/locations/forest_edge.md:30
     $ flag_set('fence_rattle', True) # @data/locations/forest_edge.md:31
     return # @data/locations/forest_edge.md:31
 
 label LOC__mage_tower_f1__flow: # @data/locations/mage_tower_f1.md:25
-    pc "The screen is asking for an override." # @data/locations/mage_tower_f1.md:25
-    pc "If I can pull the data now, maybe I can make it back before the sleepers shift." # @data/locations/mage_tower_f1.md:26
+    character "The screen is asking for an override." # @data/locations/mage_tower_f1.md:25
+    character "If I can pull the data now, maybe I can make it back before the sleepers shift." # @data/locations/mage_tower_f1.md:26
     notify 'Recovering protocol...' # @data/locations/mage_tower_f1.md:27
     $ give_item('broadcast_protocol', 1) # @data/locations/mage_tower_f1.md:28
     $ flag_set('protocol_recovered', True) # @data/locations/mage_tower_f1.md:29
     return # @data/locations/mage_tower_f1.md:29
 
 label LOC__mage_tower_f1__console: # @data/locations/mage_tower_f1.md:25
-    pc "The screen is asking for an override." # @data/locations/mage_tower_f1.md:25
-    pc "If I can pull the data now, maybe I can make it back before the sleepers shift." # @data/locations/mage_tower_f1.md:26
+    character "The screen is asking for an override." # @data/locations/mage_tower_f1.md:25
+    character "If I can pull the data now, maybe I can make it back before the sleepers shift." # @data/locations/mage_tower_f1.md:26
     notify 'Recovering protocol...' # @data/locations/mage_tower_f1.md:27
     $ give_item('broadcast_protocol', 1) # @data/locations/mage_tower_f1.md:28
     $ flag_set('protocol_recovered', True) # @data/locations/mage_tower_f1.md:29
@@ -139,7 +139,7 @@ label CHAR__lena: # @data/characters/lena.md:44
     lena "Fine. But if you start humming or dragging your feet, I'm leaving you as bait. Keep up." # @data/characters/lena.md:63
     $ companion_add('lena') # @data/characters/lena.md:64
     $ flag_set('scout_joined', True) # @data/characters/lena.md:65
-    $ bond_add_stat(pc.id, 'lena', 'trust', 3) # @data/characters/lena.md:66
+    $ bond_add_stat(character.id, 'lena', 'trust', 3) # @data/characters/lena.md:66
     lena "Understood. I'll recalibrate the markers on my way back. Stay quiet." # @data/characters/lena.md:81
     $ companion_remove('lena') # @data/characters/lena.md:82
     $ flag_set('scout_joined', False) # @data/characters/lena.md:83
@@ -155,7 +155,7 @@ label CHAR__lena__dialogue__ask_for_a_guide: # @data/characters/lena.md:63
     lena "Fine. But if you start humming or dragging your feet, I'm leaving you as bait. Keep up." # @data/characters/lena.md:63
     $ companion_add('lena') # @data/characters/lena.md:64
     $ flag_set('scout_joined', True) # @data/characters/lena.md:65
-    $ bond_add_stat(pc.id, 'lena', 'trust', 3) # @data/characters/lena.md:66
+    $ bond_add_stat(character.id, 'lena', 'trust', 3) # @data/characters/lena.md:66
     return # @data/characters/lena.md:66
 
 label CHAR__lena__dialogue__ask_to_part_ways: # @data/characters/lena.md:81
@@ -168,14 +168,14 @@ label CHAR__mara: # @data/characters/mara.md:45
     mara "You made it in. Good. We need fast legs and even calmer voices." # @data/characters/mara.md:45
     mara "The signal from the old Spire is shifting. If we don't adapt the perimeter sonar, the sleepers will be at the gates by dawn." # @data/characters/mara.md:46
     $ mara.mark_as_met() # @data/characters/mara.md:47
-    pc "If you need someone fast, I can run the perimeter." # @data/characters/mara.md:63
+    character "If you need someone fast, I can run the perimeter." # @data/characters/mara.md:63
     mara "Good. We're blind out there. Take this route map—it's marked with the latest safe-zones and frequency dead-spots." # @data/characters/mara.md:64
     $ mara.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones.")) # @data/characters/mara.md:65
     $ quest_manager.start_quest("long_dawn") # @data/characters/mara.md:66
-    $ bond_add_stat(pc.id, 'mara', 'trust', 5) # @data/characters/mara.md:67
+    $ bond_add_stat(character.id, 'mara', 'trust', 5) # @data/characters/mara.md:67
     mara "It started three nights ago. A rhythmic, low-frequency pulse." # @data/characters/mara.md:81
     mara "It's drawing the sleepers in from the plains. If we can't find a way to shift the frequency, we'll be overrun by the week's end." # @data/characters/mara.md:82
-    pc "I have the protocol drive from the Spire. The lobby was full of them—it was like walking through a dream where nobody breathes." # @data/characters/mara.md:95
+    character "I have the protocol drive from the Spire. The lobby was full of them—it was like walking through a dream where nobody breathes." # @data/characters/mara.md:95
     mara "Every year we lose more to the drift. This drive... it's the first real data we've had on their resonance in a decade." # @data/characters/mara.md:96
     mara "Give me a moment to patch it into the main console. We need to see if we can broadcast a counter-tone." # @data/characters/mara.md:97
     notify 'Deciphering protocol...' # @data/characters/mara.md:98
@@ -191,11 +191,11 @@ label CHAR__mara__talk: # @data/characters/mara.md:45
     return # @data/characters/mara.md:47
 
 label CHAR__mara__dialogue__offer_help: # @data/characters/mara.md:63
-    pc "If you need someone fast, I can run the perimeter." # @data/characters/mara.md:63
+    character "If you need someone fast, I can run the perimeter." # @data/characters/mara.md:63
     mara "Good. We're blind out there. Take this route map—it's marked with the latest safe-zones and frequency dead-spots." # @data/characters/mara.md:64
     $ mara.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones.")) # @data/characters/mara.md:65
     $ quest_manager.start_quest("long_dawn") # @data/characters/mara.md:66
-    $ bond_add_stat(pc.id, 'mara', 'trust', 5) # @data/characters/mara.md:67
+    $ bond_add_stat(character.id, 'mara', 'trust', 5) # @data/characters/mara.md:67
     return # @data/characters/mara.md:67
 
 label CHAR__mara__dialogue__ask_about_the_signal: # @data/characters/mara.md:81
@@ -204,7 +204,7 @@ label CHAR__mara__dialogue__ask_about_the_signal: # @data/characters/mara.md:81
     return # @data/characters/mara.md:82
 
 label CHAR__mara__dialogue__report_on_spire: # @data/characters/mara.md:95
-    pc "I have the protocol drive from the Spire. The lobby was full of them—it was like walking through a dream where nobody breathes." # @data/characters/mara.md:95
+    character "I have the protocol drive from the Spire. The lobby was full of them—it was like walking through a dream where nobody breathes." # @data/characters/mara.md:95
     mara "Every year we lose more to the drift. This drive... it's the first real data we've had on their resonance in a decade." # @data/characters/mara.md:96
     mara "Give me a moment to patch it into the main console. We need to see if we can broadcast a counter-tone." # @data/characters/mara.md:97
     notify 'Deciphering protocol...' # @data/characters/mara.md:98
@@ -243,10 +243,10 @@ label CHAR__rafi: # @data/characters/rafi.md:44
     $ rafi.mark_as_met() # @data/characters/rafi.md:46
     rafi "I can log a short-term pass. If the sensors pick up a spike in your frequency, don't expect us to open the gate when you come back." # @data/characters/rafi.md:63
     $ flag_set('gate_pass', True) # @data/characters/rafi.md:64
-    $ bond_add_stat(pc.id, 'rafi', 'respect', 3) # @data/characters/rafi.md:65
+    $ bond_add_stat(character.id, 'rafi', 'respect', 3) # @data/characters/rafi.md:65
     notify 'Gate pass logged.' # @data/characters/rafi.md:66
     rafi "Good. Every quiet route is a lifeline. I'll update the patrol logs." # @data/characters/rafi.md:80
-    $ bond_add_stat(pc.id, 'rafi', 'trust', 2) # @data/characters/rafi.md:81
+    $ bond_add_stat(character.id, 'rafi', 'trust', 2) # @data/characters/rafi.md:81
     return # @data/characters/rafi.md:81
 
 label CHAR__rafi__talk: # @data/characters/rafi.md:44
@@ -258,13 +258,13 @@ label CHAR__rafi__talk: # @data/characters/rafi.md:44
 label CHAR__rafi__dialogue__request_gate_pass: # @data/characters/rafi.md:63
     rafi "I can log a short-term pass. If the sensors pick up a spike in your frequency, don't expect us to open the gate when you come back." # @data/characters/rafi.md:63
     $ flag_set('gate_pass', True) # @data/characters/rafi.md:64
-    $ bond_add_stat(pc.id, 'rafi', 'respect', 3) # @data/characters/rafi.md:65
+    $ bond_add_stat(character.id, 'rafi', 'respect', 3) # @data/characters/rafi.md:65
     notify 'Gate pass logged.' # @data/characters/rafi.md:66
     return # @data/characters/rafi.md:66
 
 label CHAR__rafi__dialogue__report_a_quiet_route: # @data/characters/rafi.md:80
     rafi "Good. Every quiet route is a lifeline. I'll update the patrol logs." # @data/characters/rafi.md:80
-    $ bond_add_stat(pc.id, 'rafi', 'trust', 2) # @data/characters/rafi.md:81
+    $ bond_add_stat(character.id, 'rafi', 'trust', 2) # @data/characters/rafi.md:81
     return # @data/characters/rafi.md:81
 
 label CHAR__imani: # @data/characters/imani.md:43
@@ -299,11 +299,11 @@ label CHAR__kael__dialogue__ask_about_breaching: # @data/characters/kael.md:69
     return # @data/characters/kael.md:70
 
 label CHAR__survivor: # @data/characters/survivor.md:50
-    pc "I've walked the quiet roads since the first pattern broke. These 'Sleepers'... they're just echoes of us, waiting for the right tone to wake up." # @data/characters/survivor.md:50
+    character "I've walked the quiet roads since the first pattern broke. These 'Sleepers'... they're just echoes of us, waiting for the right tone to wake up." # @data/characters/survivor.md:50
     return # @data/characters/survivor.md:50
 
 label CHAR__survivor__talk: # @data/characters/survivor.md:50
-    pc "I've walked the quiet roads since the first pattern broke. These 'Sleepers'... they're just echoes of us, waiting for the right tone to wake up." # @data/characters/survivor.md:50
+    character "I've walked the quiet roads since the first pattern broke. These 'Sleepers'... they're just echoes of us, waiting for the right tone to wake up." # @data/characters/survivor.md:50
     return # @data/characters/survivor.md:50
 
 label CHAR__jun: # @data/characters/jun.md:43
@@ -338,7 +338,7 @@ label CHAR__elena: # @data/characters/elena.md:45
 
 label GIVE__elena__battery_cell: # @data/characters/elena.md:72
     elena "Good. I can keep the clinic lights stable for another night." # @data/characters/elena.md:72
-    $ give_item_between('battery_cell', 'pc', 'elena', 1) # @data/characters/elena.md:73
+    $ give_item('battery_cell', 1) # @data/characters/elena.md:73
     notify 'You gave Elena a Battery Cell.' # @data/characters/elena.md:74
     return # @data/characters/elena.md:74
 
@@ -408,21 +408,21 @@ label QUEST__iron_and_fire__flow: # @data/quests/iron_and_fire.md:10
 
 label QUEST__iron_and_fire__collect_wood:
     $ quest_manager.update_goal('iron_and_fire' if 'iron_and_fire' != 'None' else None, 'collect_wood', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='iron_and_fire', tick='collect_wood')
+    $ signal('QUEST_TICK_COMPLETED', quest='iron_and_fire', tick='collect_wood')
     $ quest_manager.update_goal('iron_and_fire' if 'iron_and_fire' != 'None' else None, 'collect_wood', 'complete')
     "That should be enough wood."
     return
 
 label QUEST__iron_and_fire__collect_stone:
     $ quest_manager.update_goal('iron_and_fire' if 'iron_and_fire' != 'None' else None, 'collect_stone', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='iron_and_fire', tick='collect_stone')
+    $ signal('QUEST_TICK_COMPLETED', quest='iron_and_fire', tick='collect_stone')
     $ quest_manager.update_goal('iron_and_fire' if 'iron_and_fire' != 'None' else None, 'collect_stone', 'complete')
     "Got the stone. Back to Greta."
     return
 
 label QUEST__iron_and_fire__craft_a_signal_baton:
     $ quest_manager.update_goal('iron_and_fire' if 'iron_and_fire' != 'None' else None, 'craft_a_signal_baton', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='iron_and_fire', tick='craft_a_signal_baton')
+    $ signal('QUEST_TICK_COMPLETED', quest='iron_and_fire', tick='craft_a_signal_baton')
     $ quest_manager.update_goal('iron_and_fire' if 'iron_and_fire' != 'None' else None, 'craft_a_signal_baton', 'complete')
     greta "Not a weapon. A tool. It can guide sleepers away from people."
     return
@@ -444,7 +444,7 @@ label QUEST__theo_secret__flow: # @data/quests/theo_secret.md:10
 
 label QUEST__theo_secret__find_the_outbreak_note:
     $ quest_manager.update_goal('theo_secret' if 'theo_secret' != 'None' else None, 'find_the_outbreak_note', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='theo_secret', tick='find_the_outbreak_note')
+    $ signal('QUEST_TICK_COMPLETED', quest='theo_secret', tick='find_the_outbreak_note')
     $ quest_manager.update_goal('theo_secret' if 'theo_secret' != 'None' else None, 'find_the_outbreak_note', 'complete')
     "This looks like the first entry. The handwriting is frantic."
     return
@@ -468,21 +468,21 @@ label QUEST__formal_intro__flow: # @data/quests/formal_intro.md:10
 
 label QUEST__formal_intro__speak_with_coordinator_mara:
     $ quest_manager.update_goal('formal_intro' if 'formal_intro' != 'None' else None, 'speak_with_coordinator_mara', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='formal_intro', tick='speak_with_coordinator_mara')
+    $ signal('QUEST_TICK_COMPLETED', quest='formal_intro', tick='speak_with_coordinator_mara')
     $ quest_manager.update_goal('formal_intro' if 'formal_intro' != 'None' else None, 'speak_with_coordinator_mara', 'complete')
     "Mara knows the state of every street and every gate."
     return
 
 label QUEST__formal_intro__visit_the_quarantine_gate:
     $ quest_manager.update_goal('formal_intro' if 'formal_intro' != 'None' else None, 'visit_the_quarantine_gate', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='formal_intro', tick='visit_the_quarantine_gate')
+    $ signal('QUEST_TICK_COMPLETED', quest='formal_intro', tick='visit_the_quarantine_gate')
     $ quest_manager.update_goal('formal_intro' if 'formal_intro' != 'None' else None, 'visit_the_quarantine_gate', 'complete')
     "This is where the lines are held and checked."
     return
 
 label QUEST__formal_intro__speak_with_captain_rafi:
     $ quest_manager.update_goal('formal_intro' if 'formal_intro' != 'None' else None, 'speak_with_captain_rafi', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='formal_intro', tick='speak_with_captain_rafi')
+    $ signal('QUEST_TICK_COMPLETED', quest='formal_intro', tick='speak_with_captain_rafi')
     $ quest_manager.update_goal('formal_intro' if 'formal_intro' != 'None' else None, 'speak_with_captain_rafi', 'complete')
     "Rafi will decide if I can pass the outer line."
     return
@@ -505,14 +505,14 @@ label QUEST__ration_run__flow: # @data/quests/ration_run.md:11
 
 label QUEST__ration_run__visit_the_supply_depot:
     $ quest_manager.update_goal('ration_run' if 'ration_run' != 'None' else None, 'visit_the_supply_depot', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='ration_run', tick='visit_the_supply_depot')
+    $ signal('QUEST_TICK_COMPLETED', quest='ration_run', tick='visit_the_supply_depot')
     $ quest_manager.update_goal('ration_run' if 'ration_run' != 'None' else None, 'visit_the_supply_depot', 'complete')
     "This is the depot. If any rations remain, they will be here."
     return
 
 label QUEST__ration_run__collect_rations:
     $ quest_manager.update_goal('ration_run' if 'ration_run' != 'None' else None, 'collect_rations', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='ration_run', tick='collect_rations')
+    $ signal('QUEST_TICK_COMPLETED', quest='ration_run', tick='collect_rations')
     $ quest_manager.update_goal('ration_run' if 'ration_run' != 'None' else None, 'collect_rations', 'complete')
     "That should be enough for today."
     return
@@ -547,84 +547,84 @@ label QUEST__long_dawn__flow: # @data/quests/origins/long_dawn.md:14
 
 label QUEST__long_dawn__ordinary_world:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'ordinary_world', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='ordinary_world')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='ordinary_world')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'ordinary_world', 'complete')
     "Routines hold the line - logbooks, rations, and quiet rules."
     return
 
 label QUEST__long_dawn__call_to_adventure:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'call_to_adventure', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='call_to_adventure')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='call_to_adventure')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'call_to_adventure', 'complete')
     "The Spire shifts again. Find the source and bring back a peaceful answer."
     return
 
 label QUEST__long_dawn__refusal_of_the_call:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'refusal_of_the_call', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='refusal_of_the_call')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='refusal_of_the_call')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'refusal_of_the_call', 'complete')
     "The guardhouse warns that noise means danger. Doubt settles in before the gates."
     return
 
 label QUEST__long_dawn__meeting_the_mentor:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'meeting_the_mentor', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='meeting_the_mentor')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='meeting_the_mentor')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'meeting_the_mentor', 'complete')
     "Lena teaches how to step between beats and mark safe lanes without drawing the drift."
     return
 
 label QUEST__long_dawn__crossing_the_threshold:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'crossing_the_threshold', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='crossing_the_threshold')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='crossing_the_threshold')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'crossing_the_threshold', 'complete')
     "You pass the last sandbags and enter the overgrowth, counting your breaths."
     return
 
 label QUEST__long_dawn__tests_and_allies:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'tests_and_allies', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='tests_and_allies')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='tests_and_allies')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'tests_and_allies', 'complete')
     "Greta needs wood and stone to tune a signal baton that guides instead of harms."
     return
 
 label QUEST__long_dawn__approach:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'approach', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='approach')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='approach')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'approach', 'complete')
     "The safe route narrows. The Broadcast Tower rises ahead, low and listening."
     return
 
 label QUEST__long_dawn__ordeal:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'ordeal', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='ordeal')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='ordeal')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'ordeal', 'complete')
     "Inside the lobby, sleepers drift like fog. You move quietly, hands open, heart steady."
     return
 
 label QUEST__long_dawn__reward:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'reward', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='reward')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='reward')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'reward', 'complete')
     "A data drive holds the broadcast pattern. It is warm with the city's memory."
     return
 
 label QUEST__long_dawn__the_road_back:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'the_road_back', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='the_road_back')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='the_road_back')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'the_road_back', 'complete')
     "The return run favors patience over speed. Follow the dead zones home."
     return
 
 label QUEST__long_dawn__resurrection:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'resurrection', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='resurrection')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='resurrection')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'resurrection', 'complete')
     "Mara and Greta test a soft counter-tone. The sleepers turn without panic."
     return
 
 label QUEST__long_dawn__return_with_the_elixir:
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'return_with_the_elixir', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='long_dawn', tick='return_with_the_elixir')
+    $ signal('QUEST_TICK_COMPLETED', quest='long_dawn', tick='return_with_the_elixir')
     $ quest_manager.update_goal('long_dawn' if 'long_dawn' != 'None' else None, 'return_with_the_elixir', 'complete')
     "Routes are updated, the new tone is logged, and the city breathes easier."
     return
@@ -643,327 +643,327 @@ label QUEST__silent_tide__flow: # @data/quests/origins/silent_tide.md:15
     "Your logbook is full of patterns. The sleepers drift to the same pulse each night." # @data/quests/origins/silent_tide.md:15
     "A priestess asks you to keep your steps soft and your breaths even." # @data/quests/origins/silent_tide.md:16
     "The tide of sleepers drifts in a steady pulse, and you set out to learn why." # @data/quests/origins/silent_tide.md:17
-    "GOAL{i}SHOW silent{/i}tide 1" # @data/quests/origins/silent_tide.md:32
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:32
     "STORY The records in the shop are endless, their weight familiar and heavy." # @data/quests/origins/silent_tide.md:33
-    pc "Perhaps the clerk knows something about the patterns in our city." # @data/quests/origins/silent_tide.md:34
+    theo "Perhaps the clerk knows something about the patterns in our city." # @data/quests/origins/silent_tide.md:34
     clerk "The archives hold many secrets. Few listen anymore." # @data/quests/origins/silent_tide.md:35
-    "ANIM pc_nod" # @data/quests/origins/silent_tide.md:36
-    "GOAL{i}TICK silent{/i}tide 1" # @data/quests/origins/silent_tide.md:37
-    "GOAL{i}SHOW silent{/i}tide 2" # @data/quests/origins/silent_tide.md:51
-    "ANIM camera{i}pan market{/i}to_harbor" # @data/quests/origins/silent_tide.md:52
+    "PLAY theo nod" # @data/quests/origins/silent_tide.md:36
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:37
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:51
+    "CAMERA pan market{i}to{/i}harbor" # @data/quests/origins/silent_tide.md:52
     "STORY A sound rises from the harbor—not quite music, not quite breathing." # @data/quests/origins/silent_tide.md:53
-    pc "There's a rhythm here... something old and patient." # @data/quests/origins/silent_tide.md:54
+    theo "There's a rhythm here... something old and patient." # @data/quests/origins/silent_tide.md:54
     notify 'You sense a pattern in the air, pulling your attention to the sea.' # @data/quests/origins/silent_tide.md:55
     "ANIM pulse_waves harbor" # @data/quests/origins/silent_tide.md:56
-    "GOAL{i}TICK silent{/i}tide 2" # @data/quests/origins/silent_tide.md:57
-    "GOAL{i}SHOW silent{/i}tide 3" # @data/quests/origins/silent_tide.md:71
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:57
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:71
     "ANIM pc_hesitate" # @data/quests/origins/silent_tide.md:72
     "STORY The safety of the archives calls you back. Outside, the unknown waits." # @data/quests/origins/silent_tide.md:73
-    pc "Maybe it's safer to stay here. Record, catalog, preserve." # @data/quests/origins/silent_tide.md:74
+    theo "Maybe it's safer to stay here. Record, catalog, preserve." # @data/quests/origins/silent_tide.md:74
     clerk "The city has always needed watchers, not hunters." # @data/quests/origins/silent_tide.md:75
     "STORY You feel the weight of habit holding you in place." # @data/quests/origins/silent_tide.md:76
     "ANIM fade{i}to{/i}shadows" # @data/quests/origins/silent_tide.md:77
-    "GOAL{i}TICK silent{/i}tide 3" # @data/quests/origins/silent_tide.md:78
-    "GOAL{i}SHOW silent{/i}tide 4" # @data/quests/origins/silent_tide.md:93
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:78
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:93
     "ANIM pc{i}enter{/i}tavern" # @data/quests/origins/silent_tide.md:94
     "STORY Ash sits quietly, listening to a sound only they can hear." # @data/quests/origins/silent_tide.md:95
-    pc "I've been tracking the rhythm from the harbor. Do you hear it?" # @data/quests/origins/silent_tide.md:96
+    theo "I've been tracking the rhythm from the harbor. Do you hear it?" # @data/quests/origins/silent_tide.md:96
     ash "For years. It's an old music, and the sleepers are its instrument." # @data/quests/origins/silent_tide.md:97
     ash "Move slow. Breathe low. The tide carries wisdom, not anger." # @data/quests/origins/silent_tide.md:98
     "ANIM ash{i}hand{/i}gesture_slow" # @data/quests/origins/silent_tide.md:99
     notify 'Ash taught you the ways of the drift.' # @data/quests/origins/silent_tide.md:100
-    "GOAL{i}TICK silent{/i}tide 4" # @data/quests/origins/silent_tide.md:101
-    "GOAL{i}SHOW silent{/i}tide 5" # @data/quests/origins/silent_tide.md:115
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:101
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:115
     "ANIM camera{i}approach{/i}docks" # @data/quests/origins/silent_tide.md:116
     "STORY The docks are vast and still. No ships move. No voices rise. Only the pulse." # @data/quests/origins/silent_tide.md:117
-    pc "Here. I feel it strongest here." # @data/quests/origins/silent_tide.md:118
+    theo "Here. I feel it strongest here." # @data/quests/origins/silent_tide.md:118
     "STORY The sleepers drift nearby, their steps synchronized to something unseen." # @data/quests/origins/silent_tide.md:119
     "ANIM sleepers{i}appear{/i}distant" # @data/quests/origins/silent_tide.md:120
     notify 'The rhythm grows clearer at the threshold between city and sea.' # @data/quests/origins/silent_tide.md:121
     "ANIM pc{i}steady{/i}breath" # @data/quests/origins/silent_tide.md:122
-    "GOAL{i}TICK silent{/i}tide 5" # @data/quests/origins/silent_tide.md:123
-    "GOAL{i}SHOW silent{/i}tide 6" # @data/quests/origins/silent_tide.md:137
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:123
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:137
     "STORY You return to gather stories from those who witness the sleepers' rhythm." # @data/quests/origins/silent_tide.md:138
-    pc "I need to hear what others know about the tide. Will you tell me?" # @data/quests/origins/silent_tide.md:139
+    theo "I need to hear what others know about the tide. Will you tell me?" # @data/quests/origins/silent_tide.md:139
     ash "Every keeper in this city hears it differently. That's the secret." # @data/quests/origins/silent_tide.md:140
     "ANIM pc{i}listen{/i}gesture" # @data/quests/origins/silent_tide.md:141
     "STORY The testimonies weave together like a pattern only visible from far away." # @data/quests/origins/silent_tide.md:142
     notify 'Testimonies recorded: The rhythm is collective, not singular.' # @data/quests/origins/silent_tide.md:143
     "ANIM threads{i}weave{/i}together" # @data/quests/origins/silent_tide.md:144
-    "GOAL{i}TICK silent{/i}tide 6" # @data/quests/origins/silent_tide.md:145
-    "GOAL{i}SHOW silent{/i}tide 7" # @data/quests/origins/silent_tide.md:159
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:145
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:159
     "ANIM camera{i}pan{/i}to_tower" # @data/quests/origins/silent_tide.md:160
     "STORY The tower looms above the city, its old transmitters silent but still potent." # @data/quests/origins/silent_tide.md:161
-    pc "The rhythm connects to the signal corridors. They all run through the tower." # @data/quests/origins/silent_tide.md:162
+    theo "The rhythm connects to the signal corridors. They all run through the tower." # @data/quests/origins/silent_tide.md:162
     "STORY You trace the pulse lines on ancient maps, seeing the architecture of sound." # @data/quests/origins/silent_tide.md:163
     "ANIM pc{i}draw{/i}pattern" # @data/quests/origins/silent_tide.md:164
     notify 'Signal corridors mapped: The broadcast system still remembers how to sing.' # @data/quests/origins/silent_tide.md:165
     "ANIM glow{i}lines{/i}pulse" # @data/quests/origins/silent_tide.md:166
-    "GOAL{i}TICK silent{/i}tide 7" # @data/quests/origins/silent_tide.md:167
-    "GOAL{i}SHOW silent{/i}tide 8" # @data/quests/origins/silent_tide.md:182
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:167
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:182
     "ANIM darkness{i}descend tower{/i}interior" # @data/quests/origins/silent_tide.md:183
     "STORY The stairwell is labyrinthine, and the sleepers are everywhere here, drifting in spirals." # @data/quests/origins/silent_tide.md:184
-    pc "Stay calm. Move like the tide moves. Don't disturb the drift." # @data/quests/origins/silent_tide.md:185
+    theo "Stay calm. Move like the tide moves. Don't disturb the drift." # @data/quests/origins/silent_tide.md:185
     "STORY Your breath synchronizes with theirs. Your steps match their steps. You become part of the rhythm." # @data/quests/origins/silent_tide.md:186
     "ANIM pc{i}fade{/i}into_crowd" # @data/quests/origins/silent_tide.md:187
     notify 'You are one voice in the tide now.' # @data/quests/origins/silent_tide.md:188
     "ANIM harmony_achieved" # @data/quests/origins/silent_tide.md:189
     "STORY At last, you reach the inner console, untouched and still humming." # @data/quests/origins/silent_tide.md:190
-    "GOAL{i}TICK silent{/i}tide 8" # @data/quests/origins/silent_tide.md:191
-    "GOAL{i}SHOW silent{/i}tide 9" # @data/quests/origins/silent_tide.md:203
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:191
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:203
     "ANIM light{i}break{/i}console" # @data/quests/origins/silent_tide.md:204
     "STORY The console yields its secret—a frequency pattern written in old code, waiting generations for this moment." # @data/quests/origins/silent_tide.md:205
-    pc "Here. This is how to guide them, not drag them." # @data/quests/origins/silent_tide.md:206
+    theo "Here. This is how to guide them, not drag them." # @data/quests/origins/silent_tide.md:206
     "STORY The harmonic key sings in your hands, no longer a weapon but a song." # @data/quests/origins/silent_tide.md:207
     "ANIM key{i}resonates{/i}light" # @data/quests/origins/silent_tide.md:208
     notify 'The Harmonic Key obtained: A frequency that guides without force.' # @data/quests/origins/silent_tide.md:209
     "ANIM aura_harmonic" # @data/quests/origins/silent_tide.md:210
-    "GOAL{i}TICK silent{/i}tide 9" # @data/quests/origins/silent_tide.md:211
-    "GOAL{i}SHOW silent{/i}tide 10" # @data/quests/origins/silent_tide.md:225
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:211
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:225
     "ANIM pc{i}walk{/i}toward_temple" # @data/quests/origins/silent_tide.md:226
     "STORY The temple is a place where voices gather. You carry something precious back to it." # @data/quests/origins/silent_tide.md:227
-    pc "I have a teaching to share. Will you listen?" # @data/quests/origins/silent_tide.md:228
+    theo "I have a teaching to share. Will you listen?" # @data/quests/origins/silent_tide.md:228
     "STORY The gathered fold listen as you explain the rhythm, the pattern, the way forward." # @data/quests/origins/silent_tide.md:229
     "ANIM circle{i}form{/i}light" # @data/quests/origins/silent_tide.md:230
     notify 'The pattern is translated: From archive to action, from silence to song.' # @data/quests/origins/silent_tide.md:231
     "ANIM knowledge_spreads" # @data/quests/origins/silent_tide.md:232
-    "GOAL{i}TICK silent{/i}tide 10" # @data/quests/origins/silent_tide.md:233
-    "GOAL{i}SHOW silent{/i}tide 11" # @data/quests/origins/silent_tide.md:248
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:233
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:248
     "ANIM broadcast{i}frequency{/i}activate" # @data/quests/origins/silent_tide.md:249
     "STORY The harmonic frequency spreads through the city via signal corridors old and new." # @data/quests/origins/silent_tide.md:250
-    pc "Does it work? Do they follow the new rhythm?" # @data/quests/origins/silent_tide.md:251
+    theo "Does it work? Do they follow the new rhythm?" # @data/quests/origins/silent_tide.md:251
     "STORY The sleepers shift, slower, gentler, guided by a frequency that respects their choice." # @data/quests/origins/silent_tide.md:252
     "ANIM sleepers{i}redirect{/i}slow" # @data/quests/origins/silent_tide.md:253
     notify 'The broadcast succeeds: No force, no violence, only the rhythm continuing.' # @data/quests/origins/silent_tide.md:254
     "ANIM city_harmonize" # @data/quests/origins/silent_tide.md:255
-    "GOAL{i}TICK silent{/i}tide 11" # @data/quests/origins/silent_tide.md:256
-    "GOAL{i}SHOW silent{/i}tide 12" # @data/quests/origins/silent_tide.md:270
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:256
+    "GOAL{i}SHOW silent{/i}tide" # @data/quests/origins/silent_tide.md:270
     "ANIM temple{i}gather{/i}all" # @data/quests/origins/silent_tide.md:271
     "STORY The city assembles in the temple. The wisdom you bring is not conquest but coexistence." # @data/quests/origins/silent_tide.md:272
-    pc "The sleepers are not our enemy. They are part of the rhythm we all share." # @data/quests/origins/silent_tide.md:273
+    theo "The sleepers are not our enemy. They are part of the rhythm we all share." # @data/quests/origins/silent_tide.md:273
     "STORY A new way of being settles over the city like fog becoming rain." # @data/quests/origins/silent_tide.md:274
     "ANIM healing{i}light{/i}spread" # @data/quests/origins/silent_tide.md:275
     notify 'The Elixir shared: Wisdom without dominion, listening without control.' # @data/quests/origins/silent_tide.md:276
     "ANIM city{i}transforms{/i}gentle" # @data/quests/origins/silent_tide.md:277
-    "GOAL{i}TICK silent{/i}tide 12" # @data/quests/origins/silent_tide.md:278
+    "GOAL{i}TICK silent{/i}tide" # @data/quests/origins/silent_tide.md:278
     "The Silent Tide becomes a living practice, and the city learns to survive without violence." # @data/quests/origins/silent_tide.md:285
-    pc "Excuse me — have you noticed the sleepers' rhythm?" # @data/quests/origins/silent_tide.md:298
+    theo "Excuse me — have you noticed the sleepers' rhythm?" # @data/quests/origins/silent_tide.md:298
     clerk "It's old as the docks. Folks hush and follow it when the moon leans right." # @data/quests/origins/silent_tide.md:299
     $ flag_set('asked_clerk', True) # @data/quests/origins/silent_tide.md:300
     notify 'Clerk: They remember a tune from the sea.' # @data/quests/origins/silent_tide.md:301
-    pc "I tracked the tide lines — I think I can shape them without force." # @data/quests/origins/silent_tide.md:312
+    theo "I tracked the tide lines — I think I can shape them without force." # @data/quests/origins/silent_tide.md:312
     ash "If you can hum it slow enough, maybe they follow a kinder path." # @data/quests/origins/silent_tide.md:313
     $ flag_set('shared_with_ash', True) # @data/quests/origins/silent_tide.md:314
     notify 'Ash: We can try a gentle frequency.' # @data/quests/origins/silent_tide.md:315
-    pc "I can try the harmonic broadcast — hand me the key." # @data/quests/origins/silent_tide.md:326
+    theo "I can try the harmonic broadcast — hand me the key." # @data/quests/origins/silent_tide.md:326
     clerk "If it works, it could guide them. If it fails..." # @data/quests/origins/silent_tide.md:327
-    $ event_manager.dispatch('GAME_STARTED', broadcast_attempt=True) # @data/quests/origins/silent_tide.md:328
+    $ signal('GAME_STARTED', broadcast_attempt=True) # @data/quests/origins/silent_tide.md:328
     $ flag_set('broadcast_attempted', True) # @data/quests/origins/silent_tide.md:329
     $ give_item('protocol_deciphered', 1) # @data/quests/origins/silent_tide.md:330
     return # @data/quests/origins/silent_tide.md:330
 
 label QUEST__silent_tide__ask_clerk: # @data/quests/origins/silent_tide.md:298
-    pc "Excuse me — have you noticed the sleepers' rhythm?" # @data/quests/origins/silent_tide.md:298
+    theo "Excuse me — have you noticed the sleepers' rhythm?" # @data/quests/origins/silent_tide.md:298
     clerk "It's old as the docks. Folks hush and follow it when the moon leans right." # @data/quests/origins/silent_tide.md:299
     $ flag_set('asked_clerk', True) # @data/quests/origins/silent_tide.md:300
     notify 'Clerk: They remember a tune from the sea.' # @data/quests/origins/silent_tide.md:301
     return # @data/quests/origins/silent_tide.md:301
 
 label QUEST__silent_tide__share_with_ash: # @data/quests/origins/silent_tide.md:312
-    pc "I tracked the tide lines — I think I can shape them without force." # @data/quests/origins/silent_tide.md:312
+    theo "I tracked the tide lines — I think I can shape them without force." # @data/quests/origins/silent_tide.md:312
     ash "If you can hum it slow enough, maybe they follow a kinder path." # @data/quests/origins/silent_tide.md:313
     $ flag_set('shared_with_ash', True) # @data/quests/origins/silent_tide.md:314
     notify 'Ash: We can try a gentle frequency.' # @data/quests/origins/silent_tide.md:315
     return # @data/quests/origins/silent_tide.md:315
 
 label QUEST__silent_tide__attempt_broadcast: # @data/quests/origins/silent_tide.md:326
-    pc "I can try the harmonic broadcast — hand me the key." # @data/quests/origins/silent_tide.md:326
+    theo "I can try the harmonic broadcast — hand me the key." # @data/quests/origins/silent_tide.md:326
     clerk "If it works, it could guide them. If it fails..." # @data/quests/origins/silent_tide.md:327
-    $ event_manager.dispatch('GAME_STARTED', broadcast_attempt=True) # @data/quests/origins/silent_tide.md:328
+    $ signal('GAME_STARTED', broadcast_attempt=True) # @data/quests/origins/silent_tide.md:328
     $ flag_set('broadcast_attempted', True) # @data/quests/origins/silent_tide.md:329
     $ give_item('protocol_deciphered', 1) # @data/quests/origins/silent_tide.md:330
     return # @data/quests/origins/silent_tide.md:330
 
 label QUEST__silent_tide__ordinary_world:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'ordinary_world', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='ordinary_world')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='ordinary_world')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'ordinary_world', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 1"
+    "GOAL{i}SHOW silent{/i}tide"
     "STORY The records in the shop are endless, their weight familiar and heavy."
-    pc "Perhaps the clerk knows something about the patterns in our city."
+    theo "Perhaps the clerk knows something about the patterns in our city."
     clerk "The archives hold many secrets. Few listen anymore."
-    "ANIM pc_nod"
-    "GOAL{i}TICK silent{/i}tide 1"
+    "PLAY theo nod"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__call_to_adventure:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'call_to_adventure', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='call_to_adventure')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='call_to_adventure')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'call_to_adventure', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 2"
-    "ANIM camera{i}pan market{/i}to_harbor"
+    "GOAL{i}SHOW silent{/i}tide"
+    "CAMERA pan market{i}to{/i}harbor"
     "STORY A sound rises from the harbor—not quite music, not quite breathing."
-    pc "There's a rhythm here... something old and patient."
+    theo "There's a rhythm here... something old and patient."
     notify 'You sense a pattern in the air, pulling your attention to the sea.'
     "ANIM pulse_waves harbor"
-    "GOAL{i}TICK silent{/i}tide 2"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__refusal_of_the_call:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'refusal_of_the_call', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='refusal_of_the_call')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='refusal_of_the_call')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'refusal_of_the_call', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 3"
+    "GOAL{i}SHOW silent{/i}tide"
     "ANIM pc_hesitate"
     "STORY The safety of the archives calls you back. Outside, the unknown waits."
-    pc "Maybe it's safer to stay here. Record, catalog, preserve."
+    theo "Maybe it's safer to stay here. Record, catalog, preserve."
     clerk "The city has always needed watchers, not hunters."
     "STORY You feel the weight of habit holding you in place."
     "ANIM fade{i}to{/i}shadows"
-    "GOAL{i}TICK silent{/i}tide 3"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__meeting_the_mentor:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'meeting_the_mentor', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='meeting_the_mentor')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='meeting_the_mentor')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'meeting_the_mentor', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 4"
+    "GOAL{i}SHOW silent{/i}tide"
     "ANIM pc{i}enter{/i}tavern"
     "STORY Ash sits quietly, listening to a sound only they can hear."
-    pc "I've been tracking the rhythm from the harbor. Do you hear it?"
+    theo "I've been tracking the rhythm from the harbor. Do you hear it?"
     ash "For years. It's an old music, and the sleepers are its instrument."
     ash "Move slow. Breathe low. The tide carries wisdom, not anger."
     "ANIM ash{i}hand{/i}gesture_slow"
     notify 'Ash taught you the ways of the drift.'
-    "GOAL{i}TICK silent{/i}tide 4"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__crossing_the_threshold:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'crossing_the_threshold', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='crossing_the_threshold')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='crossing_the_threshold')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'crossing_the_threshold', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 5"
+    "GOAL{i}SHOW silent{/i}tide"
     "ANIM camera{i}approach{/i}docks"
     "STORY The docks are vast and still. No ships move. No voices rise. Only the pulse."
-    pc "Here. I feel it strongest here."
+    theo "Here. I feel it strongest here."
     "STORY The sleepers drift nearby, their steps synchronized to something unseen."
     "ANIM sleepers{i}appear{/i}distant"
     notify 'The rhythm grows clearer at the threshold between city and sea.'
     "ANIM pc{i}steady{/i}breath"
-    "GOAL{i}TICK silent{/i}tide 5"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__tests_and_allies:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'tests_and_allies', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='tests_and_allies')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='tests_and_allies')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'tests_and_allies', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 6"
+    "GOAL{i}SHOW silent{/i}tide"
     "STORY You return to gather stories from those who witness the sleepers' rhythm."
-    pc "I need to hear what others know about the tide. Will you tell me?"
+    theo "I need to hear what others know about the tide. Will you tell me?"
     ash "Every keeper in this city hears it differently. That's the secret."
     "ANIM pc{i}listen{/i}gesture"
     "STORY The testimonies weave together like a pattern only visible from far away."
     notify 'Testimonies recorded: The rhythm is collective, not singular.'
     "ANIM threads{i}weave{/i}together"
-    "GOAL{i}TICK silent{/i}tide 6"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__approach:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'approach', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='approach')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='approach')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'approach', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 7"
+    "GOAL{i}SHOW silent{/i}tide"
     "ANIM camera{i}pan{/i}to_tower"
     "STORY The tower looms above the city, its old transmitters silent but still potent."
-    pc "The rhythm connects to the signal corridors. They all run through the tower."
+    theo "The rhythm connects to the signal corridors. They all run through the tower."
     "STORY You trace the pulse lines on ancient maps, seeing the architecture of sound."
     "ANIM pc{i}draw{/i}pattern"
     notify 'Signal corridors mapped: The broadcast system still remembers how to sing.'
     "ANIM glow{i}lines{/i}pulse"
-    "GOAL{i}TICK silent{/i}tide 7"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__ordeal:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'ordeal', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='ordeal')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='ordeal')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'ordeal', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 8"
+    "GOAL{i}SHOW silent{/i}tide"
     "ANIM darkness{i}descend tower{/i}interior"
     "STORY The stairwell is labyrinthine, and the sleepers are everywhere here, drifting in spirals."
-    pc "Stay calm. Move like the tide moves. Don't disturb the drift."
+    theo "Stay calm. Move like the tide moves. Don't disturb the drift."
     "STORY Your breath synchronizes with theirs. Your steps match their steps. You become part of the rhythm."
     "ANIM pc{i}fade{/i}into_crowd"
     notify 'You are one voice in the tide now.'
     "ANIM harmony_achieved"
     "STORY At last, you reach the inner console, untouched and still humming."
-    "GOAL{i}TICK silent{/i}tide 8"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__reward:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'reward', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='reward')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='reward')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'reward', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 9"
+    "GOAL{i}SHOW silent{/i}tide"
     "ANIM light{i}break{/i}console"
     "STORY The console yields its secret—a frequency pattern written in old code, waiting generations for this moment."
-    pc "Here. This is how to guide them, not drag them."
+    theo "Here. This is how to guide them, not drag them."
     "STORY The harmonic key sings in your hands, no longer a weapon but a song."
     "ANIM key{i}resonates{/i}light"
     notify 'The Harmonic Key obtained: A frequency that guides without force.'
     "ANIM aura_harmonic"
-    "GOAL{i}TICK silent{/i}tide 9"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__the_road_back:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'the_road_back', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='the_road_back')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='the_road_back')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'the_road_back', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 10"
+    "GOAL{i}SHOW silent{/i}tide"
     "ANIM pc{i}walk{/i}toward_temple"
     "STORY The temple is a place where voices gather. You carry something precious back to it."
-    pc "I have a teaching to share. Will you listen?"
+    theo "I have a teaching to share. Will you listen?"
     "STORY The gathered fold listen as you explain the rhythm, the pattern, the way forward."
     "ANIM circle{i}form{/i}light"
     notify 'The pattern is translated: From archive to action, from silence to song.'
     "ANIM knowledge_spreads"
-    "GOAL{i}TICK silent{/i}tide 10"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__resurrection:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'resurrection', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='resurrection')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='resurrection')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'resurrection', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 11"
+    "GOAL{i}SHOW silent{/i}tide"
     "ANIM broadcast{i}frequency{/i}activate"
     "STORY The harmonic frequency spreads through the city via signal corridors old and new."
-    pc "Does it work? Do they follow the new rhythm?"
+    theo "Does it work? Do they follow the new rhythm?"
     "STORY The sleepers shift, slower, gentler, guided by a frequency that respects their choice."
     "ANIM sleepers{i}redirect{/i}slow"
     notify 'The broadcast succeeds: No force, no violence, only the rhythm continuing.'
     "ANIM city_harmonize"
-    "GOAL{i}TICK silent{/i}tide 11"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__return_with_the_elixir:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'return_with_the_elixir', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='return_with_the_elixir')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='return_with_the_elixir')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'return_with_the_elixir', 'complete')
-    "GOAL{i}SHOW silent{/i}tide 12"
+    "GOAL{i}SHOW silent{/i}tide"
     "ANIM temple{i}gather{/i}all"
     "STORY The city assembles in the temple. The wisdom you bring is not conquest but coexistence."
-    pc "The sleepers are not our enemy. They are part of the rhythm we all share."
+    theo "The sleepers are not our enemy. They are part of the rhythm we all share."
     "STORY A new way of being settles over the city like fog becoming rain."
     "ANIM healing{i}light{/i}spread"
     notify 'The Elixir shared: Wisdom without dominion, listening without control.'
     "ANIM city{i}transforms{/i}gentle"
-    "GOAL{i}TICK silent{/i}tide 12"
+    "GOAL{i}TICK silent{/i}tide"
     return
 
 label QUEST__silent_tide__ask_the_clerk:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'ask_the_clerk', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='ask_the_clerk')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='ask_the_clerk')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'ask_the_clerk', 'complete')
-    pc "Excuse me — have you noticed the sleepers' rhythm?"
+    theo "Excuse me — have you noticed the sleepers' rhythm?"
     clerk "It's old as the docks. Folks hush and follow it when the moon leans right."
     $ flag_set('asked_clerk', True)
     notify 'Clerk: They remember a tune from the sea.'
@@ -971,9 +971,9 @@ label QUEST__silent_tide__ask_the_clerk:
 
 label QUEST__silent_tide__share_the_pattern_with_ash:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'share_the_pattern_with_ash', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='share_the_pattern_with_ash')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='share_the_pattern_with_ash')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'share_the_pattern_with_ash', 'complete')
-    pc "I tracked the tide lines — I think I can shape them without force."
+    theo "I tracked the tide lines — I think I can shape them without force."
     ash "If you can hum it slow enough, maybe they follow a kinder path."
     $ flag_set('shared_with_ash', True)
     notify 'Ash: We can try a gentle frequency.'
@@ -981,11 +981,11 @@ label QUEST__silent_tide__share_the_pattern_with_ash:
 
 label QUEST__silent_tide__attempt_harmonic_broadcast:
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'attempt_harmonic_broadcast', 'active')
-    $ event_manager.dispatch('QUEST_TICK_COMPLETED', quest='silent_tide', tick='attempt_harmonic_broadcast')
+    $ signal('QUEST_TICK_COMPLETED', quest='silent_tide', tick='attempt_harmonic_broadcast')
     $ quest_manager.update_goal('silent_tide' if 'silent_tide' != 'None' else None, 'attempt_harmonic_broadcast', 'complete')
-    pc "I can try the harmonic broadcast — hand me the key."
+    theo "I can try the harmonic broadcast — hand me the key."
     clerk "If it works, it could guide them. If it fails..."
-    $ event_manager.dispatch('GAME_STARTED', broadcast_attempt=True)
+    $ signal('GAME_STARTED', broadcast_attempt=True)
     $ flag_set('broadcast_attempted', True)
     $ give_item('protocol_deciphered', 1)
     return
@@ -1004,7 +1004,7 @@ label CHOICE__lena__Ask_For_A_Guide: # @data/characters/lena.md:63
     lena "Fine. But if you start humming or dragging your feet, I'm leaving you as bait. Keep up." # @data/characters/lena.md:63
     $ companion_add('lena') # @data/characters/lena.md:64
     $ flag_set('scout_joined', True) # @data/characters/lena.md:65
-    $ bond_add_stat(pc.id, 'lena', 'trust', 3) # @data/characters/lena.md:66
+    $ bond_add_stat(character.id, 'lena', 'trust', 3) # @data/characters/lena.md:66
     return # @data/characters/lena.md:66
 
 label CHOICE__lena__Ask_To_Part_Ways: # @data/characters/lena.md:81
@@ -1014,11 +1014,11 @@ label CHOICE__lena__Ask_To_Part_Ways: # @data/characters/lena.md:81
     return # @data/characters/lena.md:83
 
 label CHOICE__mara__Offer_Help: # @data/characters/mara.md:63
-    pc "If you need someone fast, I can run the perimeter." # @data/characters/mara.md:63
+    character "If you need someone fast, I can run the perimeter." # @data/characters/mara.md:63
     mara "Good. We're blind out there. Take this route map—it's marked with the latest safe-zones and frequency dead-spots." # @data/characters/mara.md:64
     $ mara.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones.")) # @data/characters/mara.md:65
     $ quest_manager.start_quest("long_dawn") # @data/characters/mara.md:66
-    $ bond_add_stat(pc.id, 'mara', 'trust', 5) # @data/characters/mara.md:67
+    $ bond_add_stat(character.id, 'mara', 'trust', 5) # @data/characters/mara.md:67
     return # @data/characters/mara.md:67
 
 label CHOICE__mara__Ask_About_The_Signal: # @data/characters/mara.md:81
@@ -1027,7 +1027,7 @@ label CHOICE__mara__Ask_About_The_Signal: # @data/characters/mara.md:81
     return # @data/characters/mara.md:82
 
 label CHOICE__mara__Report_on_Spire: # @data/characters/mara.md:95
-    pc "I have the protocol drive from the Spire. The lobby was full of them—it was like walking through a dream where nobody breathes." # @data/characters/mara.md:95
+    character "I have the protocol drive from the Spire. The lobby was full of them—it was like walking through a dream where nobody breathes." # @data/characters/mara.md:95
     mara "Every year we lose more to the drift. This drive... it's the first real data we've had on their resonance in a decade." # @data/characters/mara.md:96
     mara "Give me a moment to patch it into the main console. We need to see if we can broadcast a counter-tone." # @data/characters/mara.md:97
     notify 'Deciphering protocol...' # @data/characters/mara.md:98
@@ -1039,13 +1039,13 @@ label CHOICE__mara__Report_on_Spire: # @data/characters/mara.md:95
 label CHOICE__rafi__Request_Gate_Pass: # @data/characters/rafi.md:63
     rafi "I can log a short-term pass. If the sensors pick up a spike in your frequency, don't expect us to open the gate when you come back." # @data/characters/rafi.md:63
     $ flag_set('gate_pass', True) # @data/characters/rafi.md:64
-    $ bond_add_stat(pc.id, 'rafi', 'respect', 3) # @data/characters/rafi.md:65
+    $ bond_add_stat(character.id, 'rafi', 'respect', 3) # @data/characters/rafi.md:65
     notify 'Gate pass logged.' # @data/characters/rafi.md:66
     return # @data/characters/rafi.md:66
 
 label CHOICE__rafi__Report_a_Quiet_Route: # @data/characters/rafi.md:80
     rafi "Good. Every quiet route is a lifeline. I'll update the patrol logs." # @data/characters/rafi.md:80
-    $ bond_add_stat(pc.id, 'rafi', 'trust', 2) # @data/characters/rafi.md:81
+    $ bond_add_stat(character.id, 'rafi', 'trust', 2) # @data/characters/rafi.md:81
     return # @data/characters/rafi.md:81
 
 label CHOICE__kael__Ask_About_Breaching: # @data/characters/kael.md:69

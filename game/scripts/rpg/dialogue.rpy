@@ -1,6 +1,6 @@
 default dialogue_manager = DialogueManager()
 
-init -10 python:
+init 10 python:
     class DialogueOption(object):
         def __init__(self, id, chars, short_text, long_text, emoji, label, cond=None, tags=None, memory=False, reason=None):
             self.id = id

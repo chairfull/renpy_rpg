@@ -4,9 +4,9 @@ default character_manager = CharacterManager()
 default char_interaction_state = "menu"
 default char_interaction_pending_label = None
 
-init -10 python:
+init -90 python:
     # TODO: Combine these two screens.
-    add_meta_menu_tab("characters", "📞", "Characters", characters_screen,
+    onstart(add_meta_menu_tab, "characters", "📞", "Characters",
         selected_character=None)
 
     class RPGCharacter(Equipment):
@@ -313,271 +313,25 @@ init -10 python:
         def __init__(self):
             self.characters = {}
 
+    def all_characters():
+        return character_manager.characters.values()
+
     def reload_character_manager(data):
         character_manager.characters = {}
-        for char_id, p in data.get("characters", {}).items():
-            stats_data = p.get('stats', {})
-            stats = StatBlock(stats_data) if stats_data else None
+        for char_id, char_data in data.get("characters", {}).items():
             try:
-                char = RPGCharacter(
-                    char_id, p.get('name', char_id),
-                    stats=stats,
-                    description=p.get('description', ''),
-                    location_id=p.get('location'),
-                    base_image=p.get('base_image'),
-                    td_sprite=p.get('td_sprite'),
-                    x=p.get('x', 0) or 0,
-                    y=p.get('y', 0) or 0,
-                    label=p.get('label'),
-                    factions=p.get('factions', []),
-                    body_type=p.get('body_type', 'humanoid'),
-                    gender=p.get('gender'),
-                    age=p.get('age'),
-                    height=p.get('height'),
-                    weight=p.get('weight'),
-                    hair_color=p.get('hair_color'),
-                    hair_style=p.get('hair_style'),
-                    eye_color=p.get('eye_color'),
-                    face_shape=p.get('face_shape'),
-                    breast_size=p.get('breast_size'),
-                    dick_size=p.get('dick_size'),
-                    foot_size=p.get('foot_size'),
-                    skin_tone=p.get('skin_tone'),
-                    build=p.get('build'),
-                    distinctive_feature=p.get('distinctive_feature'),
-                    equipment=p.get('equipment', {}),
-                    items=p.get('items', []),
-                    tags=p.get('tags', []),
-                    affinity=int(p.get('affinity', 0) or 0),
-                    max_weight=p.get('max_weight'),
-                    max_slots=p.get('max_slots'),
-                    schedule=p.get('schedule', {}),
-                    companion_mods=p.get('companion_mods', {}),
-                    is_companion=bool(p.get('companion_mods'))
-                )
-                char.give_flows = p.get('give', {}) or {}
-                character_manager.characters[char_id] = char
+                character_manager.characters[char_id] = from_dict(RPGCharacter, char_data, id=char_id)
             except Exception as e:
                 with open("debug_load.txt", "a") as df:
-                    df.write("Character Load Error ({}): {}\n".format(oid, str(e)))
+                    df.write("Character Load Error ({}): {}\n".format(char_id, str(e)))
 
-    class Bond(object):
-        def __init__(self, id, a_id, b_id, tags=None, stats=None, relations=None):
-            self.id = id
-            self.a_id = a_id
-            self.b_id = b_id
-            self.tags = set(tags or [])
-            self.stats = stats or {}
-            # relations: list of dicts with keys: id, type, a_label, b_label, weight, note
-            self.relations = []
-            if relations:
-                try:
-                    if isinstance(relations, dict):
-                        # single relation
-                        self.relations = [relations]
-                    elif isinstance(relations, list):
-                        self.relations = relations
-                except Exception:
-                    self.relations = []
-        
-        def other(self, cid):
-            return self.b_id if cid == self.a_id else self.a_id
-        
-        def get_stat(self, name, default=0):
-            try:
-                return int(self.stats.get(name, default))
-            except Exception:
-                return default
-        
-        def set_stat(self, name, value):
-            self.stats[name] = int(value)
-        
-        def add_stat(self, name, delta):
-            self.set_stat(name, self.get_stat(name, 0) + int(delta))
-        
-        def has_tag(self, tag):
-            return tag in self.tags
-        
-        def add_tag(self, tag):
-            self.tags.add(tag)
-        
-        def remove_tag(self, tag):
-            self.tags.discard(tag)
-
-        # Relation helpers
-        def add_relation(self, rel_id, rel_type=None, a_label=None, b_label=None, weight=0, note=None):
-            # Replace if id exists
-            for r in self.relations:
-                if r.get('id') == rel_id:
-                    r.update({
-                        'type': rel_type or r.get('type'),
-                        'a_label': a_label or r.get('a_label'),
-                        'b_label': b_label or r.get('b_label'),
-                        'weight': int(weight or r.get('weight', 0)),
-                        'note': note or r.get('note')
-                    })
-                    return r
-            r = {'id': rel_id, 'type': rel_type, 'a_label': a_label, 'b_label': b_label, 'weight': int(weight or 0), 'note': note}
-            self.relations.append(r)
-            return r
-
-        def get_relations(self):
-            return list(self.relations)
-
-        def get_relation(self, rel_id):
-            for r in self.relations:
-                if r.get('id') == rel_id:
-                    return r
-            return None
-
-        def remove_relation(self, rel_id):
-            for i, r in enumerate(self.relations):
-                if r.get('id') == rel_id:
-                    return self.relations.pop(i)
-            return None
-
-    class BondManager:
+    class BondType:
         def __init__(self):
-            self.bonds = {}
-        
-        def _key(self, a, b):
-            return tuple(sorted([a, b]))
-        
-        def register(self, bond):
-            self.bonds[self._key(bond.a_id, bond.b_id)] = bond
+            self.value = 0
 
-        def set_relation(self, a, b, rel_id, rel_type=None, a_label=None, b_label=None, weight=0, note=None):
-            bobj = self.ensure(a, b)
-            if not bobj:
-                return None
-            return bobj.add_relation(rel_id, rel_type=rel_type, a_label=a_label, b_label=b_label, weight=weight, note=note)
-
-        def remove_relation(self, a, b, rel_id):
-            bobj = self.get_between(a, b)
-            if not bobj:
-                return None
-            return bobj.remove_relation(rel_id)
-
-        def get_relations_for(self, a, b):
-            bobj = self.get_between(a, b)
-            return bobj.get_relations() if bobj else []
-
-        def get_primary_relation(self, a, b):
-            """Return the highest-weight relation between a and b or None."""
-            rels = self.get_relations_for(a, b)
-            if not rels:
-                return None
-            try:
-                rels_sorted = sorted(rels, key=lambda r: int(r.get('weight', 0)), reverse=True)
-                return rels_sorted[0]
-            except Exception:
-                return rels[0]
-        
-        def get_between(self, a, b):
-            if not a or not b or a == b:
-                return None
-            return self.bonds.get(self._key(a, b))
-        
-        def ensure(self, a, b):
-            if not a or not b or a == b:
-                return None
-            key = self._key(a, b)
-            if key not in self.bonds:
-                bid = f"{key[0]}__{key[1]}"
-                self.bonds[key] = Bond(bid, key[0], key[1])
-            return self.bonds[key]
-        
-        def get_for(self, cid):
-            res = []
-            for bond in self.bonds.values():
-                if bond.a_id == cid or bond.b_id == cid:
-                    res.append(bond)
-            return res
-
-    def bond_get_stat(a_id, b_id, stat, default=0):
-        b = bond_manager.get_between(a_id, b_id)
-        return b.get_stat(stat, default) if b else default
-
-    def bond_stat(other_id, stat, default=0):
-        return bond_get_stat(character.id, other_id, stat, default)
-
-    def bond_set_stat(a_id, b_id, stat, value):
-        b = bond_manager.ensure(a_id, b_id)
-        if not b:
-            return False
-        b.set_stat(stat, value)
-        return True
-
-    def bond_add_stat(a_id, b_id, stat, delta):
-        b = bond_manager.ensure(a_id, b_id)
-        if not b:
-            return False
-        b.add_stat(stat, delta)
-        return True
-
-    def bond_has_tag(a_id, b_id, tag):
-        b = bond_manager.get_between(a_id, b_id)
-        return b.has_tag(tag) if b else False
-
-    def bond_add_tag(a_id, b_id, tag):
-        b = bond_manager.ensure(a_id, b_id)
-        if not b:
-            return False
-        b.add_tag(tag)
-        return True
-
-    def bond_remove_tag(a_id, b_id, tag):
-        b = bond_manager.get_between(a_id, b_id)
-        if not b:
-            return False
-        b.remove_tag(tag)
-        return True
-
-    def bond_tags(a_id, b_id):
-        b = bond_manager.get_between(a_id, b_id)
-        return list(b.tags) if b else []
-
-    def bond_add_relation(a_id, b_id, rel_id, rel_type=None, a_label=None, b_label=None, weight=0, note=None):
-        return bond_manager.set_relation(a_id, b_id, rel_id, rel_type=rel_type, a_label=a_label, b_label=b_label, weight=weight, note=note)
-
-    def bond_get_relations(a_id, b_id):
-        return bond_manager.get_relations_for(a_id, b_id)
-
-    def bond_get_primary(a_id, b_id):
-        rel = bond_manager.get_primary_relation(a_id, b_id)
-        return rel
-
-    def bond_remove_relation(a_id, b_id, rel_id):
-        return bond_manager.remove_relation(a_id, b_id, rel_id)
-
-    def bond_level_from_value(val):
-        if val <= -50: return "Hostile"
-        if val <= -20: return "Cold"
-        if val < 20: return "Neutral"
-        if val < 50: return "Warm"
-        return "Allied"
-
-    def bond_level(a_id, b_id, stat):
-        return bond_level_from_value(bond_get_stat(a_id, b_id, stat, 0))
-
-    def set_character_known_location(char_id, location_id):
-        """Mark a character's location as known (persisted) and notify systems.
-        Can be called from flows or quest code to reveal where a person is even
-        if the player hasn't met them yet.
-        """
-        try:
-            if persistent.known_character_locations is None:
-                persistent.known_character_locations = {}
-            persistent.known_character_locations[str(char_id)] = str(location_id)
-            # Update runtime object if present
-            if getattr(world, 'characters', None) and str(char_id) in world.characters:
-                setattr(world.characters[str(char_id)], 'known_location_id', str(location_id))
-            renpy.notify(f"Location revealed: {char_id} @ {location_id}")
-            event_manager.dispatch("CHAR_LOCATION_KNOWN", char=char_id, location=location_id)
-            return True
-        except Exception as e:
-            renpy.log(f"Error setting known location for {char_id}: {e}")
-            return False
+    class Bond:
+        def __init__(self):
+            self.types = {}
 
 
 transform char_menu_fade:
@@ -904,11 +658,7 @@ style interact_button_text:
     size 24
     xalign 0.5
 
-screen character_sheet():
-    on "show" action SetVariable("meta_menu_tab", "stats")
-    use meta_menu
-
-screen characters_screen():
+screen characters_screen(meta_menu):
     if selected_character:
         use character_detail_screen
     else:

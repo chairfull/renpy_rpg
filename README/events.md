@@ -33,7 +33,7 @@ EVENT SECRET_REVEALED type=lore importance=high
 
 ### Scripting equivalent (Python)
 ```python
-event_manager.dispatch("SECRET_REVEALED", type="lore", importance="high")
+signal("SECRET_REVEALED", type="lore", importance="high")
 ```
 
 ---

@@ -2,6 +2,126 @@ default td_zoom = 1.0
 default show_reachability = False
 default td_update_dt = 1.0 / 60.0
 
+init -10 python:
+    class MapManager:
+        def __init__(self):
+            self.zoom = 1.0
+            self.target_zoom = 1.0  # For smooth zoom animation
+            self.cam_x = 0
+            self.cam_y = 0
+            self.search_query = ""
+            self.selected_structure = None
+            self.selected_location = None  # For location info popup
+            self.hover_location = None
+            self.hover_tooltip = None
+        
+        def set_zoom(self, z):
+            """Set target zoom for smooth animation"""
+            self.target_zoom = max(0.5, min(z, 5.0))
+        
+        def update_zoom(self, adj_x, adj_y, view_w, view_h):
+            """Lerp zoom toward target while maintaining center point"""
+            if abs(self.zoom - self.target_zoom) < 0.001:
+                return None  # Already at target, no update needed
+            
+            # Get current center point in world coords BEFORE zoom changes
+            old_zoom = self.zoom
+            center_world_x = (adj_x.value + view_w / 2) / old_zoom
+            center_world_y = (adj_y.value + view_h / 2) / old_zoom
+            
+            # Lerp zoom (fast but smooth), snap when very close
+            if abs(self.zoom - self.target_zoom) < 0.01:
+                self.zoom = self.target_zoom
+            else:
+                lerp_factor = 0.2
+                self.zoom = self.zoom + (self.target_zoom - self.zoom) * lerp_factor
+            
+            # Calculate new scroll position to maintain center (always, including final frame)
+            new_adj_x = center_world_x * self.zoom - view_w / 2
+            new_adj_y = center_world_y * self.zoom - view_h / 2
+            
+            return (new_adj_x, new_adj_y)
+            
+        def get_visible_markers(self):
+            # Return list of locations relevant to current zoom
+            visible = []
+            for loc in world.locations.values():
+                # Search Filter
+                if self.search_query and self.search_query.lower() not in loc.name.lower():
+                    continue
+                
+                # Zoom Filter (if not searching)
+                if not self.search_query:
+                    if loc.min_zoom > self.zoom or loc.max_zoom < self.zoom:
+                        continue
+                    
+                    # Hierarchy Filter: If structure is selected, only show its floors (if zoomed appropriately?)
+                    # Simplified: Just show everything in range.
+                    # Or: If zoomed in high (structure level), show floors?
+                    pass
+
+                visible.append(loc)
+            return visible
+            
+        def search(self, query):
+            self.search_query = query.strip()
+
+        def select_location(self, loc):
+            """Select a location - opens info popup"""
+            self.selected_location = loc
+            if loc.ltype == 'structure':
+                self.selected_structure = loc
+            else:
+                self.selected_structure = None
+        
+        def close_location_popup(self):
+            """Close the location info popup"""
+            self.selected_location = None
+        
+        def travel_to_location(self, loc):
+            """Travel to the selected location"""
+            if not loc:
+                return False
+            if not allow_unvisited_travel and not loc.visited and loc.id != world.current_location_id:
+                renpy.notify("You haven't discovered this location yet.")
+                return False
+            # Advance time based on map distance
+            curr = world.current_location
+            if curr and loc.id != curr.id:
+                dx = float(loc.map_x - curr.map_x)
+                dy = float(loc.map_y - curr.map_y)
+                dist = (dx * dx + dy * dy) ** 0.5
+                travel_mins = max(5, int(dist / 100.0 * 10))
+                time_manager.advance(travel_mins)
+                renpy.notify(f"Traveled to {loc.name} (+{travel_mins}m)")
+            if world.move_to(loc.id):
+                self.selected_location = None
+                # Hide map and show the new location
+                renpy.hide_screen("map_browser")
+                if renpy.has_label("_post_travel_setup"):
+                    renpy.call("_post_travel_setup")
+                return True
+            return False
+        
+        def center_on_player(self, adj_x, adj_y, view_w, view_h, pad):
+            """Center the map view on the player's current location"""
+            if not world.current_location_id:
+                return
+                
+            loc = world.locations.get(world.current_location_id)
+            if not loc:
+                return
+                
+            # Calculate center position in map coords (including padding)
+            center_x = (loc.map_x + pad) * self.zoom
+            center_y = (loc.map_y + pad) * self.zoom
+            
+            # Update adjustments to center the view
+            adj_x.value = center_x - view_w / 2
+            adj_y.value = center_y - view_h / 2
+
+    map_manager = MapManager()
+
 transform td_cinematic_enter:
     subpixel True
     zoom 2.0 alpha 0.0
@@ -22,15 +142,14 @@ screen top_down_map(location):
     if location is None:
         text "Loading..." align (0.5, 0.5)
     zorder 10
-    on "show" action [Function(td_manager.setup, location), SetVariable("tooltip_restart_min_dt", 0.02), SetVariable("tooltip_use_raw_mouse", True), SetVariable("tooltip_offset_x", 0), SetVariable("tooltip_offset_y", 0), SetVariable("tooltip_force_refresh", True)]
-    on "hide" action [SetVariable("tooltip_restart_min_dt", 0.08), SetVariable("tooltip_use_raw_mouse", False), SetVariable("tooltip_offset_x", 18), SetVariable("tooltip_offset_y", 18), SetVariable("tooltip_force_refresh", False)]
+    on "show" action [Function(td_manager.setup, location)]
     
     # Zoom Controls
-    key "K_PLUS" action If(phone_state == "mini", SetVariable("td_zoom", min(2.5, td_zoom + 0.1)), NullAction())
-    key "K_EQUALS" action If(phone_state == "mini", SetVariable("td_zoom", min(2.5, td_zoom + 0.1)), NullAction())
-    key "K_MINUS" action If(phone_state == "mini", SetVariable("td_zoom", max(0.5, td_zoom - 0.1)), NullAction())
-    key "mousedown_4" action If(phone_state == "mini", SetVariable("td_zoom", min(2.5, td_zoom + 0.1)), NullAction())
-    key "mousedown_5" action If(phone_state == "mini", SetVariable("td_zoom", max(0.5, td_zoom - 0.1)), NullAction())
+    key "K_PLUS" action If(meta_menu.minimised, SetVariable("td_zoom", min(2.5, td_zoom + 0.1)), NullAction())
+    key "K_EQUALS" action If(meta_menu.minimised, SetVariable("td_zoom", min(2.5, td_zoom + 0.1)), NullAction())
+    key "K_MINUS" action If(meta_menu.minimised, SetVariable("td_zoom", max(0.5, td_zoom - 0.1)), NullAction())
+    key "mousedown_4" action If(meta_menu.minimised, SetVariable("td_zoom", min(2.5, td_zoom + 0.1)), NullAction())
+    key "mousedown_5" action If(meta_menu.minimised, SetVariable("td_zoom", max(0.5, td_zoom - 0.1)), NullAction())
     key "c" action Function(td_manager.snap_camera)
     key "h" action ToggleVariable("show_reachability")
     
@@ -169,8 +288,7 @@ screen top_down_map(location):
             textbutton "DEV" action Show("dev_mode_screen") text_size 14 text_color "#ff3333"
             textbutton "CENTER" action Function(td_manager.snap_camera) text_size 12 text_color "#ccc"
             textbutton "SEARCH" action Function(scavenge_location, location) text_size 12 text_color "#ccc"
-
-    # 6. Phone UI
+    
     use meta_menu_screen
 
 # Idle breathing animation (Removed zoom pulse as per user request)

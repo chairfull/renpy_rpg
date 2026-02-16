@@ -1,7 +1,7 @@
 default perk_manager = PerkManager()
 
-init -10 python:
-    add_meta_menu_tab("perks", "✨", "Perks", perks_screen,
+init 10 python:
+    onstart(add_meta_menu_tab, "perks", "✨", "Perks",
         selected_perk=None)
 
     def perk_add(perk_id, duration_minutes=None):
@@ -20,14 +20,13 @@ init -10 python:
             renpy.notify("Perk removed")
         return ok
 
-    class Perk(object):
-        def __init__(self, id, name, description="", mods=None, tags=None, duration_minutes=None):
+    class Perk:
+        def __init__(self, id, name, description="", mods=None, tags=None, **kwargs):
             self.id = id
             self.name = name
             self.description = description
             self.mods = mods or {}
             self.tags = set(tags or [])
-            self.duration_minutes = duration_minutes
     
     class PerkManager:
         def __init__(self): self.perks = {}
@@ -50,7 +49,7 @@ screen perks_screen():
             text "No perks acquired." size 16 color "#888"
         else:
             for perk_id in character.perks:
-                p = perk_manager.get(perk_id)
+                $ p = perk_manager.perks.get(perk_id)
                 if not p:
                     continue
                 frame:

@@ -1,4 +1,4 @@
-init -10 python:
+init 10 python:
     class Shop(Inventory):
         def __init__(self, id, name, buy_mult=1.2, sell_mult=0.6, owner_id=None, **kwargs):
             super(Shop, self).__init__(id, name, owner_id=owner_id or id, **kwargs)

@@ -5,6 +5,7 @@ import yaml
 import argparse
 import sys
 import shlex
+import hashlib
 
 try:
     from .compile_helpers import (
@@ -129,7 +130,7 @@ def is_caps_command(line):
         token = token[:-1]
     return token.isupper() and token.lower() in FLOW_COMMANDS
 
-def directive_to_python(line):
+def directive_to_python(line, cond_resolver=None, source_path=None, line_no=None):
     raw = line.strip()
     if raw.startswith('@'):
         raw = raw[1:].strip()
@@ -160,8 +161,8 @@ def directive_to_python(line):
                 val = v
             kwargs.append(f"{k}={repr(val)}")
         if kwargs:
-            return f"event_manager.dispatch({event!r}, {', '.join(kwargs)})"
-        return f"event_manager.dispatch({event!r})"
+            return f"signal({event!r}, {', '.join(kwargs)})"
+        return f"signal({event!r})"
     if cmd == "flag":
         if len(parts) < 3:
             return None
@@ -264,6 +265,9 @@ def directive_to_python(line):
         expr = parts[1]
         label_true = parts[2]
         label_false = parts[3] if len(parts) > 3 else None
+        if cond_resolver is not None:
+            fn_name = cond_resolver(expr, source_path=source_path, line_no=line_no)
+            return f"cond_jump({fn_name}, {label_true!r}, {label_false!r})"
         return f"cond_jump({expr!r}, {label_true!r}, {label_false!r})"
     if cmd == "quest":
         if len(parts) < 3:
@@ -419,6 +423,9 @@ def compile(lint_only=False):
     json_file = os.path.join(gen_dir, "generated_json.json")
     
     script_parts = ["# AUTOMATICALLY GENERATED LABELS - DO NOT EDIT\n"]
+    cond_predicates = {}
+    cond_predicate_names = set()
+    cond_predicate_defs = []
     data_consolidated = {
         "items": {},
         "characters": {},
@@ -1047,6 +1054,30 @@ def compile(lint_only=False):
             line = f"{line} # @{source_path}:{line_no}"
         script_parts.append(line + "\n")
 
+    def _resolve_cond_expr(expr, source_path=None, line_no=None):
+        key = (str(expr), source_path, line_no)
+        existing = cond_predicates.get(key)
+        if existing:
+            return existing
+
+        seed = f"{source_path or ''}:{line_no or 0}:{expr}"
+        digest = hashlib.sha1(seed.encode("utf-8")).hexdigest()[:12]
+        fn_name = f"_cond_expr_{digest}"
+        suffix = 1
+        while fn_name in cond_predicate_names:
+            fn_name = f"_cond_expr_{digest}_{suffix}"
+            suffix += 1
+        cond_predicate_names.add(fn_name)
+        cond_predicates[key] = fn_name
+
+        source_comment = f"{source_path}:{line_no}" if source_path and line_no else "unknown source"
+        cond_predicate_defs.append(f"    # from {source_comment}\n")
+        cond_predicate_defs.append(f"    def {fn_name}():\n")
+        cond_predicate_defs.append(f"        return bool({expr})\n")
+        cond_predicate_defs.append("\n")
+
+        return fn_name
+
     def format_dialogue(text):
         """Convert markdown bold/italic and $vars to RenPy format."""
         # Variables: $var.path or $var_name -> [var.path] or [var_name]
@@ -1066,7 +1097,12 @@ def compile(lint_only=False):
                 _append_script_line(f"    {line}", source_path, line_no)
                 continue
             if line.startswith('@') or is_caps_command(line):
-                res = directive_to_python(line)
+                res = directive_to_python(
+                    line,
+                    cond_resolver=_resolve_cond_expr,
+                    source_path=source_path,
+                    line_no=line_no,
+                )
                 if res:
                     # If it's a native Ren'Py command like jump, call, or notify, don't prefix with $
                     if any(res.startswith(prefix) for prefix in ["jump ", "call ", "notify "]):
@@ -1364,6 +1400,10 @@ def compile(lint_only=False):
         print("Warnings (non-fatal):")
         for e in errors:
             print(f" - {e}")
+
+    if cond_predicate_defs:
+        predicate_block = ["\n", "init python:\n"] + cond_predicate_defs + ["\n"]
+        script_parts[1:1] = predicate_block
 
     # Write RPY
     with open(labels_file, "w", encoding="utf-8") as out:

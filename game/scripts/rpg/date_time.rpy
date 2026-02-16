@@ -1,6 +1,6 @@
 default time_manager = TimeManager()
 
-init -10 python:
+init 10 python:
     class TimeManager(object):
         def __init__(self, hour=8, minute=0, day=1):
             self.hour, self.minute = hour, minute

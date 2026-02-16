@@ -1,7 +1,7 @@
 default equipment_manager = EquipmentManager()
 
-init -10 python:
-    add_meta_menu_tab("equipment", "🛡️", "Equipment", equipment_screen,
+init -99 python:
+    onstart(add_meta_menu_tab, "equipment", "🛡️", "Equipment",
         selected_equipment_slot=None)
 
     class Equipment(Inventory):
@@ -45,7 +45,7 @@ init -10 python:
                 if removed:
                     equipped = removed
             self.equipment[slot_id] = equipped
-            event_manager.dispatch("ITEM_EQUIPPED", actor=self.id, slot=slot_id, item_id=item_manager.get_id_of(equipped))
+            signal("ITEM_EQUIPPED", actor=self.id, slot=slot_id, item_id=item_manager.get_id_of(equipped))
             return True, "Equipped"
         
         def unequip(self, slot_id):
@@ -54,7 +54,7 @@ init -10 python:
                 return False
             item = self.equipment.pop(slot_id)
             self.add_item(item, count=None, force=True, reason="unequip")
-            event_manager.dispatch("ITEM_UNEQUIPPED", actor=self.id, slot=slot_id, item_id=item_manager.get_id_of(item))
+            signal("ITEM_UNEQUIPPED", actor=self.id, slot=slot_id, item_id=item_manager.get_id_of(item))
             return True
 
     class EquipmentSlot:
@@ -106,7 +106,7 @@ screen equipment_screen():
     $ entries = build_inventory_entries(character)
     # Filter equipable items and attach equip actions
     $ equip_entries = [e for e in entries if getattr(e.get('item'), 'equip_slots', None)]
-    
+
     frame:
         background "#222"
         xfill True
@@ -167,117 +167,117 @@ screen equipment_screen():
                 use inventory_grid(equip_entries, columns=4, cell_size=120, total_slots=inv_total, selected_item=selected_inventory_item, show_qty=False)
                 text "Click an item to equip it to the first compatible slot." size 14 color "#aaa"
 
-screen phone_wardrobe_content():
-    vbox:
-        spacing 10
+# screen phone_wardrobe_content():
+#     vbox:
+#         spacing 10
         
-        # Equipment Slots
-        frame:
-            background "#1a1a25"
-            xfill True
-            padding (12, 12)
+#         # Equipment Slots
+#         frame:
+#             background "#1a1a25"
+#             xfill True
+#             padding (12, 12)
             
-            vbox:
-                spacing 8
-                text "Equipped" size 16 color "#ffd700"
+#             vbox:
+#                 spacing 8
+#                 text "Equipped" size 16 color "#ffd700"
                 
-                $ body_slots = slot_registry.get_slots_for_body(character.body_type)
-                for slot_id in body_slots:
-                    $ slot_def = slot_registry.slots.get(slot_id, {})
-                    $ equipped = character.equipped_slots.get(slot_id)
-                    hbox:
-                        xfill True
-                        text slot_def.get("name", slot_id) size 14 color "#888"
-                        if equipped:
-                            textbutton equipped.name:
-                                action Function(character.unequip, slot_id)
-                                text_size 14
-                                text_color "#4af"
-                        else:
-                            text "—" size 14 color "#444" xalign 1.0
+#                 $ body_slots = slot_registry.get_slots_for_body(character.body_type)
+#                 for slot_id in body_slots:
+#                     $ slot_def = slot_registry.slots.get(slot_id, {})
+#                     $ equipped = character.equipped_slots.get(slot_id)
+#                     hbox:
+#                         xfill True
+#                         text slot_def.get("name", slot_id) size 14 color "#888"
+#                         if equipped:
+#                             textbutton equipped.name:
+#                                 action Function(character.unequip, slot_id)
+#                                 text_size 14
+#                                 text_color "#4af"
+#                         else:
+#                             text "—" size 14 color "#444" xalign 1.0
         
-        # Inventory
-        frame:
-            background "#1a1a25"
-            xfill True
-            yfill True
-            padding (12, 12)
+#         # Inventory
+#         frame:
+#             background "#1a1a25"
+#             xfill True
+#             yfill True
+#             padding (12, 12)
             
-            vbox:
-                spacing 5
-                text "Inventory" size 16 color "#ffd700"
+#             vbox:
+#                 spacing 5
+#                 text "Inventory" size 16 color "#ffd700"
                 
-                viewport:
-                    mousewheel True
-                    scrollbars "vertical"
-                    yfill True
-                    vbox:
-                        spacing 4
-                        python:
-                            grouped = {}
-                            for itm in character.items:
-                                item_id = item_manager.get_id_of(itm)
-                                key = (item_id, getattr(itm, "owner_id", None), bool(getattr(itm, "stolen", False)))
-                                if key not in grouped:
-                                    label = itm.name + (" [stolen]" if getattr(itm, "stolen", False) else "")
-                                    grouped[key] = {"item": itm, "qty": 0, "label": label}
-                                grouped[key]["qty"] += max(1, int(getattr(itm, "quantity", 1)))
-                        for key, entry in grouped.items():
-                            $ item = entry["item"]
-                            $ count = entry["qty"]
-                            button:
-                                xfill True
-                                background "#252535"
-                                hover_background "#353545"
-                                padding (10, 8)
+#                 viewport:
+#                     mousewheel True
+#                     scrollbars "vertical"
+#                     yfill True
+#                     vbox:
+#                         spacing 4
+#                         python:
+#                             grouped = {}
+#                             for itm in character.items:
+#                                 item_id = item_manager.get_id_of(itm)
+#                                 key = (item_id, getattr(itm, "owner_id", None), bool(getattr(itm, "stolen", False)))
+#                                 if key not in grouped:
+#                                     label = itm.name + (" [stolen]" if getattr(itm, "stolen", False) else "")
+#                                     grouped[key] = {"item": itm, "qty": 0, "label": label}
+#                                 grouped[key]["qty"] += max(1, int(getattr(itm, "quantity", 1)))
+#                         for key, entry in grouped.items():
+#                             $ item = entry["item"]
+#                             $ count = entry["qty"]
+#                             button:
+#                                 xfill True
+#                                 background "#252535"
+#                                 hover_background "#353545"
+#                                 padding (10, 8)
                                 
-                                # Show equip menu if item has slots
-                                if item.equip_slots:
-                                    action SetVariable("selected_slot", item)
-                                else:
-                                    action Notify(f"{item.name}: {item.description}")
+#                                 # Show equip menu if item has slots
+#                                 if item.equip_slots:
+#                                     action SetVariable("selected_slot", item)
+#                                 else:
+#                                     action Notify(f"{item.name}: {item.description}")
                                 
-                                tooltip item_tooltip_text(item, count)
+#                                 tooltip item_tooltip_text(item, count)
                                 
-                                hbox:
-                                    xfill True
-                                    text "[entry['label']] (x[count])" size 14 color "#fff"
-                                    if item.equip_slots:
-                                        text "⚔" size 14 color "#4af" xalign 1.0
+#                                 hbox:
+#                                     xfill True
+#                                     text "[entry['label']] (x[count])" size 14 color "#fff"
+#                                     if item.equip_slots:
+#                                         text "⚔" size 14 color "#4af" xalign 1.0
 
-# Equip slot picker overlay
-screen phone_equip_picker():
-    if selected_equipment_slot:
-        modal True
-        zorder 152
+# # Equip slot picker overlay
+# screen phone_equip_picker():
+#     if selected_equipment_slot:
+#         modal True
+#         zorder 152
         
-        add Solid("#00000088")
+#         add Solid("#00000088")
         
-        frame:
-            align (0.5, 0.5)
-            background "#1a1a25"
-            padding (20, 20)
-            xsize 300
+#         frame:
+#             align (0.5, 0.5)
+#             background "#1a1a25"
+#             padding (20, 20)
+#             xsize 300
             
-            vbox:
-                spacing 15
-                text "Equip [selected_equipment_slot.name] to:" size 18 color "#ffd700" xalign 0.5
+#             vbox:
+#                 spacing 15
+#                 text "Equip [selected_equipment_slot.name] to:" size 18 color "#ffd700" xalign 0.5
                 
-                vbox:
-                    spacing 8
-                    for slot_id in selected_equipment_slot.equip_slots:
-                        $ slot_def = slot_registry.slots.get(slot_id, {})
-                        $ can_use = slot_id in slot_registry.get_slots_for_body(character.body_type)
-                        textbutton slot_def.get("name", slot_id):
-                            action [Function(character.equip, selected_equipment_slot, slot_id), SetVariable("selected_equipment_slot", None), Notify("Equipped!")]
-                            sensitive can_use
-                            text_size 16
-                            text_color ("#fff" if can_use else "#444")
-                            xalign 0.5
+#                 vbox:
+#                     spacing 8
+#                     for slot_id in selected_equipment_slot.equip_slots:
+#                         $ slot_def = slot_registry.slots.get(slot_id, {})
+#                         $ can_use = slot_id in slot_registry.get_slots_for_body(character.body_type)
+#                         textbutton slot_def.get("name", slot_id):
+#                             action [Function(character.equip, selected_equipment_slot, slot_id), SetVariable("selected_equipment_slot", None), Notify("Equipped!")]
+#                             sensitive can_use
+#                             text_size 16
+#                             text_color ("#fff" if can_use else "#444")
+#                             xalign 0.5
                 
-                textbutton "Cancel":
-                    action SetVariable("selected_equipment_slot", None)
-                    text_size 14
-                    text_color "#888"
-                    xalign 0.5
+#                 textbutton "Cancel":
+#                     action SetVariable("selected_equipment_slot", None)
+#                     text_size 14
+#                     text_color "#888"
+#                     xalign 0.5
 

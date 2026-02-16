@@ -2,21 +2,24 @@ default meta_menu = MetaMenu()
 
 init -100 python:
     class MetaMenuTab:
-        def __init__(self, emoji, name, screen, **kwargs):
+        def __init__(self, id, emoji, name, **kwargs):
+            self.id = id
             self.emoji = emoji
             self.name = name
-            self.screen = screen
             for kwarg in kwargs:
                 setattr(self, kwarg, kwargs[kwarg])
-    
+        
+        def get_screen(self):
+            return renpy.display.screen.screens.get(self.id + "_screen")
+
     class MetaMenu:
         def __init__(self):
             self.tabs = {}
             self.selected = None
             self.minimised = True
     
-    def add_meta_menu_tab(mm_id, emoji, name, screen, **kwargs):
-        meta_menu.tabs[mm_id] = MetaMenuTab(emoji, name, screen, **kwargs)
+    def add_meta_menu_tab(mm_id, emoji, name, **kwargs):
+        meta_menu.tabs[mm_id] = MetaMenuTab(mm_id, emoji, name, **kwargs)
 
     def open_meta_menu(to = None):
         meta_menu.selected = to
@@ -47,7 +50,15 @@ screen meta_menu_screen():
                 xfill True
                 for mm_id in meta_menu.tabs:
                     $ mm_data = meta_menu.tabs[mm_id]
-                    use phone_nav_icon(mm_data.emoji, mm_data.name, mm_id)
+                    textbutton f"{mm_data.emoji} {mm_data.name}" action Function(open_meta_menu, to=mm_id) style "phone_button":
+                        if meta_menu.selected == mm_id:
+                            background "#3a3a4a"
+                        else:
+                            background "#2a2a3a"
+                        hover_background "#3a3a4a"
+                        padding (15, 10)
+                        text_size 16
+                        text_color "#ffffff"
                 text "[time_manager.time_string]" size 16 color "#9bb2c7" xalign 1.0
             
             fixed:
@@ -63,7 +74,9 @@ screen meta_menu_screen():
                     action NullAction()
                 
                 if meta_menu.selected:
-                    use meta_menu.tabs[meta_menu.selected].screen
+                    $ mm = meta_menu.tabs[meta_menu.selected]
+                    $ mms = mm.screen
+                    use expression mms(mm)
                 else:
                     text "Select an app above." size 18 color "#888" xalign 0.5
 
@@ -84,8 +97,6 @@ screen meta_menu_mini_button():
             spacing 6
             text "📱" size 18
             text "PHONE" size 14 color "#c9d3dd"
-
-
 
 style phone_button:
     background "#2a2a3a"

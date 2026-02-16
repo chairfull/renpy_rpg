@@ -1,6 +1,6 @@
 default faction_manager = FactionManager()
 
-init -10 python:
+init 10 python:
     class Faction:
         def __init__(self, id, name, description="", tags=None):
             self.id = id

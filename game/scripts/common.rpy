@@ -1,4 +1,5 @@
-init python:
+init -1000 python:
+    import json
     import math
 
     def clamp(val, minv = 0.0, maxv = 1.0):
@@ -53,6 +54,23 @@ init python:
         outline = rgb_to_hex(tint_color(color, outline_factor))
         shadow = rgb_to_hex(tint_color(color, shadow_factor), shadow_alpha)
         return [(2, outline, 0, 0), (2, shadow, 0, 2)]
+    
+    def load_json(json_path):
+        try:
+            # Use a more robust path check for renpy.file
+            if not renpy.loadable(json_path):
+                # Fallback check
+                json_path = game_dir + "/" + path
+
+            with renpy.file(json_path) as f:
+                content = f.read().decode('utf-8')
+                data = json.loads(content)
+            return data
+
+        except Exception as e:
+            with open("debug_load.txt", "a") as df:
+                df.write("JSON Load Error: {}\n".format(str(e)))
+            return {}
 
 # This is a placeholder cell screen. Replace with actual content based on cell_data.
 screen grid_page_cell(cell_data):

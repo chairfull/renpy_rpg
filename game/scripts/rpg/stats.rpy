@@ -1,7 +1,7 @@
 default stat_manager = StatManager()
 
-init -10 python:
-    add_meta_menu_tab("stats", "❤️", "Stats", stats_screen)
+init 10 python:
+    onstart(add_meta_menu_tab, "stats", "❤️", "Stats")
     
     class Stat:
         def __init__(self, id, name, description="", tags=None):

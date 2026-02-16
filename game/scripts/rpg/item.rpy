@@ -1,6 +1,6 @@
 default item_manager = ItemManager()
 
-init -10 python:
+init 10 python:
     class Item(TaggedObject):
         def __init__(self, name="Unknown", description="", weight=0, value=0, volume=0, tags=None, factions=None, equip_slots=None, outfit_part=None, stackable=False, stack_size=1, quantity=1, owner_id=None, stolen=False, image=None, actions=None, id=None, **kwargs):
             TaggedObject.__init__(self, tags)
@@ -20,8 +20,7 @@ init -10 python:
     class ItemManager:
         def __init__(self): 
             self.items = {}
-    
-    
+            
     def reload_item_manager(data):
         item_manager.items = {}
         for item_id, p in data.get("items", {}).items():

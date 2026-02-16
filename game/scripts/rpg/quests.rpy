@@ -1,11 +1,10 @@
-
 default quest_manager = QuestManager()
 
-init -10 python:
-    add_meta_menu_tab("quests", "📋", "Quests", quests_screen,
+init 10 python:
+    onstart(add_meta_menu_tab, "quests", "📋", "Quests",
         selected_quest=None,
         filter="active")
-
+    
     class QuestTick:
         def __init__(self, id, name):
             self.id, self.name = id, name
@@ -96,13 +95,13 @@ init -10 python:
             if self.state in ["unknown", "known"]:
                 if not self.can_start():
                     renpy.notify(f"Quest Locked: {self.name}")
-                    event_manager.dispatch("QUEST_START_BLOCKED", quest=self.id)
+                    signal("QUEST_START_BLOCKED", quest=self.id)
                     return False
                 self.state = "active"
                 if self.ticks:
                     self.ticks[0].state = "active"
                 renpy.notify(f"Quest Started: {self.name}")
-                event_manager.dispatch("QUEST_STARTED", quest=self.id)
+                signal("QUEST_STARTED", quest=self.id)
                 if renpy.has_label(f"QUEST__{self.id}__started"): renpy.call(f"QUEST__{self.id}__started")
                 return True
             return False
@@ -199,14 +198,14 @@ init -10 python:
                 self._apply_rewards(self.rewards)
 
             renpy.notify(f"Quest Completed: {self.name}")
-            event_manager.dispatch("QUEST_COMPLETED", quest=self.id)
+            signal("QUEST_COMPLETED", quest=self.id)
             if renpy.has_label(f"QUEST__{self.id}__passed"): renpy.call(f"QUEST__{self.id}__passed")
             if quest_manager.active_quest_id == self.id:
                 quest_manager.set_active_quest(None)
         def fail(self):
             self.state = "failed"
             renpy.notify(f"Quest Failed: {self.name}")
-            event_manager.dispatch("QUEST_FAILED", quest=self.id)
+            signal("QUEST_FAILED", quest=self.id)
             if renpy.has_label(f"QUEST__{self.id}__failed"): renpy.call(f"QUEST__{self.id}__failed")
             if quest_manager.active_quest_id == self.id:
                 quest_manager.set_active_quest(None)
@@ -233,7 +232,7 @@ init -10 python:
             else:
                 self.active_quest_id = qid
             if prev != self.active_quest_id:
-                event_manager.dispatch("QUEST_ACTIVE_CHANGED", quest=self.active_quest_id, previous=prev)
+                signal("QUEST_ACTIVE_CHANGED", quest=self.active_quest_id, previous=prev)
             return self.active_quest_id
         def get_active_quest(self):
             if self.active_quest_id and self.active_quest_id in self.quests:
@@ -262,7 +261,7 @@ init -10 python:
                         t.state = status
                         if status == "complete":
                             t.current_value = t.required_value
-                            event_manager.dispatch("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
+                            signal("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
                 # Check for quest completion if manual update
                 if status == "complete":
                     all_c = True
@@ -271,7 +270,7 @@ init -10 python:
                             all_c = False
                             break
                     if all_c: q.complete()
-                event_manager.dispatch("QUEST_UPDATED", quest=q.id)
+                signal("QUEST_UPDATED", quest=q.id)
         def handle_event(self, etype, **kwargs):
             # Start triggers (unchanged)
             for qid, trigger in self.start_triggers.items():
@@ -296,7 +295,7 @@ init -10 python:
                         try:
                             if t.check_trigger(etype, **kwargs):
                                 processed.add((q.id, t.id))
-                                event_manager.dispatch("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
+                                signal("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
                                 if t.flow_label:
                                     if renpy.has_label(t.flow_label):
                                         renpy.call(t.flow_label)
@@ -314,7 +313,7 @@ init -10 python:
                             continue
                         if t.check_trigger(etype, **kwargs):
                             any_done = True
-                            event_manager.dispatch("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
+                            signal("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
                             if t.flow_label and renpy.has_label(t.flow_label):
                                 renpy.call(t.flow_label)
                             elif t.flow_label:
@@ -327,7 +326,7 @@ init -10 python:
                                 if t.state in ["hidden", "shown"]: t.state = "active"
                                 break
                         if all_c: q.complete()
-                        event_manager.dispatch("QUEST_UPDATED", quest=q.id)
+                        signal("QUEST_UPDATED", quest=q.id)
         def _match(self, t, etype, **kwargs):
             if str(t.get("event")).upper() != str(etype).upper(): return False
             for k, v in t.items():
@@ -433,7 +432,7 @@ init -10 python:
                     world.move_to(renpy.store.character.location_id)
         # Core origin bootstrapping lives here.
         flag_set("origin", origin.id)
-        event_manager.dispatch("GAME_STARTED", origin=origin.id)
+        signal("GAME_STARTED", origin=origin.id)
 
         renpy.hide_screen("story_select_screen")
         # Auto-start quest if ID matches origin
@@ -495,7 +494,6 @@ init -10 python:
             renpy.log(f"Error while gathering quest choices for menu {menu_id}: {e}")
         return res
 
-    # Small UI toast for goal/tick updates to give micro-feedback to the player.
     def _on_quest_tick(etype, **kwargs):
         try:
             qid = kwargs.get('quest')
@@ -515,8 +513,8 @@ init -10 python:
                 renpy.notify(f"Goal updated")
         except Exception:
             pass
-    
-    event_manager.subscribe("QUEST_TICK_COMPLETED", _on_quest_tick)
+
+    onstart(listen, "QUEST_TICK_COMPLETED", _on_quest_tick)
 
     # Debug helpers.
     def q_force_tick(qid, tick_idx):

@@ -2,12 +2,12 @@ default persistent.achievements = set()
 default persistent.achievement_progress = {}
 default achievement_manager = AchievementManager()
 
-init -10 python:
-    add_meta_menu_tab("achievements", "🏆", "Achievements", achievements_screen,
+init 10 python:
+    onstart(add_meta_menu_tab, "achievements", "🏆", "Achievements",
         selected_achievement=None)
 
     class Achievement:
-        def __init__(self, id, name, description, icon="🏆", tags=None, trigger=None, ticks_required=1):
+        def __init__(self, id, name, description, icon="🏆", tags=None, trigger=None, ticks_required=1, **kwargs):
             self.id = id
             self.name = name
             self.description = description
@@ -113,17 +113,8 @@ init -10 python:
     
     def reload_achievement_manager(data):
         achievement_manager.achievements = {}
-        for oid, p in data.get("achievements", {}).items():
-            ach_mgr.register(Achievement(
-                oid,
-                p.get('name', oid),
-                p.get('description', ''),
-                icon=p.get('icon', '🏆'),
-                rarity=p.get('rarity', 'common'),
-                tags=p.get('tags', []),
-                trigger=p.get('trigger', {}),
-                ticks_required=p.get('ticks', 1)
-            ))
+        for ach_id, ach_data in data.get("achievements", {}).items():
+            achievement_manager.achievements[ach_id] = from_dict(Achievement, ach_data, id=ach_id)
     
 
 # Beautiful toast notification for achievement unlock
@@ -167,8 +158,7 @@ transform achievement_pop:
     on hide:
         easeout 0.3 alpha 0.0 yoffset -30
 
-# Achievements content screen for the menu
-screen achievements_screen():
+screen achievements_screen(meta_menu):
     vbox:
         spacing 10
         xfill True
@@ -181,9 +171,9 @@ screen achievements_screen():
             hbox:
                 xalign 1.0
                 text "Total Points: " size 20 color "#aaa"
-                text "[ach_mgr.total_points]" size 24 color "#ffd700" bold True
+                text "[achievement_manager.total_points]" size 24 color "#ffd700" bold True
                 text "  |  " size 20 color "#444"
-                text "[ach_mgr.progress_text]" size 20 color "#aaa"
+                text "[achievement_manager.progress_text]" size 20 color "#aaa"
 
         null height 10
 
@@ -197,8 +187,8 @@ screen achievements_screen():
             $ grid_w = 1600
             $ cell_w = int((grid_w - (cols - 1) * spacing) / cols)
             $ cell_h = 180
-            $ unlocked = ach_mgr.get_unlocked()
-            $ locked = ach_mgr.get_locked()
+            $ unlocked = achievement_manager.get_unlocked()
+            $ locked = achievement_manager.get_locked()
             $ all_ach = unlocked + locked
             viewport:
                 scrollbars "vertical"
@@ -212,7 +202,7 @@ screen achievements_screen():
                     yspacing spacing
                     xfill True
                     for ach in all_ach:
-                        $ is_unlocked = ach_mgr.is_unlocked(ach.id)
+                        $ is_unlocked = achievement_manager.is_unlocked(ach.id)
                         $ hint = getattr(ach, "hint", None)
                         button:
                             action SetVariable("selected_achievement", ach)

@@ -1,7 +1,9 @@
 default location_manager = LocationManager()
+default location = None # Current location
 
-init -10 python:
-    add_meta_menu_tab("locations", "🗺️", "Locations", locations_screen)
+init 10 python:
+    onstart(add_meta_menu_tab, "locations", "🗺️", "Locations",
+        map_mode="overworld", map_overworld=None, map_location=None, map_area=None)
 
     class Gate:
         def __init__(self, ltype="physical", difficulty=1, keys=None, locked=True):
@@ -52,7 +54,7 @@ init -10 python:
             char.fixated_to = self.id
             if self.x is not None and self.y is not None:
                 char.x, char.y = self.x, self.y
-            event_manager.dispatch("CHARACTER_FIXATED", actor=char.id, fixture=self.id, fixture_type=self.fixture_type, location=self.location_id)
+            signal("CHARACTER_FIXATED", actor=char.id, fixture=self.id, fixture_type=self.fixture_type, location=self.location_id)
             return True, "Fixated"
 
         def unfixate(self, char=None):
@@ -62,7 +64,7 @@ init -10 python:
             self.occupied_by = None
             if char is not None:
                 char.fixated_to = None
-            event_manager.dispatch("CHARACTER_UNFIXATED", actor=target_id, fixture=self.id, fixture_type=self.fixture_type, location=self.location_id)
+            signal("CHARACTER_UNFIXATED", actor=target_id, fixture=self.id, fixture_type=self.fixture_type, location=self.location_id)
             return True, "Unfixated"
 
     class Location(SpatialObject, TaggedObject):
@@ -98,14 +100,14 @@ init -10 python:
         def flag_clear(self, name):
             if name in self.flags:
                 del self.flags[name]
-    
+
         def flag_toggle(self, name):
             self.flags[name] = not self.flags.get(name, False)
             return self.flags[name]
         
         @property
         def characters(self):
-            return [c for c in world.characters.values() if getattr(c, 'location_id', None) == self.id and c.id != character.id]
+            return [c for c in all_characters() if getattr(c, 'location_id', None) == self.id and c.id != character.id]
         
         def get_entities_with_tag(self, tag):
             return [e for e in self.entities if hasattr(e, 'tags') and tag in e.get('tags', [])]
@@ -113,23 +115,28 @@ init -10 python:
         @property
         def children(self):
             # Return immediate children based on parent_id
-            return [l for l in world.locations.values() if l.parent_id == self.id]
+            return [l for l in all_locations() if l.parent_id == self.id]
     
     class LocationManager:
         def __init__(self):
             self.locations = {}
     
+    def get_location(loc_id):
+        return location_manager.locations.get(loc_id)
+
+    def all_locations():
+        return location_manager.locations.values()
+
     def reload_location_manager(data):
         location_manager.locations = {}
         for oid, p in data.get("locations", {}).items():
             try:
-                loc = from_dict(Location, p, id=oid)
-                location_manager.locations[oid] = loc
+                location_manager.locations[oid] = from_dict(Location, p, id=oid)
             except Exception as e:
                 with open("debug_load.txt", "a") as df:
                     df.write("Location Load Error ({}): {}\n".format(oid, str(e)))
 
-screen locations_screen():
+screen locations_screen(mmtab=None):
     frame:
         background "#0f141b"
         xfill True
@@ -144,34 +151,34 @@ screen locations_screen():
                 spacing 10
                 xalign 0.5
                 button:
-                    action SetVariable("phone_map_mode", "overworld")
-                    background ("#2a2a3a" if phone_map_mode == "overworld" else "#1a1a25")
+                    action SetVariable("mmtab.map_mode", "overworld")
+                    background ("#2a2a3a" if mmtab.map_mode == "overworld" else "#1a1a25")
                     hover_background "#2f3442"
                     padding (12, 8)
                     vbox:
                         spacing 2
                         text "OVERWORLD" size 18 color "#fff"
-                        $ _ov = world.locations.get(phone_map_overworld) if phone_map_overworld else None
+                        $ _ov = get_location(mmtab.map_overworld) if mmtab.map_overworld else None
                         text ((_ov.name if _ov else "—")) size 12 color "#aaa"
                 button:
-                    action SetVariable("phone_map_mode", "location")
-                    background ("#2a2a3a" if phone_map_mode == "location" else "#1a1a25")
+                    action SetVariable("mmtab.map_mode", "location")
+                    background ("#2a2a3a" if mmtab.map_mode == "location" else "#1a1a25")
                     hover_background "#2f3442"
                     padding (12, 8)
                     vbox:
                         spacing 2
                         text "LOCATION" size 18 color "#fff"
-                        $ _loc = world.locations.get(phone_map_location) if phone_map_location else None
+                        $ _loc = get_location(mmtab.map_location) if mmtab.map_location else None
                         text ((_loc.name if _loc else "—")) size 12 color "#aaa"
                 button:
-                    action SetVariable("phone_map_mode", "areas")
-                    background ("#2a2a3a" if phone_map_mode == "areas" else "#1a1a25")
+                    action SetVariable("mmtab.map_mode", "areas")
+                    background ("#2a2a3a" if mmtab.map_mode == "areas" else "#1a1a25")
                     hover_background "#2f3442"
                     padding (12, 8)
                     vbox:
                         spacing 2
                         text "AREAS" size 18 color "#fff"
-                        $ _ar = world.locations.get(phone_map_area) if phone_map_area else None
+                        $ _ar = get_location(mmtab.map_area) if mmtab.map_area else None
                         text ((_ar.name if _ar else "—")) size 12 color "#aaa"
 
             # Grid
@@ -190,21 +197,21 @@ screen locations_screen():
                         yspacing 10
                         xfill True
                         python:
-                            locs = list(world.locations.values())
-                            mode = phone_map_mode
+                            locs = list(all_locations())
+                            mode = mmtab.map_mode
                             if mode == "overworld":
                                 locs = []
                             elif mode == "location":
-                                locs = [l for l in world.locations.values() if l.ltype not in ("room", "floor") and not l.parent_id]
+                                locs = [l for l in locs if l.ltype not in ("room", "floor") and not l.parent_id]
                             else:
                                 # areas: rooms under selected location (any depth)
-                                if phone_map_location:
-                                    locs = [l for l in locs if l.ltype == "room" and _loc_is_descendant(l, phone_map_location)]
+                                if mmtab.map_location:
+                                    locs = [l for l in locs if l.ltype == "room" and _loc_is_descendant(l, mmtab.map_location)]
                                 else:
                                     locs = []
                             locs = sorted(locs, key=lambda l: (l.name or ""))
                         for loc in locs:
-                            $ can_travel = allow_unvisited_travel or loc.visited or (world.current_location_id == loc.id)
+                            $ can_travel = allow_unvisited_travel or loc.visited or (location == loc)
                             $ display_name = loc.name or loc.id
                             button:
                                 xfill True
@@ -213,10 +220,10 @@ screen locations_screen():
                                 hover_background "#2a3646"
                                 padding (10, 8)
                                 action [
-                                    If(phone_map_mode == "overworld", SetVariable("phone_map_overworld", loc.id), NullAction()),
-                                    If(phone_map_mode == "location", SetVariable("phone_map_location", loc.id), NullAction()),
-                                    If(phone_map_mode == "areas", SetVariable("phone_map_area", loc.id), NullAction()),
-                                    If(phone_map_mode == "areas", Function(map_manager.select_location, loc), NullAction())
+                                    If(mmtab.map_mode == "overworld", SetVariable("mmtab.map_overworld", loc.id), NullAction()),
+                                    If(mmtab.map_mode == "location", SetVariable("mmtab.map_location", loc.id), NullAction()),
+                                    If(mmtab.map_mode == "areas", SetVariable("mmtab.map_area", loc.id), NullAction()),
+                                    If(mmtab.map_mode == "areas", Function(map_manager.select_location, loc), NullAction())
                                 ]
                                 vbox:
                                     spacing 4
@@ -225,6 +232,7 @@ screen locations_screen():
 
     if map_manager.selected_location:
         use location_info_popup(map_manager.selected_location)
+
 # Location Info Popup Screen
 screen location_info_popup(loc):
     # Click outside to close - full screen button behind the popup
@@ -283,8 +291,3 @@ screen location_info_popup(loc):
                 text_size 22
                 text_color ("#fff" if can_travel else "#666")
                 text_xalign 0.5
-
-label map_search_input_label:
-    $ q = renpy.input("Search map:", default=map_manager.search_query, length=20)
-    $ map_manager.search(q)
-    return

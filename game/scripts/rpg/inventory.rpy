@@ -1,8 +1,8 @@
 default inventory_manager = InventoryManager()
 default quick_loot_tags = ["consumable", "food", "medical", "ammo", "currency", "component", "material"]
 
-init -10 python:
-    add_meta_menu_tab("inventory", "🎒", "Inventory", inventory_screen,
+init -100 python:
+    onstart(add_meta_menu_tab, "inventory", "🎒", "Inventory",
         selected_item=None,
         selected_page=0)
     
@@ -115,7 +115,7 @@ init -10 python:
             if state != self._encumbrance_state:
                 prev = self._encumbrance_state
                 self._encumbrance_state = state
-                event_manager.dispatch("ENCUMBRANCE_CHANGED", inventory=self.id, state=state, previous=prev, ratio=ratio)
+                signal("ENCUMBRANCE_CHANGED", inventory=self.id, state=state, previous=prev, ratio=ratio)
 
         def get_encumbrance_ratio(self):
             if self.max_weight is None or self.max_weight <= 0:
@@ -138,8 +138,8 @@ init -10 python:
                 "owner_id": getattr(item, "owner_id", None),
                 "stolen": bool(getattr(item, "stolen", False)),
             }
-            event_manager.dispatch("ITEM_GAINED" if added else "ITEM_REMOVED", **payload)
-            event_manager.dispatch("INVENTORY_CHANGED", inventory=self.id, item_id=item_id, delta=int(delta), total=total)
+            signal("ITEM_GAINED" if added else "ITEM_REMOVED", **payload)
+            signal("INVENTORY_CHANGED", inventory=self.id, item_id=item_id, delta=int(delta), total=total)
             self._update_encumbrance()
 
         def add_item(self, i, count=None, force=False, reason=None):
@@ -151,11 +151,11 @@ init -10 python:
                 i.stolen = False
             if not force:
                 if not self._tags_allow(i):
-                    event_manager.dispatch("INVENTORY_BLOCKED", inventory=self.id, item_id=self._item_id(i), quantity=qty, reason="tags")
+                    signal("INVENTORY_BLOCKED", inventory=self.id, item_id=self._item_id(i), quantity=qty, reason="tags")
                     return False
                 ok, cap_reason = self._can_accept_capacity(i, qty)
                 if not ok:
-                    event_manager.dispatch("INVENTORY_BLOCKED", inventory=self.id, item_id=self._item_id(i), quantity=qty, reason=cap_reason)
+                    signal("INVENTORY_BLOCKED", inventory=self.id, item_id=self._item_id(i), quantity=qty, reason=cap_reason)
                     return False
 
             item_id = self._item_id(i)
@@ -254,14 +254,14 @@ init -10 python:
                 if getattr(removed, "owner_id", None) and target.owner_id != removed.owner_id:
                     if not getattr(removed, "stolen", False):
                         removed.stolen = True
-                        event_manager.dispatch("ITEM_STOLEN", item_id=self._item_id(removed), owner=removed.owner_id, source=self.id, target=target.id, reason=reason)
+                        signal("ITEM_STOLEN", item_id=self._item_id(removed), owner=removed.owner_id, source=self.id, target=target.id, reason=reason)
                 elif getattr(removed, "owner_id", None) and target.owner_id == removed.owner_id:
                     removed.stolen = False
-            event_manager.dispatch("ITEM_OWNERSHIP_CHANGED", item_id=self._item_id(removed), owner=removed.owner_id, stolen=bool(getattr(removed, "stolen", False)))
+            signal("ITEM_OWNERSHIP_CHANGED", item_id=self._item_id(removed), owner=removed.owner_id, stolen=bool(getattr(removed, "stolen", False)))
             if not target.add_item(removed, count=None, reason=reason):
                 self.add_item(removed, count=None, force=True, reason="transfer_rollback")
                 return False
-            event_manager.dispatch("ITEM_TRANSFERRED", source=self.id, target=target.id, item_id=self._item_id(removed), quantity=max(1, int(getattr(removed, "quantity", 1))))
+            signal("ITEM_TRANSFERRED", source=self.id, target=target.id, item_id=self._item_id(removed), quantity=max(1, int(getattr(removed, "quantity", 1))))
             return True
 
         def get_items_with_tag(self, tag):
@@ -418,12 +418,6 @@ label inspect_item_pending:
     $ resolved_item = store.inspect_resolved_item
     $ store.inspect_force = False
 
-    # Hide phone UI during inspection
-    $ old_phone_state = phone_state
-    $ old_meta_menu = current_meta_menu
-    $ phone_state = "mini"
-    $ phone_transition = None
-
     if resolved_label:
         call expression resolved_label
     elif resolved_item and resolved_item.description:
@@ -432,10 +426,6 @@ label inspect_item_pending:
         $ item_hide_image()
 
     $ item_hide_image()
-
-    # Restore phone UI
-    $ phone_state = old_phone_state
-    $ current_meta_menu = old_meta_menu
 
     if store._return_to_inventory:
         $ store._return_to_inventory = False
@@ -572,7 +562,7 @@ screen inventory_screen():
                 "qty": qty,
                 "icon": get_item_icon(item),
                 "tooltip": item_tooltip_text(item, qty),
-                "action": [SetVariable("_return_to_inventory", True), SetVariable("phone_transition", "to_mini"), Function(queue_inspect_item, item), Return()],
+                "action": [SetVariable("_return_to_inventory", True), Function(meta_menu.close), Function(queue_inspect_item, item), Return()],
                 "sensitive": True,
             })
     frame at inventory_fade:
