@@ -1,5 +1,3 @@
-default equipment_manager = EquipmentManager()
-
 init -99 python:
     onstart(add_meta_menu_tab, "equipment", "🛡️", "Equipment",
         selected_equipment_slot=None)
@@ -70,35 +68,26 @@ init -99 python:
             self.name = name
             self.slots = slots
     
-    class EquipmentManager:
-        def __init__(self):
-            self.slots = {}
-            self.body_types = {}
+    # class EquipmentManager:
+    #     def __init__(self):
+    #         self.slots = {}
+    #         self.body_types = {}
         
-        def get_slots_for_body(self, body_type):
-            bt = self.body_types.get(body_type, {})
-            return bt.get("slots", [])
+    #     def get_slots_for_body(self, body_type):
+    #         bt = self.body_types.get(body_type, {})
+    #         return bt.get("slots", [])
         
-        def get_conflicting_slots(self, slot_id):
-            """Get slots that would be unequipped when equipping to slot_id"""
-            conflicts = set()
-            slot_def = self.slots.get(slot_id, {})
-            # Direct unequips from this slot
-            conflicts.update(slot_def.get("unequips", []))
-            # Reverse: slots that list this slot in their unequips
-            for other_id, other_def in self.slots.items():
-                if slot_id in other_def.get("unequips", []):
-                    conflicts.add(other_id)
-            return conflicts
-
-    def reload_equipment_manager(data):
-        equipment_manager.slots = {}
-        for oid, p in data.get("slots", {}).items():
-            equipment_manager.slots[oid] = {"name": p.get('name', oid), "unequips": set(p.get('unequips', []))}
-        
-        equipment_manager.body_types = {}
-        for oid, p in data.get("body_types", {}).items():
-            equipment_manager.body_types[oid] = {"name": p.get('name', oid), "slots": p.get('slots', [])}
+    #     def get_conflicting_slots(self, slot_id):
+    #         """Get slots that would be unequipped when equipping to slot_id"""
+    #         conflicts = set()
+    #         slot_def = self.slots.get(slot_id, {})
+    #         # Direct unequips from this slot
+    #         conflicts.update(slot_def.get("unequips", []))
+    #         # Reverse: slots that list this slot in their unequips
+    #         for other_id, other_def in self.slots.items():
+    #             if slot_id in other_def.get("unequips", []):
+    #                 conflicts.add(other_id)
+    #         return conflicts
 
 
 screen equipment_screen():

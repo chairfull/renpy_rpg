@@ -22,7 +22,6 @@ init -2000 python:
                     fn(*args[1:], **kwargs)
                 except Exception:
                     pass
-        reload_world_data()
         _initialised = True
 
     # TODO: Replace
@@ -80,23 +79,6 @@ init -2000 python:
         
         def toggle_flag(self, flag):
             self.flags[flag] = not self.flags.get(flag, False)
-
-    def reload_world_data():
-        data = load_json("generated/generated_json.json")        
-        reload_flag_manager(data)
-        reload_quest_manager(data)
-        reload_equipment_manager(data)
-        reload_item_manager(data)
-        reload_location_manager(data)
-        reload_character_manager(data)
-        reload_dialogue_manager(data)
-        reload_craft_manager(data)
-        # reload_note_manager(data)
-        reload_achievement_manager(data)
-        reload_faction_manager(data)
-        reload_stat_manager(data)
-        reload_perk_manager(data)
-        reload_date_time(data)
 
     def queue(qtype, *args, **kwargs):
         loop_queue.append((qtype, args, kwargs))

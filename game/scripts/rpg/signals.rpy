@@ -1,28 +1,3 @@
-init -1000 python:
-    GAME_STARTED = create_signal(origin=StoryOrigin)
-    GAME_FINISHED = create_signal() # Never called.
-    # Fixtures
-    FIXATED = create_signal(character=Character, fixture=Fixture)
-    UNFIXATED = create_signal(character=Character, fixture=Fixture)
-    # Locations
-    LOCATION_ENTERED = create_signal(character=Character, location=Location)
-    LOCATION_EXITED = create_signal(character=Character, location=Location)
-    # Items
-    ITEM_GAINED  = create_signal(item=Item, inventory=Inventory, amount=int)
-    ITEM_LOST = create_signal(item=Item, inventory=Inventory, amount=int)
-    ITEM_CRAFTED = create_signal(item=Item, craft=Craft)
-    # Quest
-    ACTIVE_QUEST_CHANGED = create_signal(quest=Quest) # Emitted when the active quest changes, with the new active quest (or None if no active quest)
-    QUEST_STARTED = create_signal(quest=Quest)
-    QUEST_TICK_SHOWN = create_signal(quest=Quest, tick=QuestTick) # Emitted when a tick moves from hidden to shown. Only emitted once per tick.
-    QUEST_TICK_PROGRESSED = create_signal(quest=Quest, tick=QuestTick)
-    QUEST_TICK_COMPLETED = create_signal(quest=Quest, tick=QuestTick)
-    QUEST_TICK_FAILED = create_signal(quest=Quest, tick=QuestTick)
-    QUEST_TICK_PASSED = create_signal(quest=Quest, tick=QuestTick)
-    QUEST_COMPLETED = create_signal(quest=Quest)
-    QUEST_FAILED = create_signal(quest=Quest)
-    QUEST_PASSED = create_signal(quest=Quest)
-
 init -2000 python:
     import inspect
 

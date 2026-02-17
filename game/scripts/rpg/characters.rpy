@@ -1,6 +1,5 @@
 default persistent.met_characters = set()
 default character = None # Main player character.
-default character_manager = CharacterManager()
 default char_interaction_state = "menu"
 default char_interaction_pending_label = None
 
@@ -323,28 +322,12 @@ init -90 python:
         
         def get_stat_mod(self, name):
             return self.get_stat_total(name) - self.stats.get(name, 0)
-
-    class CharacterManager:
-        def __init__(self):
-            self.characters = {}
-
-    def all_characters():
-        return character_manager.characters.values()
-
-    def reload_character_manager(data):
-        character_manager.characters = {}
-        for char_id, char_data in data.get("characters", {}).items():
-            try:
-                character_manager.characters[char_id] = from_dict(RPGCharacter, char_data, id=char_id)
-            except Exception as e:
-                with open("debug_load.txt", "a") as df:
-                    df.write("Character Load Error ({}): {}\n".format(char_id, str(e)))
-
-    class BondType:
+    
+    class RelationType:
         def __init__(self):
             self.value = 0
 
-    class Bond:
+    class RelationSet:
         def __init__(self):
             self.types = {}
 

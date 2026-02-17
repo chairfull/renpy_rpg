@@ -1,5 +1,3 @@
-default perk_manager = PerkManager()
-
 init 10 python:
     onstart(add_meta_menu_tab, "perks", "✨", "Perks",
         selected_perk=None)
@@ -27,18 +25,6 @@ init 10 python:
             self.desc = desc
             self.mods = mods or {}
             self.tags = set(tags or [])
-    
-    class PerkManager:
-        def __init__(self): self.perks = {}
-    
-    def reload_perk_manager(data):
-        perk_manager.perks = {}
-        for perk_id, p in data.get("perks", {}).items():
-            try:
-                perk_manager.perks[perk_id] = from_dict(Perk, p, id=perk_id)
-            except Exception as e:
-                with open("debug_load.txt", "a") as df:
-                    df.write("Perk Load Error ({}): {}\n".format(pid, str(e)))
 
 screen perks_screen():
     vbox:

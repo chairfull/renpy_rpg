@@ -1,5 +1,3 @@
-default stat_manager = StatManager()
-
 init 10 python:
     onstart(add_meta_menu_tab, "stats", "❤️", "Stats")
     
@@ -9,20 +7,6 @@ init 10 python:
             self.name = name
             self.desc = desc
             self.tags = set(tags or [])
-    
-    class StatManager:
-        def __init__(self):
-            self.stats = {}
-    
-    def reload_stat_manager(data):
-        stat_manager.stats = {}
-        for stat_id, s in data.get("stats", {}).items():
-            try:
-                stat_manager.stats[stat_id] = from_dict(Stat, s, id=stat_id)
-            except Exception as e:
-                with open("debug_load.txt", "a") as df:
-                    df.write("Stat Load Error ({}): {}\n".format(stat_id, str(e)))
-
 
 screen stats_screen():
     hbox:

@@ -1,5 +1,3 @@
-default craft_manager = CraftManager()
-
 init -1300 python:
     onstart(add_meta_menu_tab, "crafting", "🪡", "Craft",
         selected_craft=None)
@@ -12,15 +10,6 @@ init -1300 python:
             self.output = output
             self.req_skill = req_skill
             self.tags = set(tags or [])
-    
-    class CraftManager:
-        def __init__(self):
-            self.crafts = {}
-    
-    def reload_craft_manager(data):
-        craft_manager.crafts = {}
-        for craft_id, p in data.get("crafts", {}).items():
-            craft_manager.crafts[craft_id] = from_dict(Craft, p)
     
     def can_craft(craft, inventory):
         for item_id, count in craft.inputs.items():
@@ -54,6 +43,8 @@ init -1300 python:
         renpy.notify(f"Crafted {craft.name}")
         ITEM_CRAFTED.emit(item=craft.output, craft=craft.id)
         return True
+    
+    ITEM_CRAFTED = create_signal(item=Item, craft=Craft)
 
 screen crafting_screen(mmtab=None):
     hbox:

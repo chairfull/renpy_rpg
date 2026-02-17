@@ -1,4 +1,3 @@
-default location_manager = LocationManager()
 default location = None # Current location
 
 init -1500 python:
@@ -112,24 +111,15 @@ init -1500 python:
             # Return immediate children based on parent_id
             return [l for l in all_locations() if l.parent_id == self.id]
     
-    class LocationManager:
-        def __init__(self):
-            self.locations = {}
-    
     def get_location(loc_id):
-        return location_manager.locations.get(loc_id)
-
-    def all_locations():
-        return location_manager.locations.values()
-
-    def reload_location_manager(data):
-        location_manager.locations = {}
-        for oid, p in data.get("locations", {}).items():
-            try:
-                location_manager.locations[oid] = from_dict(Location, p, id=oid)
-            except Exception as e:
-                with open("debug_load.txt", "a") as df:
-                    df.write("Location Load Error ({}): {}\n".format(oid, str(e)))
+        return all_locations.get(loc_id)
+    
+    # Signals
+    LOCATION_ENTERED = create_signal(character=Character, location=Location)
+    LOCATION_EXITED = create_signal(character=Character, location=Location)
+    # Fixture signals
+    FIXATED = create_signal(character=Character, fixture=Fixture)
+    UNFIXATED = create_signal(character=Character, fixture=Fixture)
 
 screen locations_screen(mmtab=None):
     frame:

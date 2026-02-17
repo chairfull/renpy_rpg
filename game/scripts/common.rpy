@@ -55,23 +55,31 @@ init -3000 python:
         shadow = rgb_to_hex(tint_color(color, shadow_factor), shadow_alpha)
         return [(2, outline, 0, 0), (2, shadow, 0, 2)]
     
-    def load_json(json_path):
-        try:
-            # Use a more robust path check for renpy.file
-            if not renpy.loadable(json_path):
-                # Fallback check
-                json_path = game_dir + "/" + path
+    class Trigger:
+        def __init__(self, event_name, event_state={}, condition=None, flags=None):
+            self.event_name = event_name # Event that triggers this tick.
+            self.event_state = event_state # State the event should be in.
+            self.condition = condition # Condition to be met if not None.
+            self.flags = flags # Optional quick test against flags.
+        
+        def check(self, event, **kwargs):
+            if not self.active:
+                return False
+            if self.event_name and self.event_name != event.name:
+                return False
+            if self.event_state:
+                for k, v in self.event_state.items():
+                    if kwargs.get(k) != v:
+                        return False
+            if self.flags:
+                for flag in self.flags:
+                    if not flag_get(flag, False):
+                        return False
+            if self.condition:
+                if not test_function(self.condition):
+                    return False
+            return True
 
-            with renpy.file(json_path) as f:
-                content = f.read().decode('utf-8')
-                data = json.loads(content)
-            return data
-
-        except Exception as e:
-            with open("debug_load.txt", "a") as df:
-                df.write("JSON Load Error: {}\n".format(str(e)))
-            return {}
-    
     class Vector2:
         def __init__(self, x=0.0, y=0.0):
             self.reset(x, y)
@@ -98,6 +106,12 @@ init -3000 python:
 
         def __mul__(self, scalar):
             return Vector2(self.x * scalar, self.y * scalar)
+
+        def __truediv__(self, scalar):
+            return Vector2(self.x / scalar, self.y / scalar)
+
+        def __floordiv__(self, scalar):
+            return Vector2(self.x // scalar, self.y // scalar)
 
         def length(self):
             return math.sqrt(self.x**2.0 + self.y**2.0)

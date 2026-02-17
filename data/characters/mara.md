@@ -63,7 +63,6 @@ cond: true
 character: If you need someone fast, I can run the perimeter.
 mara: Good. We're blind out there. Take this route map—it's marked with the latest safe-zones and frequency dead-spots.
 $ mara.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
-$ quest_manager.start_quest("long_dawn")
 BOND ADD mara trust 5
 ```
 

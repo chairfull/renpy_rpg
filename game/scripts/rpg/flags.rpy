@@ -1,11 +1,11 @@
-default flag_manager = FlaggedObject()
-
 init 10 python:
-    def reload_flag_manager(data):
-        flag_manager.flags = {}
-
-        for flag_id, value in data.get("flags", {}).items():
-            if not isinstance(value, bool):
-                with open("debug_load.txt", "a") as df:
-                    df.write("Flag Load Warning ({}): Expected boolean value, got {}. Defaulting to False.\n".format(flag_id, type(value).__name__))
-                flag_manager.flags[flag_id] = False
+    class Flag:
+        def __init__(self):
+            self.value = None
+        
+        def change(self, new_value):
+            if self.value == new_value:
+                return
+            old_value = self.value
+            self.value = new_value
+            FLAG_CHANGED.emit(flag=self, old_value=old_value, new_value=new_value)

@@ -1,4 +1,3 @@
-default inventory_manager = InventoryManager()
 default quick_loot_tags = ["consumable", "food", "medical", "ammo", "currency", "component", "material"]
 
 init -1400 python:
@@ -138,8 +137,11 @@ init -1400 python:
                 "owner_id": getattr(item, "owner_id", None),
                 "stolen": bool(getattr(item, "stolen", False)),
             }
-            signal("ITEM_GAINED" if added else "ITEM_REMOVED", **payload)
-            signal("INVENTORY_CHANGED", inventory=self.id, item_id=item_id, delta=int(delta), total=total)
+            if added:
+                ITEM_GAINED.emit(**payload)
+            else:
+                ITEM_REMOVED.emit(**payload)
+            INVENTORY_CHANGED.emit(inventory=self, item=item, delta=int(delta), total=total)
             self._update_encumbrance()
 
         def add_item(self, i, count=None, force=False, reason=None):

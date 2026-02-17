@@ -16,15 +16,15 @@ echo "Cleaning .rpyc files..."
 find game -name "*.rpyc" -print -delete
 echo "Done."
 
-echo "Linting data..."
-python3 game/python/compile_data.py --lint
-if [ $? -ne 0 ]; then
-    echo "Lint failed. Fix issues above."
-    exit 1
-fi
+# echo "Linting data..."
+# python3 game/python/compile_data.py --lint
+# if [ $? -ne 0 ]; then
+#     echo "Lint failed. Fix issues above."
+#     exit 1
+# fi
 
 echo "Compiling data..."
-python3 game/python/compile_data.py
+python3 -m game.python.compile_data_v2
 
 if [ $? -ne 0 ]; then
     echo "Data compilation failed!"

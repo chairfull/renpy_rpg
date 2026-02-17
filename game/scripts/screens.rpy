@@ -483,7 +483,7 @@ screen main_menu():
                 style "mm_button"
                 text_style "mm_button_text"
                 at menu_hover_flash
-            $ origins = quest_manager.get_origins()
+            $ origins = get_quest_origins()
             if origins:
                 vbox:
                     xoffset 16

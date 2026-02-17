@@ -1,29 +1,10 @@
-default quest_manager = QuestManager()
-
 init -1000 python:
     onstart(add_meta_menu_tab, "quests", "📋", "Quests",
         selected_quest=None,
         filter="active")
     
-    class Trigger:
-        def __init__(self, event_name, event_state={}, condition=None):
-            self.event_name = event_name # Event that triggers this tick.
-            self.event_state = event_state # State the event should be in.
-            self.condition = condition # Condition to be met if not None.
-        
-        def check(self, event, **kwargs):
-            if not self.active:
-                return False
-            if self.event_name and self.event_name != event.name:
-                return False
-            if self.event_state:
-                for k, v in self.event_state.items():
-                    if kwargs.get(k) != v:
-                        return False
-            if self.condition:
-                if not test_function(self.condition):
-                    return False
-            return True
+    def get_quest_origins():
+        return [x for x in all_quests if "origin" in x.tags]
 
     class QuestTick:
         def __init__(self, id, name, desc, max_value=1):
@@ -87,7 +68,7 @@ init -1000 python:
                 QUEST_TICK_COMPLETED.emit(quest=self.quest, tick=self)
 
     class Quest(TaggedObject):
-        def __init__(self, id, name, desc="", tags=[], giver=None, location=None, tags=None, prereqs=None, rewards=None, start_trigger=None, origin=False, character=None, image=None, outcomes=None):
+        def __init__(self, id, name, desc="", tags=[], giver=None, location=None, prereqs=None, rewards=None, start_trigger=None, origin=False, character=None, image=None, outcomes=None):
             TaggedObject.__init__(self, tags)
             self.id = id
             self.name = name
@@ -160,188 +141,194 @@ init -1000 python:
             QUEST_FAILED.emit(quest=self)
             self.queue_internal_label("failed")
 
-    class QuestManager:
-        def __init__(self):
-            self.quests, self.origins, self.start_triggers = {}, {}, {}
-            self.active_quest_id = None
-            self.trigger_index = {}
+    # Signals
+    GAME_STARTED = create_signal(origin=Quest)
+    GAME_FINISHED = create_signal() # Never called.
+    ACTIVE_QUEST_CHANGED = create_signal(quest=Quest) # Emitted when the active quest changes, with the new active quest (or None if no active quest)
+    QUEST_STARTED = create_signal(quest=Quest)
+    QUEST_TICK_SHOWN = create_signal(quest=Quest, tick=QuestTick) # Emitted when a tick moves from hidden to shown. Only emitted once per tick.
+    QUEST_TICKED = create_signal(quest=Quest, tick=QuestTick)
+    QUEST_TICK_COMPLETED = create_signal(quest=Quest, tick=QuestTick)
+    QUEST_TICK_FAILED = create_signal(quest=Quest, tick=QuestTick)
+    QUEST_TICK_PASSED = create_signal(quest=Quest, tick=QuestTick)
+    QUEST_COMPLETED = create_signal(quest=Quest)
+    QUEST_FAILED = create_signal(quest=Quest)
+    QUEST_PASSED = create_signal(quest=Quest)
 
-        def get_origins(self):
-            origins = [q for q in self.quests.values() if getattr(q, "origin", False)]
-            return sorted(origins, key=lambda x: x.name)
 
-        def start_quest(self, qid):
-            q = self.quests.get(qid)
-            if q and q.start():
-                if not self.active_quest_id:
-                    self.set_active_quest(q.id)
-                return True
-            return False
+    # class QuestManager:
+    #     def __init__(self):
+    #         self.quests, self.origins, self.start_triggers = {}, {}, {}
+    #         self.active_quest_id = None
+    #         self.trigger_index = {}
 
-        def set_active_quest(self, qid):
-            prev = self.active_quest_id
-            if not qid or qid not in self.quests:
-                self.active_quest_id = None
-            else:
-                self.active_quest_id = qid
-            if prev != self.active_quest_id:
-                ACTIVE_QUEST_CHANGED.emit(quest=self.get_active_quest(), previous=prev)
-            return self.active_quest_id
+    #     def get_origins(self):
+    #         origins = [q for q in self.quests.values() if getattr(q, "origin", False)]
+    #         return sorted(origins, key=lambda x: x.name)
 
-        def get_active_quest(self):
-            if self.active_quest_id and self.active_quest_id in self.quests:
-                return self.quests[self.active_quest_id]
-            return None
+    #     def start_quest(self, qid):
+    #         q = self.quests.get(qid)
+    #         if q and q.start():
+    #             if not self.active_quest_id:
+    #                 self.set_active_quest(q.id)
+    #             return True
+    #         return False
 
-        def get_current_guidance(self):
-            q = self.get_active_quest()
-            if not q or q.state != "active": return None
-            for t in q.ticks:
-                if t.state == "active":
-                    return t.guidance
-            return None
+    #     def set_active_quest(self, qid):
+    #         prev = self.active_quest_id
+    #         if not qid or qid not in self.quests:
+    #             self.active_quest_id = None
+    #         else:
+    #             self.active_quest_id = qid
+    #         if prev != self.active_quest_id:
+    #             ACTIVE_QUEST_CHANGED.emit(quest=self.get_active_quest(), previous=prev)
+    #         return self.active_quest_id
 
-        def complete_quest(self, qid):
-            q = self.quests.get(qid)
-            if q: q.complete()
+    #     def get_active_quest(self):
+    #         if self.active_quest_id and self.active_quest_id in self.quests:
+    #             return self.quests[self.active_quest_id]
+    #         return None
 
-        def fail_quest(self, qid):
-            q = self.quests.get(qid)
-            if q: q.fail()
+    #     def get_current_guidance(self):
+    #         q = self.get_active_quest()
+    #         if not q or q.state != "active": return None
+    #         for t in q.ticks:
+    #             if t.state == "active":
+    #                 return t.guidance
+    #         return None
 
-        def update_goal(self, qid, gid, status="active"):
-            target_quests = [self.quests[qid]] if qid and qid in self.quests else self.quests.values()
+    #     def complete_quest(self, qid):
+    #         q = self.quests.get(qid)
+    #         if q: q.complete()
+
+    #     def fail_quest(self, qid):
+    #         q = self.quests.get(qid)
+    #         if q: q.fail()
+
+    #     def update_goal(self, qid, gid, status="active"):
+    #         target_quests = [self.quests[qid]] if qid and qid in self.quests else self.quests.values()
             
-            for q in target_quests:
-                for t in q.ticks:
-                    if t.id == gid:
-                        t.state = status
-                        if status == "complete":
-                            t.current_value = t.required_value
-                            QUEST_TICK_COMPLETED.emit(quest=q, tick=t)
-                # Check for quest completion if manual update
-                if status == "complete":
-                    all_c = True
-                    for t in q.ticks:
-                        if t.state != "complete":
-                            all_c = False
-                            break
-                    if all_c: q.complete()
-                QUEST_UPDATED.emit(quest=q)
+    #         for q in target_quests:
+    #             for t in q.ticks:
+    #                 if t.id == gid:
+    #                     t.state = status
+    #                     if status == "complete":
+    #                         t.current_value = t.required_value
+    #                         QUEST_TICK_COMPLETED.emit(quest=q, tick=t)
+    #             # Check for quest completion if manual update
+    #             if status == "complete":
+    #                 all_c = True
+    #                 for t in q.ticks:
+    #                     if t.state != "complete":
+    #                         all_c = False
+    #                         break
+    #                 if all_c: q.complete()
+    #             QUEST_UPDATED.emit(quest=q)
 
-        def handle_event(self, etype, **kwargs):
-            # Start triggers (unchanged)
-            for qid, trigger in self.start_triggers.items():
-                q = self.quests.get(qid)
-                if q and q.state == "unknown" and self._match(trigger, etype, **kwargs): q.start()
+    #     def handle_event(self, etype, **kwargs):
+    #         # Start triggers (unchanged)
+    #         for qid, trigger in self.start_triggers.items():
+    #             q = self.quests.get(qid)
+    #             if q and q.state == "unknown" and self._match(trigger, etype, **kwargs): q.start()
 
-            # Fast-path: use precompiled trigger index when available
-            processed = set()
-            ev_key = str(etype).upper()
-            entries = self.trigger_index.get(ev_key, []) if getattr(self, 'trigger_index', None) else []
-            if entries:
-                for ent in entries:
-                    qid = ent.get('quest')
-                    tick_id = ent.get('tick')
-                    q = self.quests.get(qid)
-                    if not q or q.state != 'active':
-                        continue
-                    for t in q.ticks:
-                        if t.id != tick_id:
-                            continue
-                        # check trigger with tick's stored trigger data
-                        try:
-                            if t.check_trigger(etype, **kwargs):
-                                processed.add((q.id, t.id))
-                                QUEST_TICK_COMPLETED.emit(quest=q, tick=t)
-                                if t.flow_label:
-                                    if renpy.has_label(t.flow_label):
-                                        renpy.call(t.flow_label)
-                                    else:
-                                        renpy.log(f"Missing flow label for quest {q.id} tick {t.id}: {t.flow_label}")
-                        except Exception as e:
-                            renpy.log(f"Error checking trigger for {q.id}.{t.id}: {e}")
+    #         # Fast-path: use precompiled trigger index when available
+    #         processed = set()
+    #         ev_key = str(etype).upper()
+    #         entries = self.trigger_index.get(ev_key, []) if getattr(self, 'trigger_index', None) else []
+    #         if entries:
+    #             for ent in entries:
+    #                 qid = ent.get('quest')
+    #                 tick_id = ent.get('tick')
+    #                 q = self.quests.get(qid)
+    #                 if not q or q.state != 'active':
+    #                     continue
+    #                 for t in q.ticks:
+    #                     if t.id != tick_id:
+    #                         continue
+    #                     # check trigger with tick's stored trigger data
+    #                     try:
+    #                         if t.check_trigger(etype, **kwargs):
+    #                             processed.add((q.id, t.id))
+    #                             QUEST_TICK_COMPLETED.emit(quest=q, tick=t)
+    #                             if t.flow_label:
+    #                                 if renpy.has_label(t.flow_label):
+    #                                     renpy.call(t.flow_label)
+    #                                 else:
+    #                                     renpy.log(f"Missing flow label for quest {q.id} tick {t.id}: {t.flow_label}")
+    #                     except Exception as e:
+    #                         renpy.log(f"Error checking trigger for {q.id}.{t.id}: {e}")
 
-            # Fallback scan for any other active quests/ticks not covered by index
-            for q in self.quests.values():
-                if q.state == "active":
-                    any_done = False
-                    for t in q.ticks:
-                        if (q.id, t.id) in processed:
-                            continue
-                        if t.check_trigger(etype, **kwargs):
-                            any_done = True
-                            QUEST_TICK_COMPLETED.emit(quest=q, tick=t)
-                            if t.flow_label and renpy.has_label(t.flow_label):
-                                renpy.call(t.flow_label)
-                            elif t.flow_label:
-                                renpy.log(f"Missing flow label for quest {q.id} tick {t.id}: {t.flow_label}")
-                    if any_done:
-                        all_c = True
-                        for t in q.ticks:
-                            if t.state != "complete":
-                                all_c = False
-                                if t.state in ["hidden", "shown"]: t.state = "active"
-                                break
-                        if all_c: q.complete()
-                        QUEST_UPDATED.emit(quest=q)
+    #         # Fallback scan for any other active quests/ticks not covered by index
+    #         for q in self.quests.values():
+    #             if q.state == "active":
+    #                 any_done = False
+    #                 for t in q.ticks:
+    #                     if (q.id, t.id) in processed:
+    #                         continue
+    #                     if t.check_trigger(etype, **kwargs):
+    #                         any_done = True
+    #                         QUEST_TICK_COMPLETED.emit(quest=q, tick=t)
+    #                         if t.flow_label and renpy.has_label(t.flow_label):
+    #                             renpy.call(t.flow_label)
+    #                         elif t.flow_label:
+    #                             renpy.log(f"Missing flow label for quest {q.id} tick {t.id}: {t.flow_label}")
+    #                 if any_done:
+    #                     all_c = True
+    #                     for t in q.ticks:
+    #                         if t.state != "complete":
+    #                             all_c = False
+    #                             if t.state in ["hidden", "shown"]: t.state = "active"
+    #                             break
+    #                     if all_c: q.complete()
+    #                     QUEST_UPDATED.emit(quest=q)
 
-        def _match(self, t, etype, **kwargs):
-            if str(t.get("event")).upper() != str(etype).upper(): return False
-            for k, v in t.items():
-                if k in ["event", "cond"]: continue
-                actual = kwargs.get(k)
-                # Support list membership
-                if isinstance(v, list):
-                    if actual not in v:
-                        return False
-                else:
-                    try:
-                        # numeric compare when possible
-                        if isinstance(actual, (int, float)) and str(v).replace('.', '', 1).isdigit():
-                            if float(actual) != float(v):
-                                return False
-                        else:
-                            if str(actual) != str(v):
-                                return False
-                    except Exception:
-                        if str(actual) != str(v):
-                            return False
-            if t.get("cond"):
-                try:
-                    return safe_eval_bool(t["cond"], {"character": character, "world": world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation})
-                except Exception as e:
-                    renpy.log(f"Error evaluating start trigger cond for {t}: {e}")
-                    return False
-            return True
+    #     def _match(self, t, etype, **kwargs):
+    #         if str(t.get("event")).upper() != str(etype).upper(): return False
+    #         for k, v in t.items():
+    #             if k in ["event", "cond"]: continue
+    #             actual = kwargs.get(k)
+    #             # Support list membership
+    #             if isinstance(v, list):
+    #                 if actual not in v:
+    #                     return False
+    #             else:
+    #                 try:
+    #                     # numeric compare when possible
+    #                     if isinstance(actual, (int, float)) and str(v).replace('.', '', 1).isdigit():
+    #                         if float(actual) != float(v):
+    #                             return False
+    #                     else:
+    #                         if str(actual) != str(v):
+    #                             return False
+    #                 except Exception:
+    #                     if str(actual) != str(v):
+    #                         return False
+    #         if t.get("cond"):
+    #             try:
+    #                 return safe_eval_bool(t["cond"], {"character": character, "world": world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation})
+    #             except Exception as e:
+    #                 renpy.log(f"Error evaluating start trigger cond for {t}: {e}")
+    #                 return False
+    #         return True
 
-    class StoryOrigin:
-        def __init__(self, id, name, desc, character, intro_label, image=None):
-            self.id = id
-            self.name = name
-            self.desc = desc
-            self.character = character
-            self.intro_label = intro_label
-            self.image = image
+    # def reload_quest_manager(data):
+    #     quest_manager.trigger_index = data.get("quest_trigger_index", {}) # Clear old index to avoid stale data
 
-    def reload_quest_manager(data):
-        quest_manager.trigger_index = data.get("quest_trigger_index", {}) # Clear old index to avoid stale data
-
-        quest_manager.origins = {}
-        for origin_id, origin_data in data.get("story_origins", {}).items():
-            quest_manager.origins[origin_id] = from_dict(StoryOrigin, origin_data, id=origin_id)
+    #     quest_manager.origins = {}
+    #     for origin_id, origin_data in data.get("story_origins", {}).items():
+    #         quest_manager.origins[origin_id] = from_dict(StoryOrigin, origin_data, id=origin_id)
         
-        quest_manager.quests = {}
-        for quest_id, quest_data in data.get("quests", {}).items():
-            try:
-                q = from_dict(Quest, quest_data, id=quest_id)
-                for tick_id, tick_data in enumerate(quest_data.get('ticks', [])):
-                    tick = from_dict(QuestTick, tick_data, id=tick_id)
-                    q.add_tick(tick)
-                quest_manager.quests[quest_id] = q
-            except Exception as e:
-                with open("debug_load.txt", "a") as df:
-                    df.write("Quest Load Error ({}): {}\n".format(quest_id, str(e)))
+    #     quest_manager.quests = {}
+    #     for quest_id, quest_data in data.get("quests", {}).items():
+    #         try:
+    #             q = from_dict(Quest, quest_data, id=quest_id)
+    #             for tick_id, tick_data in enumerate(quest_data.get('ticks', [])):
+    #                 tick = from_dict(QuestTick, tick_data, id=tick_id)
+    #                 q.add_tick(tick)
+    #             quest_manager.quests[quest_id] = q
+    #         except Exception as e:
+    #             with open("debug_load.txt", "a") as df:
+    #                 df.write("Quest Load Error ({}): {}\n".format(quest_id, str(e)))
 
     def _finish_origin_selection(origin):
         # Set global player from the origin's character ID

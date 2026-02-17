@@ -1,5 +1,3 @@
-default date_time = DateTime()
-
 init 10 python:
     class DateTime(object):
         def __init__(self, hour=8, minute=0, day=1):
@@ -36,8 +34,3 @@ init 10 python:
                 character.tick_effects()
             except Exception:
                 pass
-    
-    def reload_date_time(data):
-        date_time.hour = data.get("time", {}).get("hour", 8)
-        date_time.minute = data.get("time", {}).get("minute", 0)
-        date_time.day = data.get("time", {}).get("day", 1)

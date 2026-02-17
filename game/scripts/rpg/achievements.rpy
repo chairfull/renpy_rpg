@@ -1,6 +1,5 @@
 default persistent.achievements = set()
 default persistent.achievement_progress = {}
-default achievement_manager = AchievementManager()
 
 init 10 python:
     onstart(add_meta_menu_tab, "achievements", "🏆", "Achievements",
@@ -13,22 +12,8 @@ init 10 python:
             self.desc = desc
             self.icon = icon
             self.tags = set(tags or [])
-            self.trigger = trigger or {}  # {event: "EVENT_NAME", key: value, cond: "..."}
+            self.trigger = Trigger()
             self.ticks_required = max(1, int(ticks_required))
-        
-        def check_trigger(self, etype, **kwargs):
-            """Check if an event matches this achievement's trigger."""
-            if not self.trigger or self.trigger.get("event") != etype:
-                return False
-            # Check all key-value pairs in trigger (except reserved keys)
-            for k, v in self.trigger.items():
-                if k not in ["event", "cond"] and str(kwargs.get(k)) != str(v):
-                    return False
-            # Check condition if present
-            if self.trigger.get("cond"):
-                if not safe_eval_bool(self.trigger["cond"], {"player": character, "world": world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation}):
-                    return False
-            return True
     
     class AchievementManager:
         def __init__(self):

@@ -1,6 +1,4 @@
-default dialogue_manager = DialogueManager()
 # Dialogue choice system with tags, emojis, and hover descriptions
-
 default hovered_dialogue_option = None
 default hovered_dialogue_reason = None
 
@@ -34,33 +32,13 @@ init 10 python:
                     return False, self.reason or "Locked."
             return True, "Available."
 
-    class DialogueManager:
-        def __init__(self):
-            self.options = {}
-        def get_for_char(self, char):
-            opts = [opt for opt in self.options.values() if (not opt.chars or char.id in opt.chars or "*" in opt.chars)]
-            return sorted(opts, key=lambda x: x.id)
-        def get_available(self, char):
+    def get_for_char(self, char):
+        opts = [opt for opt in self.options.values() if (not opt.chars or char.id in opt.chars or "*" in opt.chars)]
+        return sorted(opts, key=lambda x: x.id)
+
+    def get_available(self, char):
             opts = [opt for opt in self.options.values() if opt.is_available(char)]
             return sorted(opts, key=lambda x: x.id)
-
-    def reload_dialogue_manager(data):
-        dialogue_manager.options = {}
-        for oid, p in data.get("dialogue", {}).items():
-            dialogue_manager.options[oid] = DialogueOption(
-                oid,
-                chars=p.get('chars', []),
-                short_text=p.get('short', '...'),
-                long_text=p.get('long', '...'),
-                emoji=p.get('emoji', '💬'),
-                label=p.get('label'),
-                cond=p.get('cond'),
-                tags=p.get('tags', []),
-                memory=(str(p.get('memory', 'False')).lower() == 'true'),
-                reason=p.get('reason')
-            )
-
-
  
 transform dialogue_fade:
     on show:

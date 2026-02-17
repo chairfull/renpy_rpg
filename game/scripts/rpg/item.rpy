@@ -1,5 +1,3 @@
-default item_manager = ItemManager()
-
 init -1400 python:
     class Item(TaggedObject):
         def __init__(self, name="Unknown", desc="", weight=0, value=0, volume=0, tags=None, factions=None, equip_slots=None, outfit_part=None, stackable=False, stack_size=1, quantity=1, owner_id=None, stolen=False, image=None, actions=None, id=None, **kwargs):
@@ -19,21 +17,7 @@ init -1400 python:
             self.owner_id = owner_id
             self.stolen = bool(stolen)
             self.equip_slots = equip_slots or []
-
-    class ItemManager:
-        def __init__(self): 
-            self.items = {}
-            
-    def reload_item_manager(data):
-        item_manager.items = {}
-        for item_id, p in data.get("items", {}).items():
-            try:
-                item_manager.items[item_id] = from_dict(Item, p, id=item_id)
-            except Exception as e:
-                with open("debug_load.txt", "a") as df:
-                    df.write("Item Load Error ({}): {}\n".format(item_id, str(e)))
     
-
     def get_item_icon(item_or_id, fallback=None):
         """Return an item icon path, falling back to a generic icon."""
         item = item_or_id
@@ -111,6 +95,9 @@ init -1400 python:
             return
         store.pending_inspect_item_id = item_manager.get_id_of(item)
         queue("label", "inspect_item_pending")
+    
+    ITEM_GAINED  = create_signal(item=Item, inventory=Inventory, amount=int)
+    ITEM_LOST = create_signal(item=Item, inventory=Inventory, amount=int)
 
 transform item_popup_bounce:
     on show:

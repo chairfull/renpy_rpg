@@ -20,7 +20,7 @@ label start:
     
     # Story Selection (skip if a quick-start origin was chosen)
     if preselected_origin_id:
-        $ origin = quest_manager.quests.get(preselected_origin_id)
+        $ origin = get_quest(preselected_origin_id)
         $ preselected_origin_id = None
         if origin:
             $ finish_story_selection(origin)

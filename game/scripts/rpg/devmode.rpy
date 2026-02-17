@@ -139,8 +139,7 @@ screen dev_quests_view():
         scrollbars "vertical"
         vbox:
             spacing 20
-            for q_id in sorted(quest_manager.quests.keys()):
-                $ q = quest_manager.quests[q_id]
+            for q_id, q_data in all_quests.items():
                 frame:
                     background "#151525"
                     xfill True
@@ -149,17 +148,17 @@ screen dev_quests_view():
                         spacing 5
                         hbox:
                             xfill True
-                            text "[q.name] ([q_id]) - State: [q.state]" size 20 color "#ffd700"
+                            text "[q_data.name] ([q_id]) - State: [q_data.state]" size 20 color "#ffd700"
                             textbutton "COMPLETE QUEST":
                                 align (1.0, 0.5)
                                 action Function(q_complete, q_id)
                                 text_size 14
                         
-                        for i, t in enumerate(q.ticks):
+                        for tick_id, tick_data in q_data.ticks.items():
                             hbox:
                                 xfill True
                                 spacing 20
-                                text "  - [t.name]: [t.state] ([t.current_value]/[t.required_value])" size 16 color ("#ffffff" if t.state == "active" else "#888")
+                                text "  - [tick_data.name]: [tick_data.state] ([tick_data.value]/[tick_data.max_value])" size 16 color ("#ffffff" if tick_data.state == "active" else "#888")
                                 if t.state != "complete":
                                     textbutton "FORCE":
                                         yalign 0.5
