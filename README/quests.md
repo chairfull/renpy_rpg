@@ -39,7 +39,7 @@ JUMP world_loop
 type: quest
 id: apple_hunt
 name: Ration Run
-description: Gather rations for the shelter.
+desc: Gather rations for the shelter.
 ---
 # Goals
 

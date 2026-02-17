@@ -4,10 +4,10 @@ init 10 python:
     onstart(add_meta_menu_tab, "stats", "❤️", "Stats")
     
     class Stat:
-        def __init__(self, id, name, description="", tags=None):
+        def __init__(self, id, name, desc="", tags=None):
             self.id = id
             self.name = name
-            self.description = description
+            self.desc = desc
             self.tags = set(tags or [])
     
     class StatManager:

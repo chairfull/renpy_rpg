@@ -1,78 +1,120 @@
 default quest_manager = QuestManager()
 
-init 10 python:
+init -1000 python:
     onstart(add_meta_menu_tab, "quests", "📋", "Quests",
         selected_quest=None,
         filter="active")
     
-    class QuestTick:
-        def __init__(self, id, name):
-            self.id, self.name = id, name
-            self.state, self.flow_label, self.trigger_data, self.guidance = "hidden", None, {}, {}
-
-            self.current_value, self.required_value = 0, 1
-
-        def check_trigger(self, etype, **kwargs):
-            if self.state not in ["shown", "active"]: 
+    class Trigger:
+        def __init__(self, event_name, event_state={}, condition=None):
+            self.event_name = event_name # Event that triggers this tick.
+            self.event_state = event_state # State the event should be in.
+            self.condition = condition # Condition to be met if not None.
+        
+        def check(self, event, **kwargs):
+            if not self.active:
                 return False
-            # event compare (case-insensitive)
-            if str(self.trigger_data.get("event")).upper() != str(etype).upper():
+            if self.event_name and self.event_name != event.name:
                 return False
-            for k, v in self.trigger_data.items():
-                if k in ["event", "cond", "total"]: 
-                    continue
-                actual = kwargs.get(k)
-                if isinstance(v, list):
-                    if actual not in v:
+            if self.event_state:
+                for k, v in self.event_state.items():
+                    if kwargs.get(k) != v:
                         return False
-                else:
-                    try:
-                        if isinstance(actual, (int, float)) and str(v).replace('.', '', 1).isdigit():
-                            if float(actual) != float(v):
-                                return False
-                        else:
-                            if str(actual) != str(v):
-                                return False
-                    except Exception:
-                        if str(actual) != str(v):
-                            return False
-            if self.trigger_data.get("cond"):
-                try:
-                    if not safe_eval_bool(self.trigger_data["cond"], {"player": character, "world": world, "kwargs": kwargs, "flags": world_flags, "flag_get": flag_get, "bond": bond_get_stat, "bond_has_tag": bond_has_tag, "bond_level": bond_level, "faction_get": faction_manager.get_reputation}): 
-                        return False
-                except Exception as e:
-                    renpy.log(f"Error evaluating tick cond for {self.id}: {e}")
+            if self.condition:
+                if not test_function(self.condition):
                     return False
-            self.current_value = int(kwargs.get("total", self.current_value + 1))
-            try:
-                required = int(self.trigger_data.get("total", self.required_value))
-            except Exception:
-                required = self.required_value
-            if self.current_value >= required:
-                self.state = "complete"
-                return True
-            return False
-    
-    class Quest:
-        def __init__(self, id, name, description="", category="side", giver=None, location=None, tags=None, prereqs=None, rewards=None, start_trigger=None, origin=False, character=None, image=None, outcomes=None):
+            return True
+
+    class QuestTick:
+        def __init__(self, id, name, desc, max_value=1):
             self.id = id
             self.name = name
-            self.description = description
-            self.category = category or "side"
+            self.desc = desc
+            self.trigger = Trigger()
+            self.hilight_locations = set() # Locations to highlight
+            self.hilight_entities = set() # Entities to highlight
+            self.value = 0
+            self.max_value = max_value
+            self.active = False # When true, check for triggers.
+            self.hidden = False
+            self.failed = False
+
+        @property
+        def state(self):
+            if self.failed: return "failed"
+            if self.completed: return "completed"
+            if self.active: return "active"
+            return "not_started"
+                
+        @property
+        def completed(self):
+            return self.value >= self.max_value
+        
+        @property
+        def quest(self):
+            quest_id, tick_id = self.id.split("#", 1)
+            return get_quest(quest_id)
+        
+        def queue_internal_label(self, suffix=None, *args, **kwargs):
+            quest_id, tick_id = self.id.split("#", 1)
+            base = f"QUEST__{quest_id}__TICK__{tick_id}"
+            label = f"{base}__{suffix}" if suffix else base
+            queue_label(label, *args, **kwargs)
+
+        def start(self):
+            if self.active:
+                return
+            self.active = True
+            QUEST_TICK_STARTED.emit(quest=self.quest, tick=self)
+        
+        def show(self):
+            if not self.active:
+                self.start()
+            
+            if self.hide:
+                self.hide = False
+                QUEST_TICK_SHOWN.emit(quest=self.quest, tick=self)
+        
+        def tick(self, amount=1):
+            if self.completed or self.failed:
+                return
+            old_value = self.value
+            self.value = clamp(self.value + amount, 0, self.max_value)
+            if old_value == self.value:
+                return
+            QUEST_TICK_CHANGED.emit(quest=self.quest, tick=self)
+            if self.completed:
+                QUEST_TICK_COMPLETED.emit(quest=self.quest, tick=self)
+
+    class Quest(TaggedObject):
+        def __init__(self, id, name, desc="", tags=[], giver=None, location=None, tags=None, prereqs=None, rewards=None, start_trigger=None, origin=False, character=None, image=None, outcomes=None):
+            TaggedObject.__init__(self, tags)
+            self.id = id
+            self.name = name
+            self.desc = desc
             self.giver = giver
             self.location = location
-            self.tags = set(tags or [])
             self.prereqs = prereqs or {}
             self.rewards = rewards or {}
+            self.rewards_applied = False
             self.outcomes = outcomes or []
             self.start_trigger = start_trigger or {}
             self.origin = bool(origin)
             self.character = character
             self.image = image
             self.state = "unknown"
-            self.ticks = []
-            self.rewards_applied = False
-        def add_tick(self, t): self.ticks.append(t)
+            self.ticks = {}
+        
+        def add_tick(self, id, *args, **kwargs):
+            tick = QuestTick(*args, **kwargs)
+            self.ticks[id] = tick
+            return self
+        
+        def queue_internal_label(self, suffix=None, *args, **kwargs):
+            base = f"QUEST__{self.id}"
+            label = f"{base}__{suffix}" if suffix else base
+            queue_label(label, *args, **kwargs)
+
         def can_start(self):
             # Quest prereqs: quests passed + flags set + optional condition.
             req = self.prereqs or {}
@@ -91,133 +133,43 @@ init 10 python:
                 if not safe_eval_bool(cond, {"character": character, "world": world, "flags": world_flags, "flag_get": flag_get, "quest_manager": quest_manager, "faction_get": faction_manager.get_reputation}):
                     return False
             return True
+
         def start(self):
             if self.state in ["unknown", "known"]:
                 if not self.can_start():
                     renpy.notify(f"Quest Locked: {self.name}")
-                    signal("QUEST_START_BLOCKED", quest=self.id)
                     return False
                 self.state = "active"
                 if self.ticks:
                     self.ticks[0].state = "active"
                 renpy.notify(f"Quest Started: {self.name}")
-                signal("QUEST_STARTED", quest=self.id)
-                if renpy.has_label(f"QUEST__{self.id}__started"): renpy.call(f"QUEST__{self.id}__started")
+                QUEST_STARTED.emit(quest=self)
+                self.queue_internal_label("started")
                 return True
             return False
-        def _apply_rewards(self, rewards):
-            if self.rewards_applied:
-                return
-            rewards = rewards or {}
-            gold = int(rewards.get("gold", 0) or 0)
-            if gold:
-                add_gold(gold)
-            for item_id, count in (rewards.get("items", {}) or {}).items():
-                give_item(item_id, count)
-            for flag in rewards.get("flags", []) or []:
-                flag_set(flag, True)
-            # Reputation changes: allow 'reputation' or 'reputations' mapping
-            rep_map = rewards.get('reputation') or rewards.get('reputations') or {}
-            if isinstance(rep_map, dict):
-                for fid, delta in rep_map.items():
-                    try:
-                        faction_manager.modify_reputation(str(fid), int(delta))
-                    except Exception:
-                        try:
-                            faction_manager.modify_reputation(str(fid), float(delta))
-                        except Exception:
-                            renpy.log(f"Invalid reputation delta for faction {fid}: {delta}")
-            # Faction membership changes
-            for fid in rewards.get('factions_add', []) or []:
-                try:
-                    character.join_faction(fid)
-                except Exception:
-                    renpy.log(f"Failed to add character to faction {fid}")
-            for fid in rewards.get('factions_remove', []) or []:
-                try:
-                    character.leave_faction(fid)
-                except Exception:
-                    renpy.log(f"Failed to remove character from faction {fid}")
-            self.rewards_applied = True
 
-        def _choose_outcome(self, outcome_id=None):
-            """Evaluate outcomes (list of dicts) and return the first matching outcome dict.
-            Each outcome may contain a 'cond' expression evaluated with safe_eval_bool.
-            If none match, return None."""
-            try:
-                for o in (self.outcomes or []):
-                    if not isinstance(o, dict):
-                        continue
-                    # If outcome_id specified, match by id immediately
-                    if outcome_id and (str(o.get('id')) == str(outcome_id) or str(o.get('name')) == str(outcome_id)):
-                        return o
-                    cond = o.get('cond')
-                    if not cond or str(cond).strip() == '':
-                        # No condition -> default outcome (lowest priority)
-                        default = o
-                        continue
-                    try:
-                        ok = safe_eval_bool(cond, {"character": character, "world": world, "flags": world_flags, "flag_get": flag_get, "quest_manager": quest_manager, "faction_get": faction_manager.get_reputation})
-                    except Exception as e:
-                        renpy.log(f"Error evaluating outcome cond for quest {self.id}: {e}")
-                        ok = False
-                    if ok:
-                        return o
-                # If none matched, return default if present
-                if 'default' in locals() and default:
-                    return default
-            except Exception as e:
-                renpy.log(f"Error choosing outcome for quest {self.id}: {e}")
-            return None
         def complete(self, outcome_id=None):
             self.state = "passed"
-            # If outcomes are defined, evaluate and apply the matching outcome's rewards/flags
-            outcome = None
-            if self.outcomes:
-                outcome = self._choose_outcome(outcome_id=outcome_id)
-            if outcome and isinstance(outcome, dict):
-                rewards = outcome.get('rewards', {}) or {}
-                self._apply_rewards(rewards)
-                # Apply any additional flags from outcome
-                for flag in outcome.get('flags', []) or []:
-                    flag_set(flag, True)
-                # Apply faction membership changes if present at outcome level
-                for fid in outcome.get('factions_add', []) or []:
-                    try:
-                        character.join_faction(fid)
-                    except Exception:
-                        renpy.log(f"Failed to add character to faction {fid} via outcome")
-                for fid in outcome.get('factions_remove', []) or []:
-                    try:
-                        character.leave_faction(fid)
-                    except Exception:
-                        renpy.log(f"Failed to remove character from faction {fid} via outcome")
-                renpy.log(f"Quest {self.id} completed with outcome: {outcome.get('id') or outcome.get('name')}")
-            else:
-                # Fallback to default rewards defined on the quest
-                self._apply_rewards(self.rewards)
-
             renpy.notify(f"Quest Completed: {self.name}")
-            signal("QUEST_COMPLETED", quest=self.id)
-            if renpy.has_label(f"QUEST__{self.id}__passed"): renpy.call(f"QUEST__{self.id}__passed")
-            if quest_manager.active_quest_id == self.id:
-                quest_manager.set_active_quest(None)
+            QUEST_COMPLETED.emit(quest=self)
+            self.queue_internal_label("passed")
+
         def fail(self):
             self.state = "failed"
             renpy.notify(f"Quest Failed: {self.name}")
-            signal("QUEST_FAILED", quest=self.id)
-            if renpy.has_label(f"QUEST__{self.id}__failed"): renpy.call(f"QUEST__{self.id}__failed")
-            if quest_manager.active_quest_id == self.id:
-                quest_manager.set_active_quest(None)
+            QUEST_FAILED.emit(quest=self)
+            self.queue_internal_label("failed")
 
     class QuestManager:
         def __init__(self):
             self.quests, self.origins, self.start_triggers = {}, {}, {}
             self.active_quest_id = None
             self.trigger_index = {}
+
         def get_origins(self):
             origins = [q for q in self.quests.values() if getattr(q, "origin", False)]
             return sorted(origins, key=lambda x: x.name)
+
         def start_quest(self, qid):
             q = self.quests.get(qid)
             if q and q.start():
@@ -225,6 +177,7 @@ init 10 python:
                     self.set_active_quest(q.id)
                 return True
             return False
+
         def set_active_quest(self, qid):
             prev = self.active_quest_id
             if not qid or qid not in self.quests:
@@ -232,12 +185,14 @@ init 10 python:
             else:
                 self.active_quest_id = qid
             if prev != self.active_quest_id:
-                signal("QUEST_ACTIVE_CHANGED", quest=self.active_quest_id, previous=prev)
+                ACTIVE_QUEST_CHANGED.emit(quest=self.get_active_quest(), previous=prev)
             return self.active_quest_id
+
         def get_active_quest(self):
             if self.active_quest_id and self.active_quest_id in self.quests:
                 return self.quests[self.active_quest_id]
             return None
+
         def get_current_guidance(self):
             q = self.get_active_quest()
             if not q or q.state != "active": return None
@@ -249,9 +204,11 @@ init 10 python:
         def complete_quest(self, qid):
             q = self.quests.get(qid)
             if q: q.complete()
+
         def fail_quest(self, qid):
             q = self.quests.get(qid)
             if q: q.fail()
+
         def update_goal(self, qid, gid, status="active"):
             target_quests = [self.quests[qid]] if qid and qid in self.quests else self.quests.values()
             
@@ -261,7 +218,7 @@ init 10 python:
                         t.state = status
                         if status == "complete":
                             t.current_value = t.required_value
-                            signal("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
+                            QUEST_TICK_COMPLETED.emit(quest=q, tick=t)
                 # Check for quest completion if manual update
                 if status == "complete":
                     all_c = True
@@ -270,7 +227,8 @@ init 10 python:
                             all_c = False
                             break
                     if all_c: q.complete()
-                signal("QUEST_UPDATED", quest=q.id)
+                QUEST_UPDATED.emit(quest=q)
+
         def handle_event(self, etype, **kwargs):
             # Start triggers (unchanged)
             for qid, trigger in self.start_triggers.items():
@@ -295,7 +253,7 @@ init 10 python:
                         try:
                             if t.check_trigger(etype, **kwargs):
                                 processed.add((q.id, t.id))
-                                signal("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
+                                QUEST_TICK_COMPLETED.emit(quest=q, tick=t)
                                 if t.flow_label:
                                     if renpy.has_label(t.flow_label):
                                         renpy.call(t.flow_label)
@@ -313,7 +271,7 @@ init 10 python:
                             continue
                         if t.check_trigger(etype, **kwargs):
                             any_done = True
-                            signal("QUEST_TICK_COMPLETED", quest=q.id, tick=t.id)
+                            QUEST_TICK_COMPLETED.emit(quest=q, tick=t)
                             if t.flow_label and renpy.has_label(t.flow_label):
                                 renpy.call(t.flow_label)
                             elif t.flow_label:
@@ -326,7 +284,8 @@ init 10 python:
                                 if t.state in ["hidden", "shown"]: t.state = "active"
                                 break
                         if all_c: q.complete()
-                        signal("QUEST_UPDATED", quest=q.id)
+                        QUEST_UPDATED.emit(quest=q)
+
         def _match(self, t, etype, **kwargs):
             if str(t.get("event")).upper() != str(etype).upper(): return False
             for k, v in t.items():
@@ -357,10 +316,10 @@ init 10 python:
             return True
 
     class StoryOrigin:
-        def __init__(self, id, name, description, character, intro_label, image=None):
+        def __init__(self, id, name, desc, character, intro_label, image=None):
             self.id = id
             self.name = name
-            self.description = description
+            self.desc = desc
             self.character = character
             self.intro_label = intro_label
             self.image = image
@@ -369,54 +328,17 @@ init 10 python:
         quest_manager.trigger_index = data.get("quest_trigger_index", {}) # Clear old index to avoid stale data
 
         quest_manager.origins = {}
-        for origin_id, p in data.get("story_origins", {}).items():
-            quest_manager.origins[origin_id] = StoryOrigin(
-                origin_id,
-                name=p.get('name', origin_id),
-                description=p.get('description', ''),
-                character=(p.get('character')),
-                intro_label=p.get('intro_label'),
-                image=p.get('image')
-            )
+        for origin_id, origin_data in data.get("story_origins", {}).items():
+            quest_manager.origins[origin_id] = from_dict(StoryOrigin, origin_data, id=origin_id)
         
         quest_manager.quests = {}
-        for quest_id, p in data.get("quests", {}).items():
+        for quest_id, quest_data in data.get("quests", {}).items():
             try:
-                q = Quest(
-                    quest_id,
-                    p.get('name', quest_id),
-                    p.get('description', ''),
-                    category=p.get('category', 'side'),
-                    giver=p.get('giver'),
-                    location=p.get('location'),
-                    tags=p.get('tags', []),
-                    prereqs=p.get('prereqs', {}),
-                    rewards=p.get('rewards', {}),
-                    start_trigger=p.get('start_trigger', {}),
-                    outcomes=p.get('outcomes', []),
-                    origin=p.get('origin', False),
-                    character=p.get('character'),
-                    image=p.get('image')
-                )
-                for t_idx, tp in enumerate(p.get('ticks', [])):
-                    tick = QuestTick(tp['id'], tp['name'])
-                    tick.trigger_data = tp.get('trigger', {})
-                    tick.guidance = tp.get('guidance', {})
-                    try:
-                        tick.required_value = int(tick.trigger_data.get("total", 1) or 1)
-                    except Exception:
-                        tick.required_value = 1
-                    tick.flow_label = tp.get('label')
+                q = from_dict(Quest, quest_data, id=quest_id)
+                for tick_id, tick_data in enumerate(quest_data.get('ticks', [])):
+                    tick = from_dict(QuestTick, tick_data, id=tick_id)
                     q.add_tick(tick)
-                # Attach compiled choices (if any)
-                try:
-                    q.choices = p.get('choices', []) or []
-                except Exception:
-                    q.choices = []
                 quest_manager.quests[quest_id] = q
-                if q.start_trigger:
-                    quest_manager.start_triggers[quest_id] = q.start_trigger
-                # (no-op)
             except Exception as e:
                 with open("debug_load.txt", "a") as df:
                     df.write("Quest Load Error ({}): {}\n".format(quest_id, str(e)))
@@ -432,7 +354,7 @@ init 10 python:
                     world.move_to(renpy.store.character.location_id)
         # Core origin bootstrapping lives here.
         flag_set("origin", origin.id)
-        signal("GAME_STARTED", origin=origin.id)
+        GAME_STARTED.emit(origin=origin)
 
         renpy.hide_screen("story_select_screen")
         # Auto-start quest if ID matches origin
@@ -513,8 +435,8 @@ init 10 python:
                 renpy.notify(f"Goal updated")
         except Exception:
             pass
-
-    onstart(listen, "QUEST_TICK_COMPLETED", _on_quest_tick)
+    
+    QUEST_TICKED.connect(_on_quest_tick)
 
     # Debug helpers.
     def q_force_tick(qid, tick_idx):
@@ -627,7 +549,7 @@ screen quests_screen():
                         xfill True
                         text selected.name size 26 color ("#4f4" if selected.state == "passed" else "#ffd700")
                         text quest_status_label(selected) size 14 color "#9bb2c7" xalign 1.0
-                    text selected.description size 16 color "#c9d3dd"
+                    text selected.desc size 16 color "#c9d3dd"
                     hbox:
                         spacing 12
                         textbutton "Active":
@@ -749,7 +671,7 @@ screen story_select_screen():
                             
                             vbox:
                                 spacing 10
-                                text "[origin.description]" size 22 color "#ffffff" xalign 0.5 text_align 0.5 outlines [(1, "#000", 0, 0)]
+                                text "[origin.desc]" size 22 color "#ffffff" xalign 0.5 text_align 0.5 outlines [(1, "#000", 0, 0)]
 
                         # 3. Title at the Top (Drawn LAST to be on TOP)
                         frame:

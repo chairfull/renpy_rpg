@@ -2,7 +2,7 @@
 type: quest
 id: theo_secret
 name: Patient Zero
-description: Theo is searching for the first record of the sleepers.
+desc: Theo is searching for the first record of the sleepers.
 ---
 
 # Started

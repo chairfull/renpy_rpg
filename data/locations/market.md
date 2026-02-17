@@ -2,7 +2,7 @@
 type: location
 id: market
 name: Relief Exchange
-description: Lines of crates and a steady flow of supplies.
+desc: Lines of crates and a steady flow of supplies.
 map_image: "#333"
 map_type: city
 map_x: 1100
@@ -29,7 +29,7 @@ entities:
   - id: console
     type: object
     name: Signal Console
-    description: A cracked screen with a faint repeating tone.
+    desc: A cracked screen with a faint repeating tone.
     label: test_minigame
     x: 400
     y: 300

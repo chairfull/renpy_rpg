@@ -31,7 +31,7 @@ Located at the top between `---` markers. Defines the raw data properties.
 ---
 id: mayor
 name: Mayor Thomas
-description: The weary leader of this town.
+desc: The weary leader of this town.
 location_id: market
 base_image: "mayor_idle.png"
 stats:
@@ -46,7 +46,7 @@ factions: [town_council]
 ---
 id: market
 name: Town Market
-description: A bustling hub of trade.
+desc: A bustling hub of trade.
 map_image: "images/topdown/locations/market.png"
 entities:
   - id: stall_1

@@ -2,7 +2,7 @@
 type: character
 id: survivor
 name: Survivor
-description: A veteran of the Dead Zones who can hear the rhythm of the Silence.
+desc: A veteran of the Dead Zones who can hear the rhythm of the Silence.
 base_image: chars/male_fit.png
 location: market
 pos: 960,800

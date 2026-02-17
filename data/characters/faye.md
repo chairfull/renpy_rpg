@@ -2,7 +2,7 @@
 type: character
 name: Faye
 id: faye
-description: Manages the rationed cots and the only filtered-air room in the district.
+desc: Manages the rationed cots and the only filtered-air room in the district.
 location: tavern
 pos: 300,350
 factions:

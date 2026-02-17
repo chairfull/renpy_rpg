@@ -1,6 +1,6 @@
 default craft_manager = CraftManager()
 
-init 10 python:
+init -1300 python:
     onstart(add_meta_menu_tab, "crafting", "🪡", "Craft",
         selected_craft=None)
 
@@ -8,9 +8,9 @@ init 10 python:
         def __init__(self, id, name, inputs, output, req_skill=None, tags=None):
             self.id = id
             self.name = name
-            self.inputs = inputs # {item_id: count}
-            self.output = output # {item_id: count}
-            self.req_skill = req_skill # {skill_name: level}
+            self.inputs = inputs
+            self.output = output
+            self.req_skill = req_skill
             self.tags = set(tags or [])
     
     class CraftManager:
@@ -22,37 +22,37 @@ init 10 python:
         for craft_id, p in data.get("crafts", {}).items():
             craft_manager.crafts[craft_id] = from_dict(Craft, p)
     
-    def can_craft(recipe, inventory):
-        for item_id, count in recipe.inputs.items():
+    def can_craft(craft, inventory):
+        for item_id, count in craft.inputs.items():
             current_count = inventory.get_item_count(item_id=item_id)
             if current_count < count:
                 return False, f"Missing {item_id}"
         
-        if recipe.req_skill:
-            for skill, level in recipe.req_skill.items():
+        if craft.req_skill:
+            for skill, level in craft.req_skill.items():
                 if character.stats.get(skill) < level:
                     return False, f"Need {skill} {level}"
         
         return True, "OK"
 
-    def craft(recipe, inventory):
-        can, msg = self.can_craft(recipe, inventory)
+    def craft(craft, inventory):
+        can, msg = self.can_craft(craft, inventory)
         if not can:
             renpy.notify(msg)
             return False
         
         # Consume inputs
-        for item_id, count in recipe.inputs.items():
+        for item_id, count in craft.inputs.items():
             inventory.remove_items_by_id(item_id, count=count, reason="craft")
         
         # Grant outputs
-        for item_id, count in recipe.output.items():
+        for item_id, count in craft.output.items():
             new_item = item_manager.get(item_id)
             if new_item:
                 inventory.add_item(new_item, count=count, force=True, reason="craft")
         
-        renpy.notify(f"Crafted {recipe.name}")
-        signal("ITEM_CRAFTED", item=recipe.output, recipe=recipe.id)
+        renpy.notify(f"Crafted {craft.name}")
+        ITEM_CRAFTED.emit(item=craft.output, craft=craft.id)
         return True
 
 screen crafting_screen(mmtab=None):

@@ -2,7 +2,7 @@
 type: character
 id: theo
 name: Theo
-description: Dedicated to preserving pre-fall data logs and charting the decay of the global transmission grid.
+desc: Dedicated to preserving pre-fall data logs and charting the decay of the global transmission grid.
 base_image: chars/male_thin.png
 location: temple
 pos: 500,500

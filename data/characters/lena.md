@@ -2,7 +2,7 @@
 type: character
 name: Lena
 id: lena
-description: A veteran scout who reads the perimeter drifts like a topography map.
+desc: A veteran scout who reads the perimeter drifts like a topography map.
 location: forest_edge
 pos: 400,300
 factions:

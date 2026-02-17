@@ -106,13 +106,13 @@ Each child may include a YAML codeblock for configuration. The heading text is u
 ```
 ### Main Bedroom
 ```yaml
-description: Your assigned room with a narrow cot and a small mirror.
+desc: Your assigned room with a narrow cot and a small mirror.
 map_type: room
 entities:
   - id: bed
     type: object
     name: Cot
-    description: A narrow cot with a clean blanket.
+    desc: A narrow cot with a clean blanket.
     label: LOC__home__bed
 ```
 ```

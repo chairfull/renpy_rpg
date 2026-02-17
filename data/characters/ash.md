@@ -2,7 +2,7 @@
 type: character
 name: Ash
 id: ash
-description: A quiet survivor who claims to have walked from the Dead Zones without a signal baton.
+desc: A quiet survivor who claims to have walked from the Dead Zones without a signal baton.
 location: tavern
 pos: 150,400
 factions: []

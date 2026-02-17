@@ -2,7 +2,7 @@
 type: character
 id: jun
 name: Jun
-description: A calm voice who keeps the shelter steady with rhythmic cadence and signal-dampening tones.
+desc: A calm voice who keeps the shelter steady with rhythmic cadence and signal-dampening tones.
 location: tavern
 pos: 500,300
 factions: []

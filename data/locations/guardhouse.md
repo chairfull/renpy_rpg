@@ -2,7 +2,7 @@
 type: location
 id: guardhouse
 name: Quarantine Gate
-description: Checkpoint lights, logbooks, and a tight line of rules.
+desc: Checkpoint lights, logbooks, and a tight line of rules.
 map_type: city
 map_x: 1050
 map_y: 1050

@@ -2,7 +2,7 @@
 type: location
 id: docks
 name: Quarantine Docks
-description: Silent piers and a distant, empty harbor.
+desc: Silent piers and a distant, empty harbor.
 map_type: city
 map_x: 1300
 map_y: 1200

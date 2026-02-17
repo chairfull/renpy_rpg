@@ -2,7 +2,7 @@
 type: character
 name: Rafi
 id: rafi
-description: The firm voice at the quarantine gate, ensuring no 'Drift' enters the settlement.
+desc: The firm voice at the quarantine gate, ensuring no 'Drift' enters the settlement.
 location: guardhouse
 pos: 600,400
 factions:

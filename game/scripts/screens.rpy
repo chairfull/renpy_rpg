@@ -442,26 +442,9 @@ transform menu_hover_flash:
     on idle:
         ease 0.125 matrixcolor BrightnessMatrix(0.0) * SaturationMatrix(1.0) * HueMatrix(0)
 
-default is_initialised = False
-
-init -1000 python:
-    _early = []
-    def onstart(*args, **kwargs):
-        _early.append((args, kwargs))
-
 screen main_menu():
     python:
-        global is_initialised
-        if not is_initialised:
-            is_initialised = True
-            for args, kwargs in _early:
-                fn = args[0]
-                if callable(fn):
-                    try:
-                        fn(*args[1:], **kwargs)
-                    except Exception:
-                        pass
-            reload_world_data()
+        initialise()
     
     ## This ensures that any other menu screen is replaced.
     tag menu
@@ -507,7 +490,7 @@ screen main_menu():
                     spacing 6
                     for origin in origins:
                         textbutton "[origin.name]":
-                            tooltip origin.description
+                            tooltip origin.desc
                             action [SetVariable("preselected_origin_id", origin.id), Start()]
                             style "mm_button"
                             text_style "mm_button_text"

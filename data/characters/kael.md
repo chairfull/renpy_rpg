@@ -2,7 +2,7 @@
 type: character
 id: kael
 name: Kael
-description: A high-risk courier who uses kinetic force to clear 'Sleeper' blockades.
+desc: A high-risk courier who uses kinetic force to clear 'Sleeper' blockades.
 base_image: chars/male_fit.png
 location: market
 items:

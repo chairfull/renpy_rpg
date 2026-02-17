@@ -2,7 +2,7 @@
 type: character
 name: Greta
 id: greta
-description: Keeps the shelter's alarms, air filtration, and signal rigs working with scrap-tech.
+desc: Keeps the shelter's alarms, air filtration, and signal rigs working with scrap-tech.
 location: market
 pos: 400,500
 factions:

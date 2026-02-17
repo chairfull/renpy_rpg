@@ -1,4 +1,8 @@
 default dialogue_manager = DialogueManager()
+# Dialogue choice system with tags, emojis, and hover descriptions
+
+default hovered_dialogue_option = None
+default hovered_dialogue_reason = None
 
 init 10 python:
     class DialogueOption(object):
@@ -56,10 +60,7 @@ init 10 python:
                 reason=p.get('reason')
             )
 
-# Dialogue choice system with tags, emojis, and hover descriptions
 
-default hovered_dialogue_option = None
-default hovered_dialogue_reason = None
  
 transform dialogue_fade:
     on show:
@@ -198,7 +199,7 @@ screen give_item_screen(target_char):
                                 hbox:
                                     spacing 20
                                     text "[entry['label']] (x[count])" size 20 color "#ffffff"
-                                    text "[item.description]" size 16 color "#888888" yalign 0.5
+                                    text "[item.desc]" size 16 color "#888888" yalign 0.5
                     else:
                         text "No items in inventory" size 20 color "#666666" xalign 0.5 yalign 0.5
             

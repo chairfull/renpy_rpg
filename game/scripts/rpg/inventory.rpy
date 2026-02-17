@@ -1,7 +1,7 @@
 default inventory_manager = InventoryManager()
 default quick_loot_tags = ["consumable", "food", "medical", "ammo", "currency", "component", "material"]
 
-init -100 python:
+init -1400 python:
     onstart(add_meta_menu_tab, "inventory", "🎒", "Inventory",
         selected_item=None,
         selected_page=0)
@@ -351,8 +351,8 @@ init -100 python:
         if not item:
             return ""
         lines = [f"{{b}}{item.name}{{/b}}"]
-        if getattr(item, "description", ""):
-            lines.append(f"{{i}}{item.description}{{/i}}")
+        if getattr(item, "desc", ""):
+            lines.append(f"{{i}}{item.desc}{{/i}}")
         if qty is not None:
             lines.append(f"Qty: {{color=#ffd700}}{qty}{{/color}}")
         wt = getattr(item, "weight", None)
@@ -420,9 +420,9 @@ label inspect_item_pending:
 
     if resolved_label:
         call expression resolved_label
-    elif resolved_item and resolved_item.description:
+    elif resolved_item and resolved_item.desc:
         $ item_show_image(resolved_item)
-        "[resolved_item.description]"
+        "[resolved_item.desc]"
         $ item_hide_image()
 
     $ item_hide_image()
@@ -538,7 +538,7 @@ screen inventory_grid(entries, columns=5, cell_size=110, total_slots=None, selec
                     else:
                         add Solid("#1f1f1f") xysize (cell_size, cell_size)
 
-screen inventory_screen():
+screen inventory_screen(tab):
     $ columns = 4
     $ rows = 3
     $ per_page = columns * rows
@@ -547,11 +547,11 @@ screen inventory_screen():
     python:
         entries = build_inventory_entries(character)
         total_pages = max(1, (len(entries) + per_page - 1) // per_page)
-        if store.inventory_page >= total_pages:
-            store.inventory_page = total_pages - 1
-        if store.inventory_page < 0:
-            store.inventory_page = 0
-        start = store.inventory_page * per_page
+        if tab.selected_page >= total_pages:
+            tab.selected_page = total_pages - 1
+        if tab.selected_page < 0:
+            tab.selected_page = 0
+        start = tab.selected_page * per_page
         page_entries = entries[start:start + per_page]
         grid_entries = []
         for entry in page_entries:

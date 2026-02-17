@@ -2,7 +2,7 @@
 type: location
 id: mage_tower
 name: Broadcast Tower
-description: A concrete spire that once blanketed the city with signal.
+desc: A concrete spire that once blanketed the city with signal.
 map_type: structure
 map_x: 1200
 map_y: 800

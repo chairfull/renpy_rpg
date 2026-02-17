@@ -2,7 +2,7 @@
 type: character
 name: Jace
 id: jace
-description: A lookout at the rusted harbor who watches for 'Drifter' anomalies in the fog.
+desc: A lookout at the rusted harbor who watches for 'Drifter' anomalies in the fog.
 location: docks
 pos: 700,500
 factions: []

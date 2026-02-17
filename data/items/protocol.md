@@ -2,7 +2,7 @@
 type: item
 id: broadcast_protocol
 name: Broadcast Protocol
-description: A fragile data drive salvaged from the spire. Its signal could lead the sleepers home.
+desc: A fragile data drive salvaged from the spire. Its signal could lead the sleepers home.
 value: 0
 weight: 0.1
 tags:

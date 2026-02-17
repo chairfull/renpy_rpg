@@ -2,7 +2,7 @@
 type: location
 id: shop
 name: Supply Depot
-description: Shelves of ration tins and repair tools.
+desc: Shelves of ration tins and repair tools.
 entities:
   - id: market
     type: link

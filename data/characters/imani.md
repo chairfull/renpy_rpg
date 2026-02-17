@@ -2,7 +2,7 @@
 type: character
 id: imani
 name: Imani
-description: A high-level policy lead tracking route safety, ration efficiency, and drift probability.
+desc: A high-level policy lead tracking route safety, ration efficiency, and drift probability.
 base_image: chars/female_fit.png
 location: market
 pos: 900,600

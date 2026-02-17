@@ -2,7 +2,7 @@
 type: character
 id: clerk
 name: Clerk
-description: A no-nonsense clerk who manages the official settlement exchange and logbooks.
+desc: A no-nonsense clerk who manages the official settlement exchange and logbooks.
 base_image: chars/male_average.png
 location: shop
 tags:
@@ -19,7 +19,7 @@ face_shape: square
 skin_tone: light
 build: average
 body_type: humanoid
-breast_size: n/a
+breast_size: ~
 dick_size: average
 foot_size: 42
 distinctive_feature: ink-stained fingertips
@@ -34,9 +34,9 @@ items:
   - ration_pack
   - battery_cell
 ---
+
 # Talk
 ```flow
 clerk: Take what you've been rationed for, and make sure you log your exchange in the book. No credit in the Silence.
-$ renpy.store.general_store.interact()
 $ clerk.mark_as_met()
 ```

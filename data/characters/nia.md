@@ -2,7 +2,7 @@
 type: character
 name: Nia
 id: nia
-description: A sharp-eyed orphan who navigates the crawlspaces and service tunnels to avoid the 'Sleeper' drifts.
+desc: A sharp-eyed orphan who navigates the crawlspaces and service tunnels to avoid the 'Sleeper' drifts.
 location: market
 pos: 200,600
 factions: []

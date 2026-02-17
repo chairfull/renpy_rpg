@@ -1,12 +1,15 @@
 default item_manager = ItemManager()
 
-init 10 python:
+init -1400 python:
     class Item(TaggedObject):
-        def __init__(self, name="Unknown", description="", weight=0, value=0, volume=0, tags=None, factions=None, equip_slots=None, outfit_part=None, stackable=False, stack_size=1, quantity=1, owner_id=None, stolen=False, image=None, actions=None, id=None, **kwargs):
+        def __init__(self, name="Unknown", desc="", weight=0, value=0, volume=0, tags=None, factions=None, equip_slots=None, outfit_part=None, stackable=False, stack_size=1, quantity=1, owner_id=None, stolen=False, image=None, actions=None, id=None, **kwargs):
             TaggedObject.__init__(self, tags)
             self.id = id
             self.factions = set(factions or [])
-            self.name, self.description, self.weight, self.value = name, description, weight, value
+            self.name = name
+            self.desc = desc
+            self.weight = weight
+            self.value = value
             self.volume = float(volume) if volume is not None else 0
             self.image = image
             self.actions = actions or []
@@ -107,8 +110,7 @@ init 10 python:
         if not item:
             return
         store.pending_inspect_item_id = item_manager.get_id_of(item)
-        if hasattr(store, "flow_queue"):
-            store.flow_queue.queue_label("inspect_item_pending")
+        queue("label", "inspect_item_pending")
 
 transform item_popup_bounce:
     on show:

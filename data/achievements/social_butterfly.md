@@ -2,7 +2,7 @@
 type: achievement
 id: social_butterfly
 name: Social Butterfly
-description: Meet 10 different characters
+desc: Meet 10 different characters
 icon: 🦋
 rarity: epic
 tags: [social, exploration]

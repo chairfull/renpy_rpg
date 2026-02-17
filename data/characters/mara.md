@@ -2,7 +2,7 @@
 type: character
 name: Mara
 id: mara
-description: The steady hand keeping the settlement's life-support and quarantine running.
+desc: The steady hand keeping the settlement's life-support and quarantine running.
 base_image: chars/male_fit.png
 location: market
 pos: 800,600

@@ -21,10 +21,10 @@ init 10 python:
         return ok
 
     class Perk:
-        def __init__(self, id, name, description="", mods=None, tags=None, **kwargs):
+        def __init__(self, id, name, desc="", mods=None, tags=None, **kwargs):
             self.id = id
             self.name = name
-            self.description = description
+            self.desc = desc
             self.mods = mods or {}
             self.tags = set(tags or [])
     
@@ -60,8 +60,8 @@ screen perks_screen():
                         xfill True
                         vbox:
                             text p.name size 16 color "#fff"
-                            if p.description:
-                                text p.description size 12 color "#aaa"
+                            if p.desc:
+                                text p.desc size 12 color "#aaa"
                         textbutton "Remove":
                             action Function(perk_remove, perk_id)
                             text_size 14

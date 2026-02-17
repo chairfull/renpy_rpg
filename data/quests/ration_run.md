@@ -2,8 +2,7 @@
 type: quest
 id: ration_run
 name: Ration Run
-
-description: Gather rations for the shelter.
+desc: Gather rations for the shelter.
 ---
 
 # Started

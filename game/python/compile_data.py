@@ -161,8 +161,8 @@ def directive_to_python(line, cond_resolver=None, source_path=None, line_no=None
                 val = v
             kwargs.append(f"{k}={repr(val)}")
         if kwargs:
-            return f"signal({event!r}, {', '.join(kwargs)})"
-        return f"signal({event!r})"
+            return f"{event!r}.emit({', '.join(kwargs)})"
+        return f"{event!r}.emit()"
     if cmd == "flag":
         if len(parts) < 3:
             return None
@@ -413,7 +413,7 @@ def directive_to_python(line, cond_resolver=None, source_path=None, line_no=None
 def compile(lint_only=False):
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     game_dir = os.path.join(base_dir, "game")
-    data_dir = os.path.join(base_dir, "data") # Moved to root
+    data_dir = os.path.join(base_dir, "data")
     # JSON goes to a hidden folder; labels go to a non-hidden .rpy so Ren'Py loads them.
     gen_dir = os.path.join(game_dir, "generated")
     if not os.path.exists(gen_dir):
@@ -486,7 +486,7 @@ def compile(lint_only=False):
                 stack_size = parse_int(props.get('stack_size'), 1) or 1
                 data_consolidated["items"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "image": props.get('image'),
                     "weight": float(props.get('weight', 0)),
                     "volume": float(props.get('volume', 0) or 0),
@@ -527,7 +527,7 @@ def compile(lint_only=False):
                 cleaned_body = _lines_to_text(cleaned_lines) if cleaned_lines is not None else (body or "")
                 data_consolidated["locations"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "map_image": props.get('map_image'),
                     "obstacles": props.get('obstacles', []),
                     "entities": entities,
@@ -578,7 +578,7 @@ def compile(lint_only=False):
                         scavenge = _as_list(yaml_props.get('scavenge', []))
                         child_loc = {
                             "name": yaml_props.get('name', node.get('title') or node.get('slug')),
-                            "description": yaml_props.get('description', ''),
+                            "desc": yaml_props.get('desc', ''),
                             "map_image": yaml_props.get('map_image'),
                             "obstacles": yaml_props.get('obstacles', []),
                             "entities": entities,
@@ -690,7 +690,7 @@ def compile(lint_only=False):
 
                 data_consolidated["characters"][obj_id] = {
                     "name": props.get('name'),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "location": props.get('location'),
                     "items": parse_csv(props.get('items', '')),
                     "base_image": props.get('base_image'),
@@ -802,7 +802,7 @@ def compile(lint_only=False):
                 origin_flag = parse_bool(props.get('origin', False)) or str(category).lower() == "origin" or ("origin" in [t.lower() for t in tags])
                 data_consolidated["quests"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "category": category,
                     "giver": props.get('giver'),
                     "location": props.get('location'),
@@ -882,7 +882,7 @@ def compile(lint_only=False):
                 pos = props.get('pos', '0,0').split(',')
                 data_consolidated["containers"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "location": props.get('location'),
                     "items": parse_csv(props.get('items', '')),
                     "x": int(pos[0]) if len(pos) > 1 else 0,
@@ -913,7 +913,7 @@ def compile(lint_only=False):
             elif otype == 'faction':
                 data_consolidated["factions"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "allies": parse_csv(props.get('allies', '')),
                     "enemies": parse_csv(props.get('enemies', ''))
                 }
@@ -947,7 +947,7 @@ def compile(lint_only=False):
             elif otype == 'story_origin':
                 data_consolidated["story_origins"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "character": props.get('character'),
                     "intro_label": props.get('intro_label'),
                     "image": props.get('image'),
@@ -991,7 +991,7 @@ def compile(lint_only=False):
             elif otype == 'shop':
                 data_consolidated["shops"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "buy_mult": float(props.get('buy_mult', 1.2)),
                     "sell_mult": float(props.get('sell_mult', 0.6)),
                     "items": parse_csv(props.get('items', '')),
@@ -1014,7 +1014,7 @@ def compile(lint_only=False):
 
                 data_consolidated["achievements"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "icon": props.get('icon', '🏆'),
                     "rarity": props.get('rarity', 'common'),
                     "tags": parse_csv(props.get('tags', '')),
@@ -1025,7 +1025,7 @@ def compile(lint_only=False):
                 mods = parse_kv_block(props.get('mods', [])) if isinstance(props.get('mods', []), list) else {}
                 data_consolidated["perks"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "mods": mods,
                     "tags": parse_csv(props.get('tags', '')),
                     "duration": props.get('duration')
@@ -1034,7 +1034,7 @@ def compile(lint_only=False):
                 mods = parse_kv_block(props.get('mods', [])) if isinstance(props.get('mods', []), list) else {}
                 data_consolidated["status_effects"][obj_id] = {
                     "name": props.get('name', obj_id),
-                    "description": props.get('description', ''),
+                    "desc": props.get('desc', ''),
                     "mods": mods,
                     "tags": parse_csv(props.get('tags', '')),
                     "duration": props.get('duration')
@@ -1241,9 +1241,9 @@ def compile(lint_only=False):
                     qid = oid
                     tid = tick.get('id')
                     injected = []
-                    injected.append((label_line_no, f"GOAL: show {qid!r} {tid!r}"))
-                    injected.append((label_line_no, f"@event QUEST_TICK_COMPLETED quest={qid!r} tick={tid!r}"))
-                    injected.append((label_line_no, f"GOAL: complete {qid!r} {tid!r}"))
+                    injected.append((label_line_no, f"QUEST_TICK_SHOW {qid!r} {tid!r}"))
+                    injected.append((label_line_no, f"QUEST_TICK_COMPLETED quest={qid!r} tick={tid!r}"))
+                    injected.append((label_line_no, f"QUEST_TICK_TICK {qid!r} {tid!r}"))
 
                     # Emit injected lines first, then any author-provided flow lines
                     _emit_flow(injected + flow_lines, source_path)

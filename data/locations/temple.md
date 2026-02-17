@@ -2,7 +2,7 @@
 type: location
 id: temple
 name: Dawn Clinic
-description: Clean sheets, soft lights, and careful hands.
+desc: Clean sheets, soft lights, and careful hands.
 map_type: city
 map_x: 900
 map_y: 700

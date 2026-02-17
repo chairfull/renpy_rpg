@@ -1,5 +1,4 @@
-﻿define config.layers = [ 'master', 'transient', 'topdown', 'screens', 'overlay', 'tooltip' ]    
-
+﻿define config.layers = [ 'topdown', 'master', 'transient', 'screens', 'overlay', 'tooltip' ]    
 define narr = Character("Narrator")
 
 label start:
@@ -30,31 +29,23 @@ label start:
     
     # After selection, the screen jumps to the intro label.
     # If selection is cancelled, fall back to the main loop.
-    jump world_loop
+    jump world_loop_start
 
-label world_loop:
+label world_loop_start:
     window hide
     $ loc = world.current_location
     show screen quest_panel onlayer overlay
-    call screen top_down_map(loc) onlayer topdown
+    show screen top_down_screen onlayer topdown
     jump world_loop
 
-init -5 python:
-    import math
-
-    class FlowQueueManager(object):
-        def __init__(self):
-            self.queue = []
-            self.active_label = None
-
-        def queue_label(self, label_name):
-            if label_name and renpy.has_label(label_name):
-                self.queue.append(label_name)
-
-        def process(self):
-            if not self.active_label and self.queue:
-                self.active_label = self.queue.pop(0)
-                renpy.call_in_new_context(self.active_label)
-                self.active_label = None
-
-default flow_queue = FlowQueueManager()
+label world_loop:
+    python:
+        if loop_queue:
+            qtype, args, kwargs = loop_queue.pop(0)
+            if qtype == "label":
+                renpy.call(args[0], *args[1:], **kwargs)
+            elif qtype == "screen":
+                renpy.show_screen(args[0], *args[1:], **kwargs)
+            else:
+                raise ValueError(f"Unknown loop queue type: {qtype}")
+    jump world_loop

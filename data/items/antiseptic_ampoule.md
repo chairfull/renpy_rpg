@@ -2,7 +2,7 @@
 type: item
 id: antiseptic_ampoule
 name: Antiseptic Ampoule
-description: A sealed dose that eases fever and stabilizes wounds.
+desc: A sealed dose that eases fever and stabilizes wounds.
 weight: 0.3
 value: 25
 stack_size: 5

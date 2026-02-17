@@ -2,7 +2,7 @@
 type: shop
 id: general_store
 name: Relief Depot
-description: The main distribution point for rations and repair kits.
+desc: The main distribution point for rations and repair kits.
 buy_mult: 1.1
 sell_mult: 0.6
 items:

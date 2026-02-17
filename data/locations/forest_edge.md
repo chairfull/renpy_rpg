@@ -2,7 +2,7 @@
 type: location
 id: forest_edge
 name: Outskirts Line
-description: The fence line where the city thins into overgrowth and silent lots.
+desc: The fence line where the city thins into overgrowth and silent lots.
 map_type: wilderness
 map_x: 600
 map_y: 500

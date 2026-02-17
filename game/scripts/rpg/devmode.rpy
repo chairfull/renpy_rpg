@@ -104,7 +104,7 @@ screen dev_items_view():
                     xfill True
                     vbox:
                         text "[item_base.name] ([item_id])" size 20 color "#eee"
-                        text "[item_base.description]" size 14 color "#999"
+                        text "[item_base.desc]" size 14 color "#999"
                     
                     textbutton "ADD TO INVENTORY":
                         align (1.0, 0.5)

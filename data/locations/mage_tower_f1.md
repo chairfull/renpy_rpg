@@ -2,7 +2,7 @@
 type: location
 id: mage_tower_f1
 name: Broadcast Tower Lobby
-description: Dusty consoles and a sealed control room.
+desc: Dusty consoles and a sealed control room.
 map_type: floor
 parent: mage_tower
 map_x: 1200
@@ -13,7 +13,7 @@ entities:
   - id: signal_console
     type: object
     name: Signal Console
-    description: A flickering screen covered in grime. It hums with a steady rhythm.
+    desc: A flickering screen covered in grime. It hums with a steady rhythm.
     label: console_interaction
     x: 800
     y: 400

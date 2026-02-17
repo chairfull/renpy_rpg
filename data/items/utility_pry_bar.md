@@ -2,7 +2,7 @@
 type: item
 id: utility_pry_bar
 name: Utility Pry Bar
-description: A solid metal bar for lifting panels and opening jammed doors.
+desc: A solid metal bar for lifting panels and opening jammed doors.
 weight: 2.0
 value: 50
 tags:

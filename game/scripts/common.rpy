@@ -1,4 +1,4 @@
-init -1000 python:
+init -3000 python:
     import json
     import math
 
@@ -71,6 +71,125 @@ init -1000 python:
             with open("debug_load.txt", "a") as df:
                 df.write("JSON Load Error: {}\n".format(str(e)))
             return {}
+    
+    class Vector2:
+        def __init__(self, x=0.0, y=0.0):
+            self.reset(x, y)
+        
+        def _xy(self, x=0.0, y=0.0):
+            if isinstance(x, (list, tuple)):
+                if len(x) == 2:
+                    x, y = x
+                elif len(x) == 3:
+                    x, _, y = x
+                else:
+                    raise ValueError("Expected a list or tuple of 2-3 elements")
+            elif isinstance(x, Vector2):
+                x, y = x.x, x.y
+            elif isinstance(x, Vector3):
+                x, y = x.x, x.z
+            return x, y
+
+        def __add__(self, other):
+            return Vector2(self.x + other.x, self.y + other.y)
+
+        def __sub__(self, other):
+            return Vector2(self.x - other.x, self.y - other.y)
+
+        def __mul__(self, scalar):
+            return Vector2(self.x * scalar, self.y * scalar)
+
+        def length(self):
+            return math.sqrt(self.x**2.0 + self.y**2.0)
+        
+        def reset(self, x=0.0, y=0.0):
+            self.x, self.y = self._xy(x, y)
+        
+        def move(self, x=0.0, y=0.0):
+            x, y = self._xy(x, y)
+            self.x += x
+            self.y += y
+
+        def normalized(self):
+            l = self.length()
+            if l == 0:
+                return Vector2(0.0, 0.0)
+            return Vector2(self.x / l, self.y / l)
+
+        def lerp(self, other, t):
+            return Vector2(
+                lerp(self.x, other.x, t),
+                lerp(self.y, other.y, t)
+            )
+
+    class Vector3:
+        def __init__(self, x=0.0, y=0.0, z=0.0):
+            self.reset(x, y, z)
+        
+        def __add__(self, other):
+            return Vector3(self.x + other.x, self.y + other.y, self.z + other.z)
+
+        def __sub__(self, other):
+            return Vector3(self.x - other.x, self.y - other.y, self.z - other.z)
+
+        def __mul__(self, scalar):
+            return Vector3(self.x * scalar, self.y * scalar, self.z * scalar)
+
+        def __getattr__(self, name):
+            if name == "xz":
+                return Vector2(self.x, self.z)
+            raise AttributeError(f"'Vector3' object has no attribute '{name}'")
+
+        def __setattr__(self, name, value):
+            if name == "xz":
+                if isinstance(value, Vector2):
+                    self.__dict__["x"] = value.x
+                    self.__dict__["z"] = value.y
+                elif isinstance(value, (list, tuple)) and len(value) == 2:
+                    self.__dict__["x"] = value[0]
+                    self.__dict__["z"] = value[1]
+            else:
+                super().__setattr__(name, value)
+
+        def _xyz(self, x=0.0, y=0.0, z=0.0):
+            if isinstance(x, (list, tuple)):
+                if len(x) == 3:
+                    x, y, z = x
+                elif len(x) == 2:
+                    x, z = x
+                    y = 0.0
+                else:
+                    raise ValueError("Expected a list or tuple of 2-3 elements")
+            elif isinstance(x, Vector2):
+                x, z = x.x, x.z
+            elif isinstance(x, Vector3):
+                x, y, z = x.x, x.y, x.z
+            return x, y, z
+        
+        def reset(self, x=0.0, y=0.0, z=0.0): 
+            self.x, self.y, self.z = self._xyz(x, y, z)
+
+        def move(self, x=0.0, y=0.0, z=0.0):
+            x, y, z = self._xyz(x, y, z)
+            self.x += x
+            self.y += y
+            self.z += z
+
+        def length(self):
+            return math.sqrt(self.x**2 + self.y**2 + self.z**2)
+
+        def normalized(self):
+            l = self.length()
+            if l == 0:
+                return Vector3(0.0, 0.0, 0.0)
+            return Vector3(self.x / l, self.y / l, self.z / l)
+            
+        def lerp(self, other, t):
+            return Vector3(
+                lerp(self.x, other.x, t),
+                lerp(self.y, other.y, t),
+                lerp(self.z, other.z, t)
+            )
 
 # This is a placeholder cell screen. Replace with actual content based on cell_data.
 screen grid_page_cell(cell_data):

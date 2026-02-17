@@ -2,7 +2,7 @@
 type: item
 id: signal_baton
 name: Signal Baton
-description: A weighted baton tuned to knock and tap without harm.
+desc: A weighted baton tuned to knock and tap without harm.
 value: 10
 weight: 2.5
 equip_slots:

@@ -235,7 +235,7 @@ screen equipment_screen():
 #                                 if item.equip_slots:
 #                                     action SetVariable("selected_slot", item)
 #                                 else:
-#                                     action Notify(f"{item.name}: {item.description}")
+#                                     action Notify(f"{item.name}: {item.desc}")
                                 
 #                                 tooltip item_tooltip_text(item, count)
                                 

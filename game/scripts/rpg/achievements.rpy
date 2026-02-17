@@ -7,10 +7,10 @@ init 10 python:
         selected_achievement=None)
 
     class Achievement:
-        def __init__(self, id, name, description, icon="🏆", tags=None, trigger=None, ticks_required=1, **kwargs):
+        def __init__(self, id, name, desc, icon="🏆", tags=None, trigger=None, ticks_required=1, **kwargs):
             self.id = id
             self.name = name
-            self.description = description
+            self.desc = desc
             self.icon = icon
             self.tags = set(tags or [])
             self.trigger = trigger or {}  # {event: "EVENT_NAME", key: value, cond: "..."}
@@ -144,7 +144,7 @@ screen achievement_toast(ach):
                 spacing 5
                 text "ACHIEVEMENT UNLOCKED!" size 18 color "#ffd700" bold True
                 text "[ach.name]" size 28 color ach.color bold True
-                text "[ach.description]" size 16 color "#aaaaaa"
+                text "[ach.desc]" size 16 color "#aaaaaa"
                 hbox:
                     spacing 10
                     text "[ach.rarity!u]" size 14 color ach.color
@@ -225,4 +225,4 @@ screen achievements_screen(meta_menu):
                                             text "?????" size 20 color "#666"
                                             if hint:
                                                 text "[hint]" size 14 color "#777"
-                                text ("[ach.description]" if is_unlocked else "") size 16 color "#bbb"
+                                text ("[ach.desc]" if is_unlocked else "") size 16 color "#bbb"

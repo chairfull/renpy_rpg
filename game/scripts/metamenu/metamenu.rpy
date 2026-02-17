@@ -1,6 +1,6 @@
 default meta_menu = MetaMenu()
 
-init -100 python:
+init -1900 python:
     class MetaMenuTab:
         def __init__(self, id, emoji, name, **kwargs):
             self.id = id

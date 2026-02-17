@@ -2,7 +2,7 @@
 type: item
 id: ration_bar
 name: Ration Bar
-description: A compact calorie bar for quick energy.
+desc: A compact calorie bar for quick energy.
 weight: 0.2
 value: 5
 stack_size: 20

@@ -2,7 +2,7 @@
 type: quest
 id: formal_intro
 name: Chain of Command
-description: Meet the leaders keeping the district steady.
+desc: Meet the leaders keeping the district steady.
 ---
 
 # Started

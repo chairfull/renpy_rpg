@@ -2,7 +2,7 @@
 type: character
 name: Hakim
 id: hakim
-description: Manages the settlement's ration crates, medical supplies, and barter ledgers.
+desc: Manages the settlement's ration crates, medical supplies, and barter ledgers.
 location: market
 pos: 600,550
 factions:

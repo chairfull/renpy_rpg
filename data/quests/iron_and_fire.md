@@ -2,7 +2,7 @@
 type: quest
 id: iron_and_fire
 name: Tools and Fire
-description: Mechanic Greta needs materials to build non-lethal tools and alarms.
+desc: Mechanic Greta needs materials to build non-lethal tools and alarms.
 ---
 
 # Started

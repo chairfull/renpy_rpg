@@ -3,7 +3,7 @@ type: character
 name: Elena
 id: elena
 base_image: chars/female_fit.png
-description: A high-tension combat medic who specializes in frequency-induced trauma and Sleeper-bite stabilization.
+desc: A high-tension combat medic who specializes in frequency-induced trauma and Sleeper-bite stabilization.
 location: temple
 pos: 500,300
 factions:

@@ -1,7 +1,7 @@
-default time_manager = TimeManager()
+default date_time = DateTime()
 
 init 10 python:
-    class TimeManager(object):
+    class DateTime(object):
         def __init__(self, hour=8, minute=0, day=1):
             self.hour, self.minute = hour, minute
             self.day = day
@@ -37,7 +37,7 @@ init 10 python:
             except Exception:
                 pass
     
-    def reload_time_manager(data):
-        time_manager.hour = data.get("time", {}).get("hour", 8)
-        time_manager.minute = data.get("time", {}).get("minute", 0)
-        time_manager.day = data.get("time", {}).get("day", 1)
+    def reload_date_time(data):
+        date_time.hour = data.get("time", {}).get("hour", 8)
+        date_time.minute = data.get("time", {}).get("minute", 0)
+        date_time.day = data.get("time", {}).get("day", 1)

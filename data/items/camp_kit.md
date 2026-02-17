@@ -2,7 +2,7 @@
 type: item
 id: camp_kit
 name: Camp Kit
-description: A light bundle for resting outdoors.
+desc: A light bundle for resting outdoors.
 weight: 1.0
 value: 20
 tags:

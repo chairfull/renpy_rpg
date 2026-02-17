@@ -9,9 +9,9 @@ init -90 python:
     onstart(add_meta_menu_tab, "characters", "📞", "Characters",
         selected_character=None)
 
-    class RPGCharacter(Equipment):
+    class RPGCharacter(Equipment, Entity, PathFollower):
         def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, affinity=0, schedule=None, companion_mods=None, is_companion=False, owner_id=None, gender=None, age=None, height=None, weight=None, hair_color=None, eye_color=None, hair_style=None, face_shape=None, breast_size=None, dick_size=None, foot_size=None, skin_tone=None, build=None, distinctive_feature=None, equipment=None, **kwargs):
-            super(RPGCharacter, self).__init__(id, name, owner_id=(owner_id or id), **kwargs)
+            super(RPGCharacter, self).__init__(**kwargs)
             if self.max_weight is None:
                 base_weight = 50
                 self.max_weight = base_weight + (self.stats.get("strength", 0) * 5)
@@ -58,6 +58,27 @@ init -90 python:
             self.skin_tone = skin_tone
             self.build = build
             self.distinctive_feature = distinctive_feature
+
+        def update(self, dt):
+            PathFollower.update_path_following(self, dt)
+            # if self.moving and self.path:
+            #     target = self.path[0]
+            #     dif = target - character
+            #     length = dif.length()
+            #     norm = dif.normal()
+            #     # dist = math.hypot(dx, dy)
+                
+            #     if length < self.speed * dt:
+            #         character.reset(target)
+            #         self.path.pop(0)
+            #         if not self.path:
+            #             self.moving = False
+            #             self.check_interaction()
+            #             self.check_pending_exit()
+            #     else:
+            #         self.move(norm * self.speed * dt)
+            #         angle = math.degrees(math.atan2(norm.z, norm.x))
+            #         self.target_rotation = angle + 90 + 180
 
         def _parse_height_to_inches(self, value):
             if value is None:
@@ -224,21 +245,15 @@ init -90 python:
             return self.pchar(what, *args, **kwargs)
         
         def interact(self):
-            renpy.store._interact_target_char = self
             import store
-            store.flow_queue.queue_label("_char_interaction_wrapper")
+            renpy.store._interact_target_char = self
+            queue("label", "_char_interaction_wrapper")
         
         def mark_as_met(self):
-            journal_manager.unlock(self.name, self.description)
+            journal_manager.unlock(self.name, self.desc)
         
-        def is_member_of(self, faction_id):
+        def in_faction(self, faction_id):
             return faction_id in self.factions
-        
-        def join_faction(self, faction_id):
-            self.factions.add(faction_id)
-        
-        def leave_faction(self, faction_id):
-            self.factions.discard(faction_id)
         
         def tick_effects(self):
             now = time_manager.total_minutes
@@ -743,7 +758,7 @@ screen character_detail_screen():
                 
                 text "👤" size 60 xalign 0.5
                 text char.name size 24 color "#ffd700" xalign 0.5
-                text char.description size 14 color "#888" xalign 0.5 text_align 0.5
+                text char.desc size 14 color "#888" xalign 0.5 text_align 0.5
                 
                 null height 10
                 
