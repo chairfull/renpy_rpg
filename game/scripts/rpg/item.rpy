@@ -1,7 +1,7 @@
 init -1400 python:
-    class Item(TaggedObject):
+    class Item(Taggable):
         def __init__(self, name="Unknown", desc="", weight=0, value=0, volume=0, tags=None, factions=None, equip_slots=None, outfit_part=None, stackable=False, stack_size=1, quantity=1, owner_id=None, stolen=False, image=None, actions=None, id=None, **kwargs):
-            TaggedObject.__init__(self, tags)
+            Taggable.__init__(self, tags)
             self.id = id
             self.factions = set(factions or [])
             self.name = name

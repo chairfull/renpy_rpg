@@ -2,16 +2,52 @@ init -99 python:
     onstart(add_meta_menu_tab, "equipment", "🛡️", "Equipment",
         selected_equipment_slot=None)
 
-    class Equipment(Inventory):
-        def __init__(self):
-            self.body_type = body_type
+    # Mixin for objects that can equip items.
+    class HasEquipment(Inventory):
+        def __init__(self, *args, **kwargs):
+            Inventory.__init__(self, *args, **kwargs)
+            self.equip = body_type
             self.equipment = {}
         
         def get_equipped_in_slot(self, slot_id):
             return self.equipment.get(slot_id)
+
+        # Seed and equip a character from a slot -> item_id map.
+        def apply_equipment(self, equipment):
+            if not equipment:
+                return
+            if not isinstance(equipment, dict):
+                return
+            for slot_id, item_id in equipment.items():
+                if not item_id:
+                    continue
+                target_id = str(item_id).lower()
+                itm = None
+                for owned in self.items:
+                    if self._item_id(owned) == target_id and owned not in self.equipped_slots.values():
+                        itm = owned
+                        break
+                if itm is None:
+                    itm = item_manager.get(item_id)
+                    if not itm:
+                        continue
+                    if getattr(itm, "owner_id", None) is None:
+                        itm.owner_id = self.id
+                    # Seed into inventory so equip removes it cleanly
+                    self.add_item(itm, count=1, force=True, reason="equip_seed")
+                    if itm not in self.items:
+                        for owned in self.items:
+                            if self._item_id(owned) == target_id and owned not in self.equipped_slots.values():
+                                itm = owned
+                                break
+                ok, _msg = self.equip(itm, slot_id)
+                if not ok:
+                    # Fall back to inventory if equip fails (invalid slot or tag mismatch)
+                    if itm not in self.items:
+                        self.add_item(itm, count=1, force=True, reason="equip_seed")
         
+        # Check if item can be equipped to slot.
         def can_equip_to_slot(self, item, slot_id):
-            """Check if item can be equipped to slot"""
             valid_slots = slot_registry.get_slots_for_body(self.body_type)
             if slot_id not in valid_slots:
                 return False, "Invalid slot for this body type"
@@ -20,8 +56,8 @@ init -99 python:
                 return False, "Item cannot be equipped to this slot"
             return True, "OK"
         
+        # Equip item to slot, handling conflicts.
         def equip(self, item, slot_id):
-            """Equip item to slot, handling conflicts"""
             can, msg = self.can_equip_to_slot(item, slot_id)
             if not can:
                 return False, msg
@@ -43,52 +79,30 @@ init -99 python:
                 if removed:
                     equipped = removed
             self.equipment[slot_id] = equipped
-            signal("ITEM_EQUIPPED", actor=self.id, slot=slot_id, item_id=item_manager.get_id_of(equipped))
+            ITEM_EQUIPPED.emit(character=self, slot=slot_id, item=equipped)
             return True, "Equipped"
         
+        # Unequip item from slot back to inventory.
         def unequip(self, slot_id):
-            """Unequip item from slot back to inventory"""
             if slot_id not in self.equipment:
                 return False
             item = self.equipment.pop(slot_id)
             self.add_item(item, count=None, force=True, reason="unequip")
-            signal("ITEM_UNEQUIPPED", actor=self.id, slot=slot_id, item_id=item_manager.get_id_of(item))
+            ITEM_UNEQUIPPED.emit(character=self, slot=slot_id, item=item)
             return True
 
-    class EquipmentSlot:
+    class ItemSlot:
         def __init__(self, id, name, equip_slots=None, unequips=None):
             self.id = id
             self.name = name
             self.equip_slots = equip_slots or []  # List of slot_ids this item can be equipped to
             self.unequips = unequips or []        # List of slot_ids that would be unequipped when equipping to this slot
     
-    class EquipmentSlotSet:
+    class ItemSlotSet:
         def __init__(self, id, name, slots):
             self.id = id
             self.name = name
             self.slots = slots
-    
-    # class EquipmentManager:
-    #     def __init__(self):
-    #         self.slots = {}
-    #         self.body_types = {}
-        
-    #     def get_slots_for_body(self, body_type):
-    #         bt = self.body_types.get(body_type, {})
-    #         return bt.get("slots", [])
-        
-    #     def get_conflicting_slots(self, slot_id):
-    #         """Get slots that would be unequipped when equipping to slot_id"""
-    #         conflicts = set()
-    #         slot_def = self.slots.get(slot_id, {})
-    #         # Direct unequips from this slot
-    #         conflicts.update(slot_def.get("unequips", []))
-    #         # Reverse: slots that list this slot in their unequips
-    #         for other_id, other_def in self.slots.items():
-    #             if slot_id in other_def.get("unequips", []):
-    #                 conflicts.add(other_id)
-    #         return conflicts
-
 
 screen equipment_screen():
     $ body_slots = slot_registry.get_slots_for_body(character.body_type)

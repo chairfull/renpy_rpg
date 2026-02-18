@@ -95,7 +95,7 @@ character: I have the protocol drive from the Spire. The lobby was full of themâ
 mara: Every year we lose more to the drift. This drive... it's the first real data we've had on their resonance in a decade.
 mara: Give me a moment to patch it into the main console. We need to see if we can broadcast a counter-tone.
 NOTIFY "Deciphering protocol..."
-GIVE protocol_deciphered 1
-FLAG SET protocol_deciphered true
+GIVE protocol_deciphered
+FLAG_SET protocol_deciphered true
 mara: There. It's not just a signal. It's a bridge. We can lead them away, or we can shut their cognitive resonance down entirely.
 ```

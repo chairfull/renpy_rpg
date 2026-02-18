@@ -8,21 +8,17 @@ init -90 python:
     onstart(add_meta_menu_tab, "characters", "📞", "Characters",
         selected_character=None)
 
-    class RPGCharacter(Equipment, Entity, PathFollower):
-        def __init__(self, id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, affinity=0, schedule=None, companion_mods=None, is_companion=False, owner_id=None, gender=None, age=None, height=None, weight=None, hair_color=None, eye_color=None, hair_style=None, face_shape=None, breast_size=None, dick_size=None, foot_size=None, skin_tone=None, build=None, distinctive_feature=None, equipment=None, **kwargs):
-            super(RPGCharacter, self).__init__(**kwargs)
-            if self.max_weight is None:
-                base_weight = 50
-                self.max_weight = base_weight + (self.stats.get("strength", 0) * 5)
-            if self.max_slots is None:
-                base_slots = 24
-                self.max_slots = base_slots + max(0, int(self.stats.get("strength", 0) // 2))
-            self._update_encumbrance()
-            self.factions = set(factions or [])
-            self.schedule = schedule or {}  # "HH:MM": "loc_id"
+    class RPGCharacter(Entity, HasTraits, Flaggable, Equipable, PathFollower):
+        def __init__(self, _id, name, stats=None, location_id=None, factions=None, body_type="humanoid", base_image=None, td_sprite=None, affinity=0, schedule=None, companion_mods=None, is_companion=False, owner_id=None, gender=None, age=None, height=None, weight=None, hair_color=None, eye_color=None, hair_style=None, face_shape=None, breast_size=None, dick_size=None, foot_size=None, skin_tone=None, build=None, distinctive_feature=None, equipment=None, **kwargs):
+            Entity.__init__(self, **kwargs)
+            HasTraits.__init__(self, **kwargs)
+            Flaggable.__init__(self, **kwargs)
+            Equipable.__init__(self, **kwargs)
+            PathFollower.__init__(self)
+            self.id = _id
+            self.schedule = schedule or {}
             self.base_image = base_image
             self.following = None
-            self.give_flows = {}
             
             # Determine TD Sprite
             if td_sprite:
@@ -37,18 +33,10 @@ init -90 python:
             self.location_id = location_id
             self.pchar = Character(name)
             self.dialogue_history = set()
-            self.perks = {}
-            self.stats = {}
-            self.fixated_to = None
+            self.fixture = None
             # Appearance metadata
-            self.gender = gender
-            self.age = age
-            self.height = height
-            self.weight = weight
-            self.height_in = self._parse_height_to_inches(height)
-            self.weight_lbs = self._parse_weight_to_lbs(weight)
-            self.hair_color = hair_color
-            self.hair_style = hair_style
+            self.height_in = parse_height_to_inches(height)
+            self.weight_lbs = parse_weight_to_lbs(weight)
             self.eye_color = eye_color
             self.face_shape = face_shape
             self.breast_size = breast_size
@@ -79,119 +67,8 @@ init -90 python:
             #         angle = math.degrees(math.atan2(norm.z, norm.x))
             #         self.target_rotation = angle + 90 + 180
 
-        def _parse_height_to_inches(self, value):
-            if value is None:
-                return None
-            if isinstance(value, (int, float)):
-                return float(value)
-            s = str(value).strip().lower()
-            if not s:
-                return None
-            # 5'10" or 5 ft 10 in
-            if "'" in s or "ft" in s:
-                ft = 0.0
-                inch = 0.0
-                # normalize separators
-                s = s.replace("feet", "ft").replace("foot", "ft").replace("inches", "in").replace("inch", "in").replace("\"", "in")
-                parts = s.replace("ft", " ft ").replace("in", " in ").replace("'", " ft ").split()
-                for i in range(len(parts)):
-                    token = parts[i]
-                    if token.replace(".", "", 1).isdigit():
-                        num = float(token)
-                        unit = parts[i + 1] if i + 1 < len(parts) else ""
-                        if unit == "ft":
-                            ft = num
-                        elif unit == "in":
-                            inch = num
-                return ft * 12.0 + inch
-            if "cm" in s:
-                try:
-                    num = float(s.replace("cm", "").strip())
-                    return num / 2.54
-                except Exception:
-                    return None
-            if "m" in s:
-                try:
-                    num = float(s.replace("m", "").strip())
-                    return (num * 100.0) / 2.54
-                except Exception:
-                    return None
-            if "in" in s:
-                try:
-                    return float(s.replace("in", "").strip())
-                except Exception:
-                    return None
-            try:
-                return float(s)
-            except Exception:
-                return None
-
-        def _parse_weight_to_lbs(self, value):
-            if value is None:
-                return None
-            if isinstance(value, (int, float)):
-                return float(value)
-            s = str(value).strip().lower()
-            if not s:
-                return None
-            if "kg" in s:
-                try:
-                    num = float(s.replace("kg", "").strip())
-                    return num * 2.20462
-                except Exception:
-                    return None
-            if "g" in s and "kg" not in s:
-                try:
-                    num = float(s.replace("g", "").strip())
-                    return num * 0.00220462
-                except Exception:
-                    return None
-            if "lb" in s or "lbs" in s:
-                try:
-                    return float(s.replace("lbs", "").replace("lb", "").strip())
-                except Exception:
-                    return None
-            try:
-                return float(s)
-            except Exception:
-                return None
-
         def is_player(self):
             return self == character
-
-        def apply_equipment(self, equipment):
-            """Seed and equip a character from a slot -> item_id map."""
-            if not equipment:
-                return
-            if not isinstance(equipment, dict):
-                return
-            for slot_id, item_id in equipment.items():
-                if not item_id:
-                    continue
-                target_id = str(item_id).lower()
-                itm = None
-                for owned in self.items:
-                    if self._item_id(owned) == target_id and owned not in self.equipped_slots.values():
-                        itm = owned
-                        break
-                if itm is None:
-                    itm = item_manager.get(item_id)
-                    if not itm:
-                        continue
-                    if getattr(itm, "owner_id", None) is None:
-                        itm.owner_id = self.id
-                    # Seed into inventory so equip removes it cleanly
-                    self.add_item(itm, count=1, force=True, reason="equip_seed")
-                    if itm not in self.items:
-                        for owned in self.items:
-                            if self._item_id(owned) == target_id and owned not in self.equipped_slots.values():
-                                itm = owned
-                                break
-                ok, _msg = self.equip(itm, slot_id)
-                if not ok:
-                    # Fall back to inventory if equip fails (invalid slot or tag mismatch)
-                    if itm not in self.items:
-                        self.add_item(itm, count=1, force=True, reason="equip_seed")
 
         def check_schedule(self):
             """Move character if current time matches a schedule entry"""
@@ -243,33 +120,11 @@ init -90 python:
         def __call__(self, what, *args, **kwargs):
             return self.pchar(what, *args, **kwargs)
         
-        def interact(self):
-            import store
-            renpy.store._interact_target_char = self
-            queue("label", "_char_interaction_wrapper")
+        def interact(self, form="talk"):
+            queue_internal_label(self, form)
         
         def mark_as_met(self):
-            journal_manager.unlock(self.name, self.desc)
-        
-        def in_faction(self, faction_id):
-            return faction_id in self.factions
-        
-        def tick_effects(self):
-            now = time_manager.total_minutes
-            for arr, manager, label in [
-                (self.active_perks, perk_manager, "Perk"),
-                (self.active_statuses, status_manager, "Status")
-            ]:
-                expired = []
-                for e in arr:
-                    if e.get("expires_at") is not None and now >= e["expires_at"]:
-                        expired.append(e["id"])
-                if expired:
-                    arr[:] = [e for e in arr if e["id"] not in expired]
-                    for eid in expired:
-                        obj = manager.get(eid)
-                        if obj:
-                            renpy.notify(f"{label} expired: {obj.name}")
+            lore.unlock(self.id)
         
         def add_perk(self, perk_id, duration_minutes=None):
             p = perk_manager.get(perk_id)
@@ -290,18 +145,9 @@ init -90 python:
             self.active_perks[:] = [e for e in self.active_perks if e["id"] != perk_id]
             return len(self.active_perks) != before
 
-        def is_fixated(self, fixture_id=None):
-            if not self.fixated_to:
-                return False
-            if fixture_id is None:
-                return True
-            return self.fixated_to == fixture_id
-
-        def fixate(self, fixture):
-            return fixture_manager.fixate_char(self, fixture)
-
-        def unfixate(self):
-            return fixture_manager.unfixate_char(self)
+        @property
+        def fixated(self, fixture_id=None):
+            return self.fixture != None
         
         def get_stat_total(self, name):
             base = self.stats.get(name, 0)
@@ -330,7 +176,6 @@ init -90 python:
     class RelationSet:
         def __init__(self):
             self.types = {}
-
 
 transform char_menu_fade:
     on show:

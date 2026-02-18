@@ -8,7 +8,7 @@ name: Night Alarm
 ```flow
 A soft shuffling outside your tarp.
 You hold your breath and listen.
-CHECK dexterity 12 SCENE__camp_ambush__steady SCENE__camp_ambush__panic
+CHECK dexterity 12
 ```
 
 # Steady

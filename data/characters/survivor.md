@@ -5,7 +5,7 @@ name: Survivor
 desc: A veteran of the Dead Zones who can hear the rhythm of the Silence.
 base_image: chars/male_fit.png
 location: market
-pos: 960,800
+pos: [960,0,800]
 stats:
   strength: 14
   dexterity: 12

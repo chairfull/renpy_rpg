@@ -19,14 +19,14 @@ init 10 python:
         def __init__(self):
             self.achievements = {}
         
+        # Get current tick progress for an achievement.
         def get_progress(self, ach_id):
-            """Get current tick progress for an achievement."""
             if persistent.achievement_progress is None:
                 persistent.achievement_progress = {}
             return persistent.achievement_progress.get(ach_id, 0)
         
+        # Add ticks to an achievement's progress. Auto-unlocks when complete.
         def add_tick(self, ach_id, count=1):
-            """Add ticks to an achievement's progress. Auto-unlocks when complete."""
             if persistent.achievement_progress is None:
                 persistent.achievement_progress = {}
             
@@ -62,47 +62,40 @@ init 10 python:
                 return True
             return False
         
+        """Check if achievement is unlocked."""
         def is_unlocked(self, ach_id):
-            """Check if achievement is unlocked."""
             if persistent.achievements is None:
                 return False
             return ach_id in persistent.achievements
         
+        """Get all registered achievements."""
         def get_all(self):
-            """Get all registered achievements."""
             return sorted(self.achievements.values(), key=lambda x: (x.rarity != "legendary", x.rarity != "epic", x.name))
         
+        """Get all unlocked achievements."""
         def get_unlocked(self):
-            """Get all unlocked achievements."""
             if persistent.achievements is None:
                 return []
             return [self.achievements[aid] for aid in persistent.achievements if aid in self.achievements]
         
+        """Get all locked achievements."""
         def get_locked(self):
-            """Get all locked achievements."""
             if persistent.achievements is None:
                 return list(self.achievements.values())
             return [a for a in self.achievements.values() if a.id not in persistent.achievements]
         
+        """Calculate total achievement points."""
         @property
         def total_points(self):
-            """Calculate total achievement points."""
             return sum(a.points for a in self.get_unlocked())
         
+        """Get progress as text (e.g., '3/10')."""
         @property
         def progress_text(self):
-            """Get progress as text (e.g., '3/10')."""
             unlocked = len(self.get_unlocked())
             total = len(self.achievements)
             return f"{unlocked}/{total}"
     
-    def reload_achievement_manager(data):
-        achievement_manager.achievements = {}
-        for ach_id, ach_data in data.get("achievements", {}).items():
-            achievement_manager.achievements[ach_id] = from_dict(Achievement, ach_data, id=ach_id)
-    
-
-# Beautiful toast notification for achievement unlock
 screen achievement_toast(ach):
     zorder 200
     modal False

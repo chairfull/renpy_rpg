@@ -4,9 +4,26 @@ default td_screen = TopDownScreen()
 init -2000 python:
     import math
 
+    #region Flow actions.
+    FLOW_ACTIONS = {}
+
+    def flow_action(name):
+        def decorator(func):
+            FLOW_ACTIONS[name] = func
+            return func
+        return decorator
+    
+    def call_flow_action(action_name, *args, **kwargs):
+        func = FLOW_ACTIONS.get(action_name)
+        if not func:
+            raise Exception(f"Unknown flow action: {action_name}")
+        return func(*args, **kwargs)
+    #endregion
+
+    #region Initialisation.
     _early = []
     _initialised = False
-
+    
     def onstart(*args, **kwargs):
         _early.append((args, kwargs))
     
@@ -23,6 +40,7 @@ init -2000 python:
                 except Exception:
                     pass
         _initialised = True
+    #endregion
 
     # TODO: Replace
     def safe_eval_bool(expr, context):
@@ -43,9 +61,9 @@ init -2000 python:
         return ok
 
     # Mixin for objects with tags for filtering.
-    class TaggedObject:
+    class Taggable:
         def __init__(self, tags=None, **kwargs):
-            self.tags = _normalize_tags(tags)
+            self.tags = tags
         
         def has_tag(self, tag):
             return tag in self.tags
@@ -61,24 +79,6 @@ init -2000 python:
         
         def remove_tag(self, tag):
             self.tags.discard(tag)
-    
-    # Mixin for objects with flags for filtering
-    class FlaggedObject:
-        def __init__(self, flags=None, **kwargs):
-            self.flags = flags or {}
-        
-        def has_flag(self, flag):
-            return self.flags.get(flag, False)
-        
-        def set_flag(self, flag, value=True):
-            self.flags[flag] = value
-        
-        def clear_flag(self, flag):
-            if flag in self.flags:
-                del self.flags[flag]
-        
-        def toggle_flag(self, flag):
-            self.flags[flag] = not self.flags.get(flag, False)
 
     def queue(qtype, *args, **kwargs):
         loop_queue.append((qtype, args, kwargs))
@@ -88,6 +88,16 @@ init -2000 python:
             queue("label", label, *args, **kwargs)
         else:
             raise ValueError(f"Label '{label}' does not exist.")
+    
+    # Find label of pattern: OBJ_CLASS_NAME.obj_id.suffix
+    def queue_internal_label(obj, suffix=None, *args, **kwargs):
+        class_name = obj.__class__.__name__.upper()
+        if class_name == "RPGCHARACTER":
+            class_name = "CHARACTER"
+        label = f"{class_name}.{obj.id}"
+        if suffix:
+            label = f".{suffix}"
+        queue_label(label, *args, **kwargs)
 
     def queue_screen(screen, *args, **kwargs):
         if renpy.has_screen(screen):
@@ -99,9 +109,9 @@ init -2000 python:
         return True if getattr(globals(), f_id) else False
 
     # Objects drawn to the screen.
-    class ScreenElement(Vector3):
+    class ScreenElement:
         def __init__(self, position=Vector3(), tooltip=None, action=None, transform=None, sprite=None):
-            Vector3.__init__(self, position)
+            self.position = position
             self.tooltip = tooltip
             self.sprite = sprite
             self.transform = transform
@@ -117,9 +127,9 @@ init -2000 python:
             return self.action
     
     # Objects in the world, often drawn to screen.
-    class Entity(TaggedObject, ScreenElement):
+    class Entity(Taggable, ScreenElement):
         def __init__(self, position, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None, depth=None, is_player=False, rotation=0, requires_approach=False, hit_anchor=(0.5, 0.5), hit_size=(120, 120), id=None, **kwargs):
-            TaggedObject.__init__(self, kwargs.get("tags", None))
+            Taggable.__init__(self, kwargs.get("tags", None))
             ScreenElement.__init__(self, position=position, tooltip=tooltip, action=action, transform=kwargs.get("transform", None), sprite=sprite)
             self.id = id
             self.idle_anim = idle_anim
@@ -133,35 +143,32 @@ init -2000 python:
             if self.label: renpy.jump(self.label)
             else: renpy.say(None, f"You see {self.name}. {self.desc}")
 
-    class Camera(Vector3):
+    class Camera:
         def __init__(self, position=Vector3(), zoom=1.0):
-            Vector3.__init__(self, position)
-            self.screen_size = Vector2(1920, 1080)
+            self.position = position
+            self.screen_size = Vector3(1920, 0, 1080)
             self.screen_center = self.screen_size / 2.0
             self.zoom = zoom
             self.target_zoom = zoom
             self._snapped = False # Camera snap flag - skip lerp on first frame after setup
         
         def update(self, dt):
-            target_cam = character.xz - self.screen_center
+            target_cam = character.position - self.screen_center
             
             # Skip lerp if camera was just snapped (first frame after setup)
             if self._snapped:
-                self.xz = target_cam
+                self.position = target_cam
                 self._snapped = False
             else:
                 lerp_speed = dt * 5.0
-                self.xz = Vector2(
-                    lerp(self.x, target_cam.x, lerp_speed),
-                    lerp(self.z, target_cam.y, lerp_speed)
-                )
+                self.position = self.position.lerp(target_cam, lerp_speed)
         
             if abs(self.zoom - self.target_zoom) < 0.001:
                 return None # Already at target, no update needed
             else:
                 # Get current center point in world coords BEFORE zoom changes
                 old_zoom = self.zoom
-                center_world = (self.xz + self.screen_center) / old_zoom
+                center_world = (self.position + self.screen_center) / old_zoom
                 
                 # Lerp zoom (fast but smooth), snap when very close
                 if abs(self.zoom - self.target_zoom) < 0.01:
@@ -170,20 +177,20 @@ init -2000 python:
                     self.zoom = lerp(self.zoom, self.target_zoom, 0.2)
                 
                 # Calculate new scroll position to maintain center (always, including final frame)
-                self.xz = center_world * self.zoom - self.screen_center
+                self.position = center_world * self.zoom - self.screen_center
 
         def set_zoom(self, z):
             self.target_zoom = clamp(z, 0.5, 5.0)
 
         def snap_to(self, target):
-            self.xz = target.xz - self.screen_center
+            self.position = target.position - self.screen_center
         
         def world_to_screen(self, wx, wy):
             return (wx - self.x, wy - self.z)
         
         def screen_to_world(self, sx, sy):
-            rel = (Vector2(sx, sy) - self.screen_center) / self.zoom
-            return rel + self.screen_center + self.xz
+            rel = (Vector3(sx, 0, sy) - self.screen_center) / self.zoom
+            return rel + self.screen_center + self.position
 
     class TopDownScreen:
         def __init__(self):
@@ -192,7 +199,7 @@ init -2000 python:
             self.last_update = 0
             self.cell_size = 40 # Grid size for pathfinding
             self.current_location = None
-            self.screen_center = Vector2(1920, 1080) // 2
+            self.screen_center = Vector3(1920, 0, 1080) // 2
             self.camera = Camera()
             self.interaction_callback = None
 

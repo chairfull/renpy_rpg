@@ -1,9 +1,9 @@
 import re, yaml
 from pathlib import Path
 
-_fm   = re.compile(r"^---\s*\n(.*?)\n---\s*\n?", re.S)
-_head = re.compile(r"^(#{1,6})\s+(.+)", re.M)
-_code = re.compile(r"```(\w+)?\n(.*?)```", re.S)
+re_md_front_matter = re.compile(r"^---\s*\n(.*?)\n---\s*\n?", re.S)
+re_md_heading = re.compile(r"^(#{1,6})\s+(.+)", re.M)
+re_md_code_block = re.compile(r"```(\w+)?\n(.*?)```", re.S)
 
 re_flow_action = re.compile(
     r'^(?P<head>[A-Z]{3,}[A-Z0-9_]*)'
@@ -37,8 +37,8 @@ def flow_to_rpy(code):
                     kwargs.append(f"{k}={v}")
                 else:
                     args.append(t)
-            
-            rpy.append(f"$ {head.lower()}({', '.join(args + kwargs)})")
+
+            rpy.append(f"$ call_flow_action(\"{head}\", {', '.join(args + kwargs)})")
             continue
         
         # Speaker.
@@ -57,14 +57,14 @@ md_codeblock_parsers = {
  }
 
 def parse_markdown(text: str):
-    fm_match = _fm.match(text)
+    fm_match = re_md_front_matter.match(text)
     frontmatter = yaml.safe_load(fm_match.group(1)) if fm_match else {}
     body = text[fm_match.end():] if fm_match else text
 
     headings = {}
-    stack = []  # [(depth, name)]
+    stack = [] # [(depth, name)]
 
-    matches = list(_head.finditer(body))
+    matches = list(re_md_heading.finditer(body))
     for i, h in enumerate(matches):
         depth = len(h.group(1))
         name  = h.group(2).strip()
@@ -80,7 +80,7 @@ def parse_markdown(text: str):
         section = body[start:end]
 
         blocks = []
-        for lang, code in _code.findall(section):
+        for lang, code in re_md_code_block.findall(section):
             lang = (lang or "").lower()
             if lang in md_codeblock_parsers:
                 parsed = md_codeblock_parsers[lang](code)
@@ -95,9 +95,3 @@ def parse_markdown(text: str):
         }
 
     return frontmatter or {}, headings
-
-
-
-# usage
-# text = Path("file.md").read_text(encoding="utf-8")
-# fm, heads = parse_markdown(text)

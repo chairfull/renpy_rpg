@@ -36,11 +36,11 @@ init -1000 python:
             quest_id, tick_id = self.id.split("#", 1)
             return get_quest(quest_id)
         
-        def queue_internal_label(self, suffix=None, *args, **kwargs):
-            quest_id, tick_id = self.id.split("#", 1)
-            base = f"QUEST__{quest_id}__TICK__{tick_id}"
-            label = f"{base}__{suffix}" if suffix else base
-            queue_label(label, *args, **kwargs)
+        # def queue_internal_label(self, suffix=None, *args, **kwargs):
+        #     quest_id, tick_id = self.id.split("#", 1)
+        #     base = f"QUEST__{quest_id}__TICK__{tick_id}"
+        #     label = f"{base}__{suffix}" if suffix else base
+        #     queue_label(label, *args, **kwargs)
 
         def start(self):
             if self.active:
@@ -67,9 +67,9 @@ init -1000 python:
             if self.completed:
                 QUEST_TICK_COMPLETED.emit(quest=self.quest, tick=self)
 
-    class Quest(TaggedObject):
+    class Quest(Taggable):
         def __init__(self, id, name, desc="", tags=[], giver=None, location=None, prereqs=None, rewards=None, start_trigger=None, origin=False, character=None, image=None, outcomes=None):
-            TaggedObject.__init__(self, tags)
+            Taggable.__init__(self, tags)
             self.id = id
             self.name = name
             self.desc = desc
@@ -90,11 +90,6 @@ init -1000 python:
             tick = QuestTick(*args, **kwargs)
             self.ticks[id] = tick
             return self
-        
-        def queue_internal_label(self, suffix=None, *args, **kwargs):
-            base = f"QUEST__{self.id}"
-            label = f"{base}__{suffix}" if suffix else base
-            queue_label(label, *args, **kwargs)
 
         def can_start(self):
             # Quest prereqs: quests passed + flags set + optional condition.
@@ -125,7 +120,7 @@ init -1000 python:
                     self.ticks[0].state = "active"
                 renpy.notify(f"Quest Started: {self.name}")
                 QUEST_STARTED.emit(quest=self)
-                self.queue_internal_label("started")
+                queue_internal_label(self, "started")
                 return True
             return False
 
@@ -133,13 +128,13 @@ init -1000 python:
             self.state = "passed"
             renpy.notify(f"Quest Completed: {self.name}")
             QUEST_COMPLETED.emit(quest=self)
-            self.queue_internal_label("passed")
+            queue_internal_label(self, "passed")
 
         def fail(self):
             self.state = "failed"
             renpy.notify(f"Quest Failed: {self.name}")
             QUEST_FAILED.emit(quest=self)
-            self.queue_internal_label("failed")
+            queue_internal_label(self, "failed")
 
     # Signals
     GAME_STARTED = create_signal(origin=Quest)
