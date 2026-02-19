@@ -22,7 +22,7 @@ init -10 python:
     
     # Mixin for objects that can have flags.
     # IDs should include a path to the object, so for Zone: zone_id.flag_id
-    class Flaggable:
+    class HasFlags:
         def __init__(self, flags={}):
             self.flags = {}
             for flag_id, flag_default = flags.items():

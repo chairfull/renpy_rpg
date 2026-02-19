@@ -61,13 +61,13 @@ init -2000 python:
         return ok
 
     # Mixin for objects with tags for filtering.
-    class Taggable:
+    class HasTags:
         def __init__(self, tags=None, **kwargs):
             self.tags = tags
         
         def has_tag(self, tag):
             return tag in self.tags
-        
+
         def has_any_tag(self, tags):
             return bool(self.tags & tags)
         
@@ -105,43 +105,9 @@ init -2000 python:
         else:
             raise ValueError(f"Screen '{screen}' does not exist.")
 
-    def test_function(f_id):
-        return True if getattr(globals(), f_id) else False
+    def test_condition(f_id):
+        return True if getattr(globals(), f"_cond_{f_id}") else False
 
-    # Objects drawn to the screen.
-    class ScreenElement:
-        def __init__(self, position=Vector3(), tooltip=None, action=None, transform=None, sprite=None):
-            self.position = position
-            self.tooltip = tooltip
-            self.sprite = sprite
-            self.transform = transform
-            self.action = action if action is not None else []
-            self.rotation = rotation
-            self.anchor = (0.5, 0.5)
-            self.size = (120, 120)
-            
-        def transform(self):
-            return self.transform
-        
-        def action(self):
-            return self.action
-    
-    # Objects in the world, often drawn to screen.
-    class Entity(Taggable, ScreenElement):
-        def __init__(self, position, sprite, action=None, tooltip=None, idle_anim=False, sprite_tint=None, label=None, depth=None, is_player=False, rotation=0, requires_approach=False, hit_anchor=(0.5, 0.5), hit_size=(120, 120), id=None, **kwargs):
-            Taggable.__init__(self, kwargs.get("tags", None))
-            ScreenElement.__init__(self, position=position, tooltip=tooltip, action=action, transform=kwargs.get("transform", None), sprite=sprite)
-            self.id = id
-            self.idle_anim = idle_anim
-            self.sprite_tint = sprite_tint
-            self.label = label
-            self.requires_approach = requires_approach
-            self.hit_anchor = hit_anchor
-            self.hit_size = hit_size
-        
-        def interact(self):
-            if self.label: renpy.jump(self.label)
-            else: renpy.say(None, f"You see {self.name}. {self.desc}")
 
     class Camera:
         def __init__(self, position=Vector3(), zoom=1.0):

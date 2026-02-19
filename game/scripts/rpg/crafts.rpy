@@ -19,7 +19,7 @@ init -1300 python:
         
         if craft.req_skill:
             for skill, level in craft.req_skill.items():
-                if character.stats.get(skill) < level:
+                if player.stats.get(skill) < level:
                     return False, f"Need {skill} {level}"
         
         return True, "OK"
@@ -84,7 +84,7 @@ screen crafting_screen(mmtab=None):
                         $ itm = item_manager.get(i_id)
                         $ itm_name = itm.name if itm else i_id
                         # Check count in inventory
-                        $ have = character.get_item_count(item_id=i_id)
+                        $ have = player.get_item_count(item_id=i_id)
                         
                         hbox:
                             text "• [itm_name] x[count]" size 20 color ("#50fa7b" if have >= count else "#ff5555")
@@ -93,7 +93,7 @@ screen crafting_screen(mmtab=None):
                     null height 20
                     
                     textbutton "CRAFT":
-                        action [Function(crafting_manager.craft, rec, character), Function(renpy.restart_interaction)]
+                        action [Function(crafting_manager.craft, rec, player), Function(renpy.restart_interaction)]
                         background "#444" padding (30, 15)
                         text_style "tab_button_text"
 

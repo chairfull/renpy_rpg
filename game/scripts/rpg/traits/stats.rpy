@@ -6,7 +6,7 @@ init 10 python:
             Trait.__init__(self, *args, **kwargs)
 
 screen stats_screen():
-    $ states = character.get_traits(Stat)
+    $ states = player.get_traits(Stat)
     hbox:
         spacing 40
         xalign 0.5
@@ -20,7 +20,7 @@ screen stats_screen():
                 vbox:
                     align (0.5, 0.5)
                     text "👤" size 150 xalign 0.5
-                    text "[character.name]" size 30 xalign 0.5 color "#ffd700"
+                    text "[player.name]" size 30 xalign 0.5 color "#ffd700"
             frame:
                 background "#222"
                 padding (20, 20)
@@ -29,9 +29,9 @@ screen stats_screen():
                     spacing 5
                     # text "Gold: [character.gold]" size 22 color "#ffd700"
                     null height 10
-                    $ outfit_name = getattr(character, "current_outfit", "Default")
+                    $ outfit_name = getattr(player, "current_outfit", "Default")
                     text "Outfit: [outfit_name.capitalize()]" size 20 color "#ffffff"
-                    for part, item in character.equipped_items.items():
+                    for part, item in player.equipped_items.items():
                         text "[part.capitalize()]: [item.name]" size 16 color "#cccccc"
         frame:
             background "#222"
@@ -40,7 +40,7 @@ screen stats_screen():
             vbox:
                 spacing 15
                 text "Attributes" size 28 color "#ffd700"
-                $ stats = character.stats
+                $ stats = player.stats
                 python:
                     # Filter out HP stats and anything else starting with underscore
                     display_stats = sorted([s for s in stats.keys() if s not in ('hp', 'max_hp') and not s.startswith('_')])
@@ -51,8 +51,8 @@ screen stats_screen():
                     for s_key in display_stats:
                         $ sname = get_stat_display_name(s_key)
                         $ sicon = get_stat_icon(s_key)
-                        $ total = character.get_stat_total(s_key)
-                        $ mod = character.get_stat_mod(s_key)
+                        $ total = player.get_stat_total(s_key)
+                        $ mod = player.get_stat_mod(s_key)
                         hbox:
                             xfill True
                             text "[sicon] [sname]" size 22 color "#ffffff"

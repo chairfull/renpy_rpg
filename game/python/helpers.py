@@ -5,14 +5,61 @@ re_md_front_matter = re.compile(r"^---\s*\n(.*?)\n---\s*\n?", re.S)
 re_md_heading = re.compile(r"^(#{1,6})\s+(.+)", re.M)
 re_md_code_block = re.compile(r"```(\w+)?\n(.*?)```", re.S)
 
-re_flow_action = re.compile(
-    r'^(?P<head>[A-Z]{3,}[A-Z0-9_]*)'
-    r'(?:\s+(?:(?P<kw>[a-zA-Z_]\w*)='
-    r'(?P<kwval>"[^"]*"|\[[^\]]*\]|[^\s]+)'
-    r'|(?P<arg>"[^"]*"|\[[^\]]*\]|[^\s]+)))*$'
-)
+re_flow_action_head = re.compile(r'^[A-Z]{3,}[A-Z0-9_]*')
 
-def flow_to_rpy(code):
+def str_to_var(md_id, var):
+    if var.startswith("#"): return f'"{md_id}{var}"'.replace("-", "_")
+    if var.replace("-", "_") == md_id: return f'"{md_id}"'.replace("-", "_")
+    return var
+
+def flow_action_tokenize(md_id, s):
+    tokens = []
+    buf = []
+    depth = 0
+    quote = None
+
+    for c in s:
+        if quote:
+            buf.append(c)
+            if c == quote:
+                quote = None
+            continue
+
+        if c in ('"', "'"):
+            quote = c
+            buf.append(c)
+            continue
+
+        if c in "([{":
+            depth += 1
+        elif c in ")]}":
+            depth -= 1
+
+        if c.isspace() and depth == 0:
+            if buf:
+                tokens.append("".join(buf))
+                buf = []
+        else:
+            buf.append(c)
+
+    if buf:
+        tokens.append("".join(buf))
+
+    head = tokens[0]
+    args = []
+    kwargs = []
+
+    for tok in tokens[1:]:
+        if "=" in tok:
+            k, v = tok.split("=", 1)
+            kwargs.append(f"{k}={str_to_var(md_id, v)}")
+        else:
+            args.append(str_to_var(md_id, tok))
+    
+    return head, args, kwargs
+
+
+def flow_to_rpy(md_id, code, actions):
     rpy = []
     for line in code.splitlines(): 
         line = line.strip()
@@ -25,20 +72,11 @@ def flow_to_rpy(code):
             continue
         
         # Action line.
-        m = re_flow_action.match(line)
+        m = re_flow_action_head.match(line)
         if m:
-            head = m.group("head")
-            tokens = line.split()[1:]
-            args = []
-            kwargs = []
-            for t in tokens:
-                if "=" in t and not t.startswith('"'):
-                    k, v = t.split("=", 1)
-                    kwargs.append(f"{k}={v}")
-                else:
-                    args.append(t)
-
-            rpy.append(f"$ call_flow_action(\"{head}\", {', '.join(args + kwargs)})")
+            head, args, kwargs = flow_action_tokenize(md_id, line)
+            actions[head] = actions.get(head, 0) + 1
+            rpy.append(f"$ call_flow_action({head}, {', '.join(args + kwargs)})")
             continue
         
         # Speaker.
@@ -51,10 +89,8 @@ def flow_to_rpy(code):
         rpy.append(f'"{line}"')
     return "\n".join(rpy)
 
-md_codeblock_parsers = {
-    "yaml": lambda code: yaml.safe_load(code),
-    "flow": lambda code: flow_to_rpy(code),
- }
+def parse_yaml(text: str):
+    return yaml.safe_load(text)
 
 def parse_markdown(text: str):
     fm_match = re_md_front_matter.match(text)
@@ -81,17 +117,8 @@ def parse_markdown(text: str):
 
         blocks = []
         for lang, code in re_md_code_block.findall(section):
-            lang = (lang or "").lower()
-            if lang in md_codeblock_parsers:
-                parsed = md_codeblock_parsers[lang](code)
-                blocks.append({"language": lang, "parsed": parsed})
-            # else:
-            #     blocks.append({"language": lang, "content": code})
+            blocks.append({"lang": lang, "code": code})
         
-        headings[hid] = {
-            "name": name,
-            "depth": depth,
-            "codeblocks": blocks,
-        }
+        headings[hid] = { "name": name, "depth": depth, "codeblocks": blocks, }
 
     return frontmatter or {}, headings

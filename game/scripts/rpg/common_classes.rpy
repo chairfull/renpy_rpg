@@ -1,9 +1,30 @@
 init -3000 python:
+    class HasScreen:
+        """Object that can draw to screen."""
+        def __init__(self, position=Vector3(), tooltip=None, action=None, transform=None, sprite=None):
+            self.position = position
+            self.tooltip = tooltip
+            self.sprite = sprite
+            self.transform = transform
+            self.action = action if action is not None else []
+            self.rotation = rotation
+            self.anchor = (0.5, 0.5)
+            self.size = (120, 120)
+        
+        def update_screen(self, dt):
+            pass
+
+        def transform(self):
+            return self.transform
+        
+        def action(self):
+            return self.action
+
     class Trigger:
-        def __init__(self, event_name, event_state={}, condition=None, flags=None):
+        def __init__(self, event_name, event_state={}, cond=None, flags=None):
             self.event_name = event_name # Event that triggers this tick.
             self.event_state = event_state # State the event should be in.
-            self.condition = condition # Condition to be met if not None.
+            self.cond = cond # Condition to be met if not None.
             self.flags = flags # Optional quick test against flags.
         
         def check(self, event, **kwargs):
@@ -19,8 +40,8 @@ init -3000 python:
                 for flag in self.flags:
                     if not flag_get(flag, False):
                         return False
-            if self.condition:
-                if not test_function(self.condition):
+            if self.cond:
+                if not test_condition(self.condition):
                     return False
             return True
 
@@ -109,4 +130,93 @@ init -3000 python:
        
         def move_towards(self, other, t):
             self.reset(*self.lerp(other, t))
-        
+    
+    class Milligrams(int):
+        CONVERSIONS = {
+            "mg": 1,
+            "g": 1_000,
+            "kg": 1_000_000,
+            "oz": 28_349,
+            "lb": 453_592,
+            "lbs": 453_592,
+            "grain": 65,
+            "grains": 65,
+        }
+
+        @classmethod
+        def parse(cls, value):
+            if isinstance(value, str):
+                value = value.strip().lower()
+                for unit, factor in cls.CONVERSIONS.items():
+                    if value.endswith(unit):
+                        number = float(value[:-len(unit)].strip())
+                        return cls(round(number * factor))
+                raise ValueError(f"Unknown unit in: {value!r}")
+            return cls(value)
+
+        def __add__(self, other):
+            return Milligrams(int(self) + int(Milligrams.parse(other)))
+
+        def __radd__(self, other):
+            return Milligrams(int(Milligrams.parse(other)) + int(self))
+
+        def __sub__(self, other):
+            return Milligrams(int(self) - int(Milligrams.parse(other)))
+
+        def __repr__(self):
+            return f"{int(self)}mg"
+
+        def __getattr__(self, name):
+            unit = name.lstrip("_").rstrip("_").replace("_", " ")
+            if unit in self.CONVERSIONS:
+                return int(self) / float(self.CONVERSIONS[unit])
+            raise AttributeError(f"Unknown unit: {name!r}")
+
+    class Millimeters(int):
+        CONVERSIONS = {
+            "mm": 1,
+            "cm": 10,
+            "m": 1_000,
+            "km": 1_000_000,
+            "in": 25.4,
+            "inch": 25.4,
+            "inches": 25.4,
+            "ft": 305,
+            "feet": 305,
+            "foot": 305,
+            "yd": 914,
+            "yard": 914,
+            "yards": 914,
+            "mi": 1_609_344,
+            "mile": 1_609_344,
+            "miles": 1_609_344,
+        }
+
+        @classmethod
+        def parse(cls, value):
+            if isinstance(value, str):
+                value = value.strip().lower()
+                for unit, factor in cls.CONVERSIONS.items():
+                    if value.endswith(unit):
+                        number = float(value[:-len(unit)].strip())
+                        return cls(round(number * factor))
+                raise ValueError(f"Unknown unit in: {value!r}")
+            return cls(value)
+
+        def __add__(self, other):
+            return Millimeters(int(self) + int(Millimeters.parse(other)))
+
+        def __radd__(self, other):
+            return Millimeters(int(Millimeters.parse(other)) + int(self))
+
+        def __sub__(self, other):
+            return Millimeters(int(self) - int(Millimeters.parse(other)))
+
+        def __repr__(self):
+            return f"{int(self)}mm"
+
+        def __getattr__(self, name):
+            unit = name.lstrip("_").rstrip("_").replace("_", " ")
+            if unit in self.CONVERSIONS:
+                return int(self) / float(self.CONVERSIONS[unit])
+            raise AttributeError(f"Unknown unit: {name!r}")

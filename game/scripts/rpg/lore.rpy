@@ -4,12 +4,12 @@ init python:
             self.id = _id
             self.name = name
     
-    class Lore(Taggable):
+    class Lore(HasTags):
         def __init__(self, _id, name, content, tags=None, unlocked=False):
+            HasTags.__init__(self, tags)
             self.id = _id
             self.name = name
             self.content = content
-            self.tags = tags
             self.unlocked = unlocked
         
         def unlock(self):
@@ -18,6 +18,12 @@ init python:
             self.unlocked = True
             LORE_UNLOCKED.emit(lore=self)
     
+    @flow_action("LORE")
+    def unlock_lore(_id):
+        lore = all_lore.get(_id)
+        if lore:
+            lore.unlock()
+
     LORE_UNLOCKED = create_signal(id=str)
 
 # TODO: Add a screen to the main pause menu. These are persistent across game play.

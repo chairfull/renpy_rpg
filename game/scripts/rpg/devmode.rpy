@@ -108,7 +108,7 @@ screen dev_items_view():
                     
                     textbutton "ADD TO INVENTORY":
                         align (1.0, 0.5)
-                        action Function(character.add_item, item_manager.get(item_id))
+                        action Function(player.add_item, item_manager.get(item_id))
                         text_size 16
 
 screen dev_locations_view():

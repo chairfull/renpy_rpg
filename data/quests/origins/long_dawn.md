@@ -3,14 +3,13 @@ type: quest
 id: long_dawn
 name: The Long Dawn
 desc: Track the Spire's shifting signal and protect the settlement through calm, non-violent guidance.
-category: main
-origin: true
-character: survivor
-image: chars/male_fit.png
+tags: [true]
 ---
 
 # Started
 ```flow
+PLAYER survivor
+ZONE docks
 You check your route map and count the turns to the Broadcast Tower.
 A mayor at the line says the signal shifted again and wants anything you learn.
 Mara sends a runner to learn why the Broadcast Tower changed its pulse and how to guide the sleepers without harm.

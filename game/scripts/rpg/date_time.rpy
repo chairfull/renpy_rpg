@@ -5,7 +5,8 @@ init 10 python:
             self.day = day
         
         @property
-        def time_string(self): return "{:02d}:{:02d} (Day {})".format(self.hour, self.minute, self.day)
+        def time_string(self):
+            return "{:02d}:{:02d} (Day {})".format(self.hour, self.minute, self.day)
         
         @property
         def time_of_day(self):
@@ -31,6 +32,6 @@ init 10 python:
             world.update_schedules()
             # tick timed effects
             try:
-                character.tick_effects()
+                player.tick_effects()
             except Exception:
                 pass

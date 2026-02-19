@@ -33,14 +33,8 @@ init -1000 python:
         
         @property
         def quest(self):
-            quest_id, tick_id = self.id.split("#", 1)
+            quest_id, tick_id = self.id.split("__", 1)
             return get_quest(quest_id)
-        
-        # def queue_internal_label(self, suffix=None, *args, **kwargs):
-        #     quest_id, tick_id = self.id.split("#", 1)
-        #     base = f"QUEST__{quest_id}__TICK__{tick_id}"
-        #     label = f"{base}__{suffix}" if suffix else base
-        #     queue_label(label, *args, **kwargs)
 
         def start(self):
             if self.active:
@@ -67,23 +61,13 @@ init -1000 python:
             if self.completed:
                 QUEST_TICK_COMPLETED.emit(quest=self.quest, tick=self)
 
-    class Quest(Taggable):
-        def __init__(self, id, name, desc="", tags=[], giver=None, location=None, prereqs=None, rewards=None, start_trigger=None, origin=False, character=None, image=None, outcomes=None):
-            Taggable.__init__(self, tags)
+    class Quest(HasTags):
+        def __init__(self, id, name, desc="", tags=[], prereqs=None):
+            HasTags.__init__(self, tags)
             self.id = id
             self.name = name
             self.desc = desc
-            self.giver = giver
-            self.location = location
             self.prereqs = prereqs or {}
-            self.rewards = rewards or {}
-            self.rewards_applied = False
-            self.outcomes = outcomes or []
-            self.start_trigger = start_trigger or {}
-            self.origin = bool(origin)
-            self.character = character
-            self.image = image
-            self.state = "unknown"
             self.ticks = {}
         
         def add_tick(self, id, *args, **kwargs):
@@ -326,16 +310,6 @@ init -1000 python:
     #                 df.write("Quest Load Error ({}): {}\n".format(quest_id, str(e)))
 
     def _finish_origin_selection(origin):
-        # Set global player from the origin's character ID
-        if origin.character:
-            char = world.characters.get(origin.character)
-            if char:
-                renpy.store.character = char
-                # Ensure starting location is set from character
-                if renpy.store.character.location_id:
-                    world.move_to(renpy.store.character.location_id)
-        # Core origin bootstrapping lives here.
-        flag_set("origin", origin.id)
         GAME_STARTED.emit(origin=origin)
 
         renpy.hide_screen("story_select_screen")
@@ -347,28 +321,6 @@ init -1000 python:
         
         renpy.transition(fade)
         renpy.jump("world_loop")
-
-
-    def quest_next_tick(q):
-        # Prefer active/shown ticks; fall back to first incomplete.
-        for t in q.ticks:
-            if t.state in ["active", "shown"]:
-                return t
-        for t in q.ticks:
-            if t.state != "complete":
-                return t
-        return None
-
-    def quest_status_label(q):
-        if q.state == "active":
-            return "ACTIVE"
-        if q.state == "passed":
-            return "COMPLETED"
-        if q.state == "failed":
-            return "FAILED"
-        if q.state == "known":
-            return "KNOWN"
-        return "HIDDEN"
 
     def quest_get_choices_for_menu(menu_id, char=None):
         """Return list of available quest-provided choices for a given menu target (char id or menu id).
@@ -397,26 +349,6 @@ init -1000 python:
         except Exception as e:
             renpy.log(f"Error while gathering quest choices for menu {menu_id}: {e}")
         return res
-
-    def _on_quest_tick(etype, **kwargs):
-        try:
-            qid = kwargs.get('quest')
-            tick_id = kwargs.get('tick')
-            q = quest_manager.quests.get(qid)
-            t = None
-            if q:
-                for tt in q.ticks:
-                    if tt.id == tick_id:
-                        t = tt
-                        break
-            if q and t:
-                renpy.notify(f"Goal updated: {q.name} — {t.name}")
-            elif q:
-                renpy.notify(f"Goal updated: {q.name}")
-            else:
-                renpy.notify(f"Goal updated")
-        except Exception:
-            pass
     
     QUEST_TICKED.connect(_on_quest_tick)
 

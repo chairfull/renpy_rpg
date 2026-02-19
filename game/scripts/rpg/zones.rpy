@@ -1,5 +1,3 @@
-default zone = None # Current location
-
 init -1500 python:
     class ZoneType:
         OVERWORLD = "overworld"
@@ -11,14 +9,15 @@ init -1500 python:
         FLOOR = "floor"
 
     onstart(add_meta_menu_tab, "zones", "🗺️", "Locations",
-        map_mode=ZoneType.OVERWORLD,
+        mode=ZoneType.OVERWORLD,
         selected_overworld=None,
         selected_location=None,
         selected_area=None)
 
-    class Gate:
-        def __init__(self, gtype="physical", difficulty=1, keys=None, locked=True):
-            self.type = gtype
+    class Gate(HasZone):
+        def __init__(self, subtype="physical", difficulty=1, keys=None, locked=True, zone=None, tags=None):
+            HasZone.__init__(self, zone, tags)
+            self.subtype = subtype
             self.difficulty = difficulty
             self.keys = set(keys or [])
             self.locked = locked
@@ -40,12 +39,12 @@ init -1500 python:
         def lock(self):
             self.locked = True
 
-    # A place or object a character can fixate to (seat, bed, table, floor spot).
-    class Fixture(Taggable):
-        def __init__(self, id, name, fixture_type="seat", tags=None, position=Vector3()):
-            Taggable.__init__(self, tags)
-            self.position = position
+    class Fixture(HasZone):
+        """Place a being can fixate to (seat, bed, table, floor spot)."""
+        def __init__(self, id, name, fixture_type="seat", zone=None, tags=None, position=Vector3()):
+            HasZone.__init__(self, zone, tags)
             self.id = id
+            self.position = position
             self.name = name
             self.fixture_type = fixture_type or "seat"
             self.occupant = None
@@ -54,74 +53,98 @@ init -1500 python:
         def occupied(self):
             return self.occupant is not None
 
-        def fixate(self, char):
-            if self.occupant and self.occupant != char.id:
-                return False, "Occupied"
-            # Unfixate from previous fixture if needed
-            if getattr(char, "fixated_to", None) and getattr(char, "fixated_to") != self.id:
-                fixture_manager.unfixate_char(char)
-            self.occupant = char.id
-            char.fixated_to = self.id
-            if self.x is not None and self.y is not None:
-                char.x, char.y = self.x, self.y
-            signal("FIXATED", actor=char.id, fixture=self)
-            return True, "Fixated"
+        def fixate(self, being):
+            if self.occupied:
+                return False
+            self.occupant = being
+            being.fixture = self
+            being.position = self.position
+            FIXATED.emit(fixture=self, being=being)
+            return True
 
-        def unfixate(self, char=None):
-            target_id = self.occupant
-            if char is not None and target_id and target_id != char.id:
-                return False, "Not occupied by this character"
+        def unfixate(self, being=None):
+            if not self.occupied:
+                return False
+            if being != self.occupant:
+                return
+            being = self.occupant
+            being.fixture = None
             self.occupant = None
-            if char is not None:
-                char.fixated_to = None
-            signal("UNFIXATED", actor=target_id, fixture=self)
-            return True, "Unfixated"
+            UNFIXATE.emit(fixture=self, being=being)
+            return True
+    
+    class HasZone(HasTags):
+        def __init__(self, zone=None, tags=None):
+            HasTags.__init__(tags)
+            self.zone = zone
+        
+        @property
+        def zone(self):
+            return get_zone_path()[-1]
 
-    class Zone(Taggable, Flaggable):
-        def __init__(self, id, name, desc, map_image=None, obstacles=None, entities=None, position=Vector3(0,0,0), tags=None,
-                parent_id=None, zone_type="world", flags={}, position=Vector2(), zoom_range=(0.0, 99.0), floor=0):
-            Taggable.__init__(self, tags)
-            Flaggable.__init__(self, flags)
+        def set_zone(self, zone):
+            if self.zone == zone:
+                return False
+            self.zone = zone
+            return True
+        
+        def get_zone_path(self):
+            path = []
+            if hasattr(self, "id"):
+                parts = self.id.split("__")
+            z = self.zone
+            while z:
+                path.append(z)
+                z = z.zone if hasattr(z, "zone") else None
+            return z
+
+    class Zone(HasFlags, HasZone):
+        """Main location class."""
+        def __init__(self, id, name, desc, obstacles=None, entities=None, zone=None, position=Vector3(0,0,0), tags=None,
+                parent_id=None, subtype="world", flags={}, position=Vector2(), floor=0):
             self.id = id
+            HasFlags.__init__(self, flags)
+            HasZone.__init__(self, zone, tags)
             self.name = name
             self.desc = desc
-            self.zone_type = zone_type # world, country, city, structure, floor
-            self.gates = {}
-            self.fixtures = {}
+            self.subtype = subtype
             self.position = position
             self.obstacles = obstacles or set()
             self.entities = entities or {}
-            self.visited = False
-            self.parent_id = parent_id
-            self.map_image = map_image
-            self.min_zoom, self.max_zoom = zoom_range
             self.floor = floor
+            self.visited = False
         
-        def get_path(self, start, end):
-            # Placeholder for pathfinding logic (A* or similar)
+        def mark_visited(self):
+            if self.visited:
+                return
+            self.visited = True
+            LORE
+        
+        def get_path(self, start=Vector3(), end=Vector3()):
+            """Find a path between points."""
+            # TODO: AStart pathfinding.
             return [start, end]
+
+        @property
+        def beings(self):
+            return [x for x in all_beings.values() if x.location == self]
         
         @property
-        def characters(self):
-            return [c for c in all_characters() if getattr(c, 'location_id', None) == self.id and c.id != character.id]
-        
-        def get_tagged(self, tag):
-            return [e for e in self.entities if hasattr(e, 'tags') and tag in e.get('tags', [])]
-        
-        # Return immediate children based on parent_id
-        @property
-        def children(self):
-            return [l for l in all_zones.values() if l.parent_id == self.id]
+        def child_zones(self):
+            """Return child zones."""
+            return [x for x in all_zones.values() if x.zone == self]
+
+        def get_entities(self, tag):
+            return [e for e in self.entities if x.has_tag(tag)]
     
-    def get_zone(loc_id):
-        return all_zones.get(loc_id)
-    
-    # Signals
-    LOCATION_ENTERED = create_signal(character=Character, zone=Zone)
-    LOCATION_EXITED = create_signal(character=Character, zone=Zone)
-    # Fixture signals
-    FIXATED = create_signal(character=Character, fixture=Fixture)
-    UNFIXATED = create_signal(character=Character, fixture=Fixture)
+    ZONE_ENTERED = create_signal(zone=Zone, being=Being)
+    ZONE_EXITED = create_signal(zone=Zone, being=Being)
+    FIXATED = create_signal(being=Being, fixture=Fixture)
+    UNFIXATED = create_signal(being=Being, fixture=Fixture)
+
+    @flow_action("ZONE")
+    def change_zone(self, zone):
+        player.set_zone(zone)
 
 screen zones_screen(mmtab=None):
     frame:

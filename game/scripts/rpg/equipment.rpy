@@ -3,9 +3,9 @@ init -99 python:
         selected_equipment_slot=None)
 
     # Mixin for objects that can equip items.
-    class HasEquipment(Inventory):
+    class HasEquipment(HasItems):
         def __init__(self, *args, **kwargs):
-            Inventory.__init__(self, *args, **kwargs)
+            HasItems.__init__(self, *args, **kwargs)
             self.equip = body_type
             self.equipment = {}
         
@@ -90,19 +90,8 @@ init -99 python:
             self.add_item(item, count=None, force=True, reason="unequip")
             ITEM_UNEQUIPPED.emit(character=self, slot=slot_id, item=item)
             return True
-
-    class ItemSlot:
-        def __init__(self, id, name, equip_slots=None, unequips=None):
-            self.id = id
-            self.name = name
-            self.equip_slots = equip_slots or []  # List of slot_ids this item can be equipped to
-            self.unequips = unequips or []        # List of slot_ids that would be unequipped when equipping to this slot
     
-    class ItemSlotSet:
-        def __init__(self, id, name, slots):
-            self.id = id
-            self.name = name
-            self.slots = slots
+    
 
 screen equipment_screen():
     $ body_slots = slot_registry.get_slots_for_body(character.body_type)
