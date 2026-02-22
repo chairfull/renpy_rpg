@@ -3,9 +3,8 @@ type: location
 name: Relief Exchange
 desc: Lines of crates and a steady flow of supplies.
 image: "#333"
-zone_type: city
+subtype: city
 position: [1100, 0, 900]
-zoom_range: [0.5, 3.0]
 obstacles:
   - [10, 10]
   - [10, 11]

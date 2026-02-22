@@ -4,7 +4,6 @@ id: silent_tide
 name: The Silent Tide
 desc: Follow the sleepers' rhythm to craft a non-violent way to guide them away from the city.
 tags: [origin]
-image: chars/male_thin.png
 ---
 
 # Started
@@ -24,9 +23,7 @@ GOAL_SHOW #ordinary-world
 ```yaml
 type: goal
 desc: Look for the $clerk at the $shop.
-hilight:
-  locations: [shop]
-  objects: [clerk]
+mark: [shop, clerk]
 trigger:
   event: CHAR_MET
   state: { character: clerk }
@@ -45,8 +42,7 @@ GOAL_SHOW #call-to-adventure
 ```yaml
 type: goal
 desc: Check out the $market.
-hilight:
-  locations: [market]
+mark: [market]
 trigger:
   event: LOCATION_ENTERED
   state: { location: market }
@@ -64,8 +60,7 @@ GOAL_SHOW #refusal-of-the-call
 ```yaml
 type: goal
 desc: Visit the $clerk at the $shop.
-hilight:
-  locations: [shop]
+mark: [shop]
 trigger:
   event: LOCATION_ENTERED
   state: { character: theo, location: shop }
@@ -84,9 +79,7 @@ GOAL_SHOW #meeting-the-mentor
 ```yaml
 type: goal
 desc: Talk to $ash at the $tavern.
-hilight:
-  locations: [tavern]
-  objects: [ash]
+mark: [tavern, ash]
 trigger:
   event: CHAR_MET
   state: { a: theo, b: ash }
@@ -104,9 +97,8 @@ GOAL_SHOW #crossing-the-threshold
 ## Crossing the Threshold
 ```yaml
 type: goal
-desk: Visit the docks.
-hiligh:
-  locations: [docks]
+desc: Visit the docks.
+mark: [docks]
 trigger:
   event: LOCATION_ENTERED
   state: { character: theo, location: docks }
@@ -123,8 +115,7 @@ GOAL_SHOW #tests-and-allies
 ## Tests and Allies
 ```yaml
 type: goal
-hilight:
-  locations: [tavern]
+mark: [tavern]
 trigger:
   event: LOCATION_ENTERED
   state: { character: theo, location: tavern }
@@ -142,8 +133,7 @@ GOAL_SHOW #approach
 ## Approach
 ```yaml
 type: goal
-hilight:
-  locations: [mage_tower]
+mark: [mage_tower]
 trigger:
   event: LOCATION_ENTERED
   state: { character: theo, location: mage_tower }
@@ -161,8 +151,7 @@ GOAL_TICK #ordeal
 ```yaml
 type: goal
 desc: Visit the $mage_tower.
-hilight:
-  locations: [mage_tower]
+mark: [mage_tower]
 trigger:
   event: LOCATION_ENTERED
   state: { character: theo, location: mage_tower }
@@ -199,8 +188,7 @@ GOAL_SHOW #the-road-back
 ```yaml
 type: goal
 desc: Head back to temple.
-hilight:
-  locations: [temple]
+mark: [temple]
 trigger:
   event: LOCATION_ENTERED
   state: { character: theo, location: temple }
@@ -218,8 +206,7 @@ GOAL_SHOW #resurrection
 ```yaml
 type: goal
 desc: Visit the market.
-hiligh:
-  locations: [market]
+mark: [market]
 trigger:
   event: LOCATION_ENTERED
   state: { character: theo, location: market }
@@ -237,8 +224,7 @@ GOAL_SHOW #return-with-the-elixer
 ## Return with the Elixir
 ```yaml
 type: goal
-hilight:
-  location: temple
+mark: temple
 trigger:
   event: LOCATION_ENTERED
   state: { character: theo, location: temple }

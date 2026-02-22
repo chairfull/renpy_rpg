@@ -2,9 +2,8 @@
 type: zone
 name: Broadcast Tower
 desc: A concrete spire that once blanketed the city with signal.
-zone_type: structure
+subtype: structure
 position: [1200, 0, 800]
-zoom_range: [2.0, 5.0]
 entities: []
 ---
 
@@ -15,9 +14,8 @@ entities: []
 type: zone
 name: Broadcast Tower Lobby
 desc: Dusty consoles and a sealed control room.
-zone_type: floor
+subtype: floor
 position: [1200, 0, 800]
-zoom_range: [3.0, 5.0]
 floor: 1
 entities:
   - id: signal_console

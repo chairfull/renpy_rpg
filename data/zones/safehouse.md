@@ -5,7 +5,6 @@ desc: A quiet multi-level safehouse assigned to you within the quarantine block.
 tags: [safe]
 subtype: structure
 position: [1000, 0, 1000]
-zoom_range: [2.0, 5.0]
 entities:
   - id: market
     type: link

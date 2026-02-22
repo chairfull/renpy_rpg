@@ -7,10 +7,15 @@ re_md_code_block = re.compile(r"```(\w+)?\n(.*?)```", re.S)
 
 re_flow_action_head = re.compile(r'^[A-Z]{3,}[A-Z0-9_]*')
 
-def str_to_var(md_id, var):
+def safe_var(md_id, var):
     if var.startswith("#"): return f'"{md_id}{var}"'.replace("-", "_")
     if var.replace("-", "_") == md_id: return f'"{md_id}"'.replace("-", "_")
     return var
+
+def safe_key(key):
+    if key in ["from", "to"]:
+        return "_" + key
+    return key
 
 def flow_action_tokenize(md_id, s):
     tokens = []
@@ -52,9 +57,9 @@ def flow_action_tokenize(md_id, s):
     for tok in tokens[1:]:
         if "=" in tok:
             k, v = tok.split("=", 1)
-            kwargs.append(f"{k}={str_to_var(md_id, v)}")
+            kwargs.append(f"{safe_key(k)}={safe_var(md_id, v)}")
         else:
-            args.append(str_to_var(md_id, tok))
+            args.append(safe_var(md_id, tok))
     
     return head, args, kwargs
 

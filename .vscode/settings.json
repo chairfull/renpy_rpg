@@ -5,6 +5,9 @@
         "**/*.rpymc": true,
         "**/cache/": true
     },
+    "python.analysis.extraPaths": [
+        "/home/sh/Documents/renpy-8.4.1-sdk"
+    ],
     "renpyWarp.sdkPath": "/home/sh/Documents/renpy-8.4.1-sdk",
     "editor.tokenColorCustomizations": {
         "textMateRules": [
