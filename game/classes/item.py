@@ -5,13 +5,13 @@ from .milligrams import Milligrams
 
 class Item(HasTags):
     """Base item definition class."""
-    def __init__(self, _id, name="", desc="", weight=0, cost=0, tags=None, equip_slots=None, stack_size=1_000, **kwargs):
+    def __init__(self, _id, name="", desc="", weight=0, value=0, tags=None, equip_slots=None, stack_size=1_000, **kwargs):
         HasTags.__init__(self, tags)
         self.id = _id
         self.name = name
         self.desc = desc
         self.weight = Milligrams(weight)
-        self.cost = cost
+        self.value = value
         self.stack_size = max(1, int(stack_size or 1))
         self.equip_slots = equip_slots or []
         self.icon_override = None
@@ -48,7 +48,7 @@ class Item(HasTags):
         else:
             lines.append(f"Value: {{color=#ffd700}}{self.cost}{{/color}}")
         # Owner.
-        if owner and owner != engine.player:
+        if owner and owner != engine.player():
             lines.append(f"Owner: {owner.name}")
         # Stolen.
         if stolen:

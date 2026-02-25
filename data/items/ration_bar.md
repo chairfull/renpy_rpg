@@ -14,9 +14,9 @@ tags:
 # Inspect
 
 ```flow
-SHOW_ITEM ration_bar
+SHOW ration_bar
 Sealed, _sweet_, and a little chalky.
 It keeps you _moving_.
 Weighs $ration_bar.weight lbs.
-HIDE_ITEM ration_bar
+HIDE ration_bar
 ```

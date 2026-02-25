@@ -74,10 +74,10 @@ transform text_hover_anim:
     subpixel True
     on hover:
         block:
-            ease 0.5 zoom 1.2 rotate -10
+            ease 0.5 zoom 1.2 rotate -2
         block:
-            easein_back 1.0 zoom 0.9 rotate 5
-            easein_back 0.25 zoom 1.2 rotate -10
+            easein_back 0.25 zoom 0.8 rotate -2
+            easein_back 1.0 zoom 1.2 rotate 1
             repeat
     on idle:
         easein_back 0.25 zoom 1.0 rotate 0

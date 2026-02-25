@@ -61,9 +61,9 @@ reason: "Already traveling with you."
 
 ```flow
 lena: Fine. But if you start humming or dragging your feet, I'm leaving you as bait. Keep up.
-COMPANION ADD lena
-FLAG SET scout_joined true
-BOND ADD lena trust 3
+FOLLOWER lena
+FLAG scout_joined
+BOND trust lena
 ```
 
 ## Ask To Part Ways
@@ -79,6 +79,6 @@ reason: "Not traveling with you."
 
 ```flow
 lena: Understood. I'll recalibrate the markers on my way back. Stay quiet.
-COMPANION REMOVE lena
-FLAG SET scout_joined false
+# COMPANION REMOVE lena
+FLAG scout_joined false
 ```

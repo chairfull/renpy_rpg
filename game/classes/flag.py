@@ -29,3 +29,10 @@ class Flag:
 
     def toggle(self):
         self.value = not self.value
+    
+    def reset(self):
+        if self.id not in renpy.store.flag_state:
+            return
+        old_value = self.value
+        renpy.store.flag_state.discard(self.id)
+        engine.FLAG_CHANGED.emit(flag=self, old_value=old_value)

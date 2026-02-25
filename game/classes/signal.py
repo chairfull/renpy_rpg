@@ -7,7 +7,7 @@ class Signal:
         self.id = [k for k, v in inspect.currentframe().f_back.f_locals.items() if v is None][0]
         self.required = required
         self.listeners = set()
-    
+        
     def connect(self, fn):
         self.listeners.add(fn)
     
@@ -16,11 +16,12 @@ class Signal:
 
     def emit(self, **state):
         payload = {}
-        for k, typ in self.required.items():
+
+        for k, clss_str in self.required.items():
             if k not in state:
                 raise ValueError(f"Missing required field {k}")
-            elif not isinstance(state[k], typ):
-                raise TypeError(f"{k} must be {typ}, got {type(state[k])}")
+            # elif isinstance(clss_str, str) and  clss_str != state[k].__class__.__name__:
+            #     raise TypeError(f"{k} must be {clss_str}, got {type(state[k])}")
             else:
                 payload[k] = state[k]
         

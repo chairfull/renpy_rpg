@@ -8,7 +8,7 @@ re_md_code_block = re.compile(r"```(\w+)?\n(.*?)```", re.S)
 re_flow_action_head = re.compile(r'^[A-Z]{3,}[A-Z0-9_]*')
 
 def safe_var(md_id, var):
-    if var.startswith("#"): return f'"{md_id}{var}"'.replace("-", "_")
+    if var.startswith("#"): return f'{md_id}__{var[1:]}'.replace("-", "_")
     if var.replace("-", "_") == md_id: return f'"{md_id}"'.replace("-", "_")
     return var
 
@@ -63,6 +63,8 @@ def flow_action_tokenize(md_id, s):
     
     return head, args, kwargs
 
+def flow_text_to_rpy(txt):
+    return txt
 
 def flow_to_rpy(md_id, code, actions):
     rpy = []
@@ -81,7 +83,7 @@ def flow_to_rpy(md_id, code, actions):
         if m:
             head, args, kwargs = flow_action_tokenize(md_id, line)
             actions[head] = actions.get(head, 0) + 1
-            rpy.append(f"$ call_flow_action({head}, {', '.join(args + kwargs)})")
+            rpy.append(f"$ {head}({', '.join(args + kwargs)})")
             continue
         
         # Speaker.

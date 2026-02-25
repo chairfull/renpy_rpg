@@ -5,17 +5,19 @@ from .has_flags import HasFlags
 from .has_traits import HasTraits
 from .has_items import HasItems
 from .has_path import HasPath
+from .has_rich_text import HasRichText
 from .stat import Stat
 from .perk import Perk
 from .clan import Clan
 
-class Being(HasZone, HasTraits, HasFlags, HasItems, HasPath):
+class Being(HasZone, HasTraits, HasFlags, HasItems, HasPath, HasRichText):
     def __init__(self, _id, name, desc, **kwargs):
         HasZone.__init__(self, zone=kwargs.get("zone"))
         HasTraits.__init__(self, traits=kwargs.get("traits"))
         HasFlags.__init__(self, flags=kwargs.get("flags"))
         HasItems.__init__(self, items=kwargs.get("items"))
         HasPath.__init__(self)
+        HasRichText.__init__(self)
         self.id = _id
         self.name = name
         self.desc = desc
@@ -25,6 +27,11 @@ class Being(HasZone, HasTraits, HasFlags, HasItems, HasPath):
         self.dialogue_history = set()
         self.fixture = None
         engine.all_beings[_id] = self
+
+    def get_rich_string(self, **kwargs):
+        if self.id in engine.all_lore:
+            return "{a:lore=" + self.id + "}{}" + "{/a}"
+        return super().get_rich_string(**kwargs)
 
     def cache_stats(self):
         stats = {}

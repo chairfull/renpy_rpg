@@ -61,7 +61,7 @@ cond: true
 
 ```flow
 elena: Hold still. It's just a diagnostic sweep.
-STATUS REMOVE flu
+STAT flu remove=True
 NOTIFY "Your cognitive resonance stabilizes."
 ```
 
@@ -70,6 +70,6 @@ NOTIFY "Your cognitive resonance stabilizes."
 ## Battery Cell
 ```flow
 elena: Good. I can keep the clinic lights stable for another night.
-GIVE battery_cell from=player to=elena count=1
+GAIN battery_cell from=player who=elena
 NOTIFY "You gave Elena a Battery Cell."
 ```

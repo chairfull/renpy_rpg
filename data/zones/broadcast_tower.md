@@ -33,5 +33,5 @@ player: The screen is asking for an override.
 player: If I can pull the data now, maybe I can make it back before the sleepers shift.
 NOTIFY "Recovering protocol..."
 GAIN broadcast_protocol
-FLAG_SET protocol_recovered true
+FLAG protocol_recovered
 ```

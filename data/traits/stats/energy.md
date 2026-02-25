@@ -1,0 +1,4 @@
+---
+type: state
+name: Energy
+---

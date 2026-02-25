@@ -63,7 +63,7 @@ cond: true
 player: If you need someone fast, I can run the perimeter.
 mara: Good. We're blind out there. Take this route map—it's marked with the latest safe-zones and frequency dead-spots.
 $ mara.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
-BOND ADD mara trust 5
+BOND mara trust 5
 ```
 
 ## Ask About The Signal
@@ -95,7 +95,6 @@ player: I have the protocol drive from the Spire. The lobby was full of them—i
 mara: Every year we lose more to the drift. This drive... it's the first real data we've had on their resonance in a decade.
 mara: Give me a moment to patch it into the main console. We need to see if we can broadcast a counter-tone.
 NOTIFY "Deciphering protocol..."
-GIVE protocol_deciphered
-FLAG_SET protocol_deciphered true
+FLAG protocol_deciphered
 mara: There. It's not just a signal. It's a bridge. We can lead them away, or we can shut their cognitive resonance down entirely.
 ```

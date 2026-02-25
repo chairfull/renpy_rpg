@@ -19,7 +19,7 @@ class Craft(HasTags):
 
         if self.req_skill:
             for skill, level in self.req_skill.items():
-                if engine.player.get_trait(skill) < level:
+                if engine.player().get_trait(skill) < level:
                     return False, f"Need {skill} {level}"
                 
         return True, "OK"

@@ -145,7 +145,7 @@ subtype: room
 
 # Bed
 ```flow
-REST 8
+STAT energy 8
 You wake to the soft hum of the wall speakers.
 ```
 

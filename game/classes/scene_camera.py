@@ -1,27 +1,34 @@
 import renpy.config as config
 from .vector3 import Vector3
 from .util import lerp, clamp
-from .engine import player
 
 class SceneCamera:
     def __init__(self, position=Vector3(), zoom=1.0):
         self.position = position
+        self.target = Vector3()
+        self.follow_target = True
+        self.follow_speed = 0.25
         self.screen_size = Vector3(config.screen_width, 0, config.screen_height)
         self.screen_center = self.screen_size / 2.0
         self.zoom = zoom
         self.target_zoom = zoom
         self._snapped = False # Camera snap flag - skip lerp on first frame after setup
     
-    def update(self, dt):
-        target_cam = player.position - self.screen_center
+    def _ready(self):
+        pass
+
+    def _process(self, dt):
+        # Slowly move camera to target.
+        if self.follow_target:
+            self.position.move_towards(self.target - self.screen_center, self.follow_speed)
         
         # Skip lerp if camera was just snapped (first frame after setup)
-        if self._snapped:
-            self.position = target_cam
-            self._snapped = False
-        else:
-            lerp_speed = dt * 5.0
-            self.position = self.position.lerp(target_cam, lerp_speed)
+        # if self._snapped:
+        #     self.position = target_cam
+        #     self._snapped = False
+        # else:
+        #     lerp_speed = dt * 5.0
+        #     self.position = self.position.lerp(target_cam, lerp_speed)
     
         if abs(self.zoom - self.target_zoom) < 0.001:
             return None # Already at target, no update needed

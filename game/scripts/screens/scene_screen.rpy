@@ -1,5 +1,6 @@
 screen scene_screen():
     """Updates and renders a Scene object and it's children."""
+    modal True
     $ scene = current_scene or null_scene
     zorder 10
     
@@ -7,99 +8,106 @@ screen scene_screen():
     on "show" action [Function(scene._ready)]
     
     # Zoom Controls.
-    key "K_PLUS" action Function(scene.zoom, 0.1)
-    key "K_EQUALS" action Function(scene.zoom, 0.1)
-    key "K_MINUS" action Function(scene.zoom, -0.1)
-    key "mousedown_4" action Function(scene.zoom, 0.1)
-    key "mousedown_5" action Function(scene.zoom, -0.1)
-    # Debug.
-    key "c" action Function(scene.snap_camera)
-    key "h" action Function(scene.toggle_debug)
+    # key "K_PLUS" action Function(scene.zoom, 0.1)
+    # key "K_EQUALS" action Function(scene.zoom, 0.1)
+    # key "K_MINUS" action Function(scene.zoom, -0.1)
+    # key "mousedown_4" action Function(scene.zoom, 0.1)
+    # key "mousedown_5" action Function(scene.zoom, -0.1)
+    # # Debug.
+    # key "c" action Function(scene.snap_camera)
+    # key "h" action Function(scene.toggle_debug)
     
     # Update Loop.
-    timer scene.update_dt action [Function(scene._process, scene.update_dt), NullAction()] repeat True
+    timer scene.update_dt action Function(scene._process, scene.update_dt) repeat True
     
-    fixed:
-        xsize config.screen_width
-        ysize config.screen_height
-        
-        fixed:
-            xfill True
-            yfill True
-            
-            # Non-interactive background elements.
-            for entity in scene.bg:
-                $ ex, ey = camera.world_to_screen(entity.position)
-                add entity.image:
-                    pos (ex, ez)
-            
-            # Detect when clicking nothing.
-            button:
-                area (0, 0, config.screen_width, config.screen_height)
-                action Function(scene._clicked, None)
-                alternate Function(scene._clicked, None, True)
-                background None
-            
-            # Interactive objects.
-            for entity in scene.children:
-                $ epos = camera.world_to_screen(entity.position)
-                if not camera.position_in_view(epos):
-                    continue
-                imagebutton at entity.transform:
-                    pos epos.xz_int
-                    hovered Function(entity._hovered)
-                    unhovered Function(entity._unhovered)
-                    action Function(scene._clicked, entity)
-                    alternate Function(scene._clicked, entity, True)
-                    tooltip entity.tooltip
-                    focus_mask None
-                    background None
+    text "Ass":
+        size 64
+        color "#ffffff"
 
-    $ zone = player.zone
-    frame:
-        align (0.5, 0.02)
-        background "#00000088"
-        padding (20, 8)
-        textbutton "[zone.name]":
-            action [Function(meta_menu.open, "locations")]
-            text_size 28
-            text_color "#ffffff"
-            text_hover_color "#ffd700"
-            background None
-            hover_background None
+    # fixed:
+    #     xsize config.screen_width
+    #     ysize config.screen_height
+        
+    #     fixed:
+    #         xfill True
+    #         yfill True
+            
+    #         # Non-interactive background elements.
+    #         for entity in scene.bg:
+    #             $ ex, ey = camera.world_to_screen(entity.position)
+    #             add entity.image:
+    #                 pos (ex, ez)
+            
+    #         # Detect when clicking nothing.
+    #         button:
+    #             area (0, 0, config.screen_width, config.screen_height)
+    #             action Function(scene._clicked, None)
+    #             alternate Function(scene._clicked, None, True)
+    #             background None
+            
+    #         # Interactive objects.
+    #         for entity in scene.children:
+    #             $ epos = camera.world_to_screen(entity.position)
+    #             if not camera.position_in_view(epos):
+    #                 continue
+    #             imagebutton at entity.transform:
+    #                 pos epos.xz_int
+    #                 hovered Function(entity._hovered)
+    #                 unhovered Function(entity._unhovered)
+    #                 action Function(scene._clicked, entity)
+    #                 alternate Function(scene._clicked, entity, True)
+    #                 tooltip entity.tooltip
+    #                 focus_mask None
+    #                 background None
+
+    # $ zone = player.zone
+    # frame:
+    #     align (0.5, 0.02)
+    #     background "#00000088"
+    #     padding (20, 8)
+    #     textbutton "[zone.name]":
+    #         action [Function(meta_menu.open, "locations")]
+    #         text_size 28
+    #         text_color "#ffffff"
+    #         text_hover_color "#ffd700"
+    #         background None
+    #         hover_background None
     
-    frame:
-        align (0.18, 0.02)
-        background "#00000088"
-        padding (12, 10)
-        vbox:
-            spacing 6
-            text "Time: [world_time.time_string]" size 18 color "#ffd700"
-            hbox:
-                spacing 6
-                textbutton "+15m" action Function(world_time.advance, 15) text_size 14
-                textbutton "+1h" action Function(world_time.advance, 60) text_size 14
-                text "[world_time.time_of_day]" size 14 color "#ccc"
-            text "Here now:" size 14 color "#aaa"
-            vbox:
-                spacing 2
-                for c in zone.characters:
-                    $ nxt_time, nxt_loc = c.next_schedule_entry()
-                    hbox:
-                        spacing 6
-                        text c.name size 14 color "#fff"
-                        if nxt_time and nxt_loc:
-                            text f"→ {nxt_loc} @ {nxt_time}" size 12 color "#777"
+    # frame:
+    #     align (0.18, 0.02)
+    #     background "#00000088"
+    #     padding (12, 10)
+    #     vbox:
+    #         spacing 6
+    #         text "Time: [world_time.time_string]" size 18 color "#ffd700"
+    #         hbox:
+    #             spacing 6
+    #             textbutton "+15m" action Function(world_time.advance, 15) text_size 14
+    #             textbutton "+1h" action Function(world_time.advance, 60) text_size 14
+    #             text "[world_time.time_of_day]" size 14 color "#ccc"
+    #         text "Here now:" size 14 color "#aaa"
+    #         vbox:
+    #             spacing 2
+    #             for c in zone.characters:
+    #                 $ nxt_time, nxt_loc = c.next_schedule_entry()
+    #                 hbox:
+    #                     spacing 6
+    #                     text c.name size 14 color "#fff"
+    #                     if nxt_time and nxt_loc:
+    #                         text f"→ {nxt_loc} @ {nxt_time}" size 12 color "#777"
     
-    frame:
-        align (0.02, 0.98)
-        background "#000a"
-        padding (10, 10)
-        hbox:
-            spacing 10
-            textbutton "DEV" action Show("dev_mode_screen") text_size 14 text_color "#ff3333"
+    # frame:
+    #     align (0.02, 0.98)
+    #     background "#000a"
+    #     padding (10, 10)
+    #     hbox:
+    #         spacing 10
+    #         textbutton "DEV" action Show("dev_mode_screen") text_size 14 text_color "#ff3333"
     
-    use meta_menu_screen
+    # use meta_menu_screen
+
+    # Debug draw cursor.
+    add Solid("#ff69b4") pos scene.smoothed_mouse.xz_int xsize 16 ysize 16
 
 # label char_interaction_show:
 #     $ char = getattr(store, '_interact_target_char', None)

@@ -139,7 +139,6 @@ style say_thought is say_dialogue
 style namebox is default
 style namebox_label is say_label
 
-
 style window:
     xalign 0.5
     xfill True
@@ -384,52 +383,6 @@ transform gm_slide_in_left:
     alpha 0.0
     linear 0.25 xoffset 0 alpha 1.0
 
-init python:
-    import math
-
-    def _helix_points(count, height, amp, phase=0.0):
-        pts = []
-        if count <= 1:
-            return pts
-        for i in range(count):
-            t = float(i) / float(count - 1)
-            y = t * height
-            x = math.sin(t * math.pi * 4.0 + phase) * amp
-            a = 0.25 + 0.75 * (1.0 - abs(0.5 - t) * 2.0)
-            pts.append((x, y, a))
-        return pts
-
-    def _helix_rungs(count, height, amp, phase=0.0, step=4):
-        rungs = []
-        if count <= 1:
-            return rungs
-        for i in range(0, count, step):
-            t = float(i) / float(count - 1)
-            y = t * height
-            x = math.sin(t * math.pi * 4.0 + phase) * amp
-            rungs.append((x, y))
-        return rungs
-
-screen double_helix_bg():
-    $ w = 1920
-    $ h = 1080
-    $ amp = 160
-    $ count = 60
-    $ pts_a = _helix_points(count, h, amp, 0.0)
-    $ pts_b = _helix_points(count, h, amp, math.pi)
-    $ rungs = _helix_rungs(count, h, amp, 0.0, step=4)
-    fixed:
-        xsize w
-        ysize h
-        for x, y, a in pts_a:
-            add Solid("#2ac7a7") xpos (w * 0.5 + x) ypos y xysize (6, 6) alpha a
-        for x, y, a in pts_b:
-            add Solid("#66ffe0") xpos (w * 0.5 + x) ypos y xysize (6, 6) alpha a
-        for x, y in rungs:
-            $ rw = int(abs(x) * 2)
-            if rw > 0:
-                add Solid("#2ac7a7") xpos (w * 0.5 - abs(x)) ypos (y + 2) xysize (rw, 2) alpha 0.35
-
 screen main_menu():
     ## This ensures that any other menu screen is replaced.
     tag menu
@@ -462,12 +415,7 @@ screen main_menu():
         at mm_slide_in
         vbox:
             spacing 14
-            textbutton _("Start"):
-                action Start()
-                tooltip _("Start a new game")
-                style "mm_button"
-                text_style "mm_button_text"
-                at button_hover_effect
+            use text_button_default("Start", "Start a new game", Start())
             python:
                 from classes import Quest
                 origins = Quest.get_origins()
@@ -484,44 +432,14 @@ screen main_menu():
                             text_size 18
                             padding (18, 8)
                             at button_hover_effect
-            textbutton _("Load"):
-                action ShowMenu("load")
-                tooltip _("Load a saved game")
-                style "mm_button"
-                text_style "mm_button_text"
-                at button_hover_effect
-            textbutton _("Codex"):
-                action ShowMenu("gallery_screen")
-                tooltip _("Open the in-game wiki")
-                style "mm_button"
-                text_style "mm_button_text"
-                at button_hover_effect
-            textbutton _("Preferences"):
-                action ShowMenu("preferences")
-                tooltip _("Adjust settings")
-                style "mm_button"
-                text_style "mm_button_text"
-                at button_hover_effect
-            textbutton _("About"):
-                action ShowMenu("about")
-                tooltip _("View credits and info")
-                style "mm_button"
-                text_style "mm_button_text"
-                at button_hover_effect
+            use text_button_default("Load", "Load a saved game", ShowMenu("load"))
+            use text_button_default("Journal", "Open the in-game encyclopedia", ShowMenu("journal_screen"))
+            use text_button_default("Preferences", "Adjust settings", ShowMenu("preferences"))
+            use text_button_default("About", "View credits and info", ShowMenu("about"))
             if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
-                textbutton _("Help"):
-                    action ShowMenu("help")
-                    tooltip _("Open help")
-                    style "mm_button"
-                    text_style "mm_button_text"
-                    at button_hover_effect
+                use text_button_default("Help", "Open help", ShowMenu("help"))
             if renpy.variant("pc"):
-                textbutton _("Quit"):
-                    action Quit(confirm=not main_menu)
-                    tooltip _("Exit the game")
-                    style "mm_button"
-                    text_style "mm_button_text"
-                    at button_hover_effect
+                use text_button_default("Quit", "Exit the game", Quit(confirm=not main_menu))
 
     # Footer hints
     hbox:
@@ -621,12 +539,17 @@ style mm_button_text:
     text_align 0.5
     xalign 0.5
 
-style mm_button_text_yes is mm_button_text:
+style mm_button_text_default is mm_button_text:
+    color "#ffffff"
+    hover_color "#ffffff"
+    outlines text_outline("#ffffff")
+
+style mm_button_text_green is mm_button_text:
     color "#6fbf8e"
     hover_color "#8fd4a8"
     outlines text_outline("#6fbf8e")
 
-style mm_button_text_no is mm_button_text:
+style mm_button_text_red is mm_button_text:
     color "#bf6f7a"
     hover_color "#d48f9a"
     outlines text_outline("#bf6f7a")
@@ -651,7 +574,6 @@ style gm_title:
     font gui.interface_text_font
     size 34
     color "#e8f0f8"
-
 
 ## Game Menu screen ############################################################
 ##
@@ -684,35 +606,33 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
         at gm_slide_in_left
         vbox:
             spacing 10
-            text ("PAUSE MENU" if not main_menu else "MENU") style "mm_section"
-            textbutton _("Return") action Return() style "mm_button" text_style "mm_button_text" at button_hover_effect
+            text ("PAUSED" if not main_menu else "MENU") style "mm_section"
+            use text_button_default("Return", "Back to game", Return())
 
             if main_menu:
-                textbutton _("Start") action Start() style "mm_button" text_style "mm_button_text" at button_hover_effect
+                use text_button_default("Start", "Back to game", Start())
             else:
-                textbutton _("History") action ShowMenu("history") style "mm_button" text_style "mm_button_text" at button_hover_effect
-                textbutton _("Save") action ShowMenu("save") style "mm_button" text_style "mm_button_text" at button_hover_effect
+                use text_button_default("History", "View log", ShowMenu("history"))
+                use text_button_default("Save", "Save game to slot", ShowMenu("save"))
+                use text_button_default("Devmode", "View developer tools", ShowMenu("dev_mode_screen"))
 
-            textbutton _("Load") action ShowMenu("load") style "mm_button" text_style "mm_button_text" at button_hover_effect
-            textbutton _("Codex") action ShowMenu("lore_screen") style "mm_button" text_style "mm_button_text" at button_hover_effect
+            use text_button_default("Load", "Load game from slot", ShowMenu("load"))
+            use text_button_default("Codex", "Browse encyclopedia", ShowMenu("lore_screen"))
 
-            if not main_menu:
-                textbutton _("Devmode") action ShowMenu("dev_mode_screen") style "mm_button" text_style "mm_button_text" at button_hover_effect
-
-            textbutton _("Preferences") action ShowMenu("preferences") style "mm_button" text_style "mm_button_text" at button_hover_effect
+            use text_button_default("Preferences", "Game settings", ShowMenu("preferences"))
 
             if _in_replay:
-                textbutton _("End Replay") action EndReplay(confirm=True) style "mm_button" text_style "mm_button_text" at button_hover_effect
+                use text_button_default("End Replay", "...", EndReplay(confirm=True))
             elif not main_menu:
-                textbutton _("Main Menu") action MainMenu() style "mm_button" text_style "mm_button_text" at button_hover_effect
+                use text_button_default("Main Menu", "...", MainMenu())
 
-            textbutton _("About") action ShowMenu("about") style "mm_button" text_style "mm_button_text" at button_hover_effect
+            use text_button_default("About", "...", ShowMenu("about"))
 
             if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
-                textbutton _("Help") action ShowMenu("help") style "mm_button" text_style "mm_button_text" at button_hover_effect
+                use text_button_default("Help", "...", ShowMenu("help"))
 
             if renpy.variant("pc"):
-                textbutton _("Quit") action Quit(confirm=not main_menu) style "mm_button" text_style "mm_button_text" at button_hover_effect
+                use text_button_default("Quit", "...", Quit(confirm=not main_menu))
 
     # Right content panel
     frame:
@@ -1425,6 +1345,39 @@ transform confirm_transform:
         alpha 1.0
         easein 0.2 alpha 0.0
 
+screen text_button_default(text, ttip, action):
+    button style "mm_button" at button_hover_effect:
+        action action
+        tooltip ttip
+        fixed xysize (200, 32):
+            xalign 0.5
+            yalign 0.5
+            text _(text) style "mm_button_text_default" at text_hover_anim:
+                xalign 0.5
+                yalign 0.5
+
+screen text_button_red(text, ttip, action):
+    button style "mm_button" at button_hover_effect:
+        action action
+        tooltip ttip
+        fixed xysize (200, 32):
+            xalign 0.5
+            yalign 0.5
+            text _(text) style "mm_button_text_red" at text_hover_anim:
+                xalign 0.5
+                yalign 0.5
+
+screen text_button_green(text, ttip, action):
+    button style "mm_button" at button_hover_effect:
+        action action
+        tooltip ttip
+        fixed xysize (200, 32):
+            xalign 0.5
+            yalign 0.5
+            text _(text) style "mm_button_text_green" at text_hover_anim:
+                xalign 0.5
+                yalign 0.5
+
 screen confirm(message, yes_action, no_action):
     modal True
     zorder 200
@@ -1468,26 +1421,28 @@ screen confirm(message, yes_action, no_action):
                     xalign 0.5
                     spacing 40
 
-                    button style "mm_button" at button_hover_effect action yes_action:
-                        tooltip "Accept"
-                        fixed xysize (200, 32):
-                            xalign 0.5
-                            yalign 0.5
-                            text _("Yes") style "mm_button_text_yes" at text_hover_anim:
-                                xalign 0.5
-                                yalign 0.5
+                    
+                    use text_button_green("Accept", "Accept", yes_action)
+                    use text_button_red("Cancel", "Cancel", no_action)
+                    # button style "mm_button" at button_hover_effect action yes_action:
+                    #     tooltip "Accept"
+                    #     fixed xysize (200, 32):
+                    #         xalign 0.5
+                    #         yalign 0.5
+                    #         text _("Yes") style "mm_button_text_yes" at text_hover_anim:
+                    #             xalign 0.5
+                    #             yalign 0.5
 
-                    button style "mm_button" at button_hover_effect action no_action:
-                        tooltip "Cancel"
-                        fixed xysize (200, 32):
-                            xalign 0.5
-                            yalign 0.5
-                            text _("No") style "mm_button_text_no" at text_hover_anim:
-                                xalign 0.5
-                                yalign 0.5
+                    # button style "mm_button" at button_hover_effect action no_action:
+                    #     tooltip "Cancel"
+                    #     fixed xysize (200, 32):
+                    #         xalign 0.5
+                    #         yalign 0.5
+                    #         text _("No") style "mm_button_text_no" at text_hover_anim:
+                    #             xalign 0.5
+                    #             yalign 0.5
     
     key "game_menu" action no_action
-
 
 style confirm_frame is gui_frame
 style confirm_prompt is gui_prompt

@@ -8,19 +8,19 @@ name: Night Alarm
 ```flow
 A soft shuffling outside your tarp.
 You hold your breath and listen.
-CHECK dexterity 12
+#CHECK dexterity 12
 ```
 
 # Steady
 ```flow
 You stay still. The sound fades.
-EVENT CAMP_AMBUSH outcome=steady
+E#VENT CAMP_AMBUSH outcome=steady
 ```
 
 # Panic
 ```flow
 You stumble in the dark and bang the kettle.
 NOTIFY "You strain your ankle."
-STATUS ADD flu 60
-EVENT CAMP_AMBUSH outcome=panic
+STAT flu 60
+#EVENT CAMP_AMBUSH outcome=panic
 ```

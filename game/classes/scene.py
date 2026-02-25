@@ -11,6 +11,7 @@ class Scene:
         self.bg = [] # Non-interactive images rendered below objects.
         self.children = [] # Interactive objects that implement a _process().
         self.paused = False
+        self.smoothed_mouse = Vector3()
     
     def _ready(self):
         self.camera._ready()
@@ -18,6 +19,7 @@ class Scene:
             child._ready()
     
     def _process(self, dt):
+        self.smoothed_mouse.move_towards(self.get_mouse() + self.camera.screen_center, 0.5)
         self.camera._process(dt)
         if self.paused:
             return
@@ -34,5 +36,5 @@ class Scene:
             what._clicked(alternate)
 
     def get_mouse(self):
-        mx, my = renpy.get_mouse_pos()
+        mx, my = renpy.exports.get_mouse_pos()
         return self.camera.screen_to_world(Vector3(mx, 0, my))

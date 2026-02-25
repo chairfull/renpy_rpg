@@ -62,7 +62,7 @@ reason: "Needs Charisma 10."
 ```flow
 rafi: I can log a short-term pass. If the sensors pick up a spike in your frequency, don't expect us to open the gate when you come back.
 FLAG SET gate_pass true
-BOND ADD rafi respect 3
+BOND rafi respect 3
 NOTIFY "Gate pass logged."
 ```
 
@@ -78,5 +78,5 @@ cond: true
 
 ```flow
 rafi: Good. Every quiet route is a lifeline. I'll update the patrol logs.
-BOND ADD rafi trust 2
+BOND rafi trust 2
 ```

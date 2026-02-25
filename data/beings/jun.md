@@ -60,6 +60,6 @@ reason: "You already learned it."
 
 ```flow
 jun: Three beats, then a breath. Let the frequency settle between your steps. Keep it even.
-PERK ADD silver_tongue
-FLAG SET cadence_learned true
+PERK silver_tongue
+FLAG cadence_learned true
 ```

@@ -8,61 +8,63 @@ class QuestTick:
         self.id = _id
         self.name = name or _id
         self.desc = desc
-        self.trigger = Trigger(**trigger)
+        self.trigger = Trigger(**trigger) if trigger else None
         self.mark = set(mark or []) # IDs of zones, characters, or items to highlight as a way of helper player.
         self.max_ticks = max_ticks
-
-    @property
-    def hidden(self):
-        return self.id in renpy.store.quest_hidden
-    
-    @hidden.setter
-    def hidden(self, value):
-        if value:
-            renpy.store.quest_hidden.add(self.id)
-        else:
-            renpy.store.quest_hidden.discard(self.id)
 
     @property
     def tick(self):
         return self.state if isinstance(self.state, int) else 0
     
     @tick.setter
-    def tick(self, new_value):
+    def tick(self, value):
         if not self.active or self.completed:
             return
-        self.tick = new_value
+        self.tick = value
         if self.tick >= self.max_ticks:
             self.complete()
         else:
-            engine.QUEST_TICK_CHANGED.emit(quest=self.quest, tick=self)
-
-    @property
-    def state(self):
-        if self.failed: return "failed"
-        if self.completed: return "completed"
-        if self.active: return "active"
-        return "not_started"
+            engine.QUEST_CHANGED.emit(quest=self)
     
     @property
     def completed(self):
         return isinstance(self.state, bool)
     
-    def complete(self, passed=True):
+    def start(self):
+        if self.has_tag("origin"):
+            engine.GAME_STARTED.emit(quest=self)
+        else:
+            if self.visible:
+                renpy.notify(f"Quest Started: {self.name}")
+            engine.QUEST_STARTED.emit(quest=self)
+        engine.queue(self, "started")
+
+    def complete(self, fail=False):
         """Forces a quest complete."""
-        if passed:
+        if not fail:
             self.state = True
-            renpy.notift(f"Quest Complete: {self.name}")
-            engine.QUEST_PASSED.emit(quest=self.quest, tick=self)
+            if self.visible:
+                renpy.notify(f"Quest Completed: {self.name}")
+            engine.QUEST_PASSED.emit(quest=self)
+            engine.queue(self, "passed")
         else:
             self.state = False
-            renpy.notift(f"Quest Failed: {self.name}")
-            engine.QUEST_FAILED.emit(quest=self.quest, tick=self)
+            if self.visible:
+                renpy.notify(f"Quest Failed: {self.name}")
+            engine.QUEST_FAILED.emit(quest=self)
+            engine.queue(self, "failed")
+        engine.queue(self, "completed")
+        engine.QUEST_COMPLETED.emit(quest=self)
 
     @property
-    def quest(self):
+    def parent(self):
         quest_id, tick_id = self.id.split("__", 1)
         return renpy.store.all_quests.get(quest_id)
+    
+    @property
+    def children(self):
+        """Quests that are children of this one."""
+        return {k: v for k, v in engine.all_quests.items() if k.startswith(self.id + "__")}
 
     @property
     def active(self):
@@ -73,7 +75,7 @@ class QuestTick:
         if value:
             self.state = 0
         else:
-           del renpy.store.quest_state[self.id]
+            renpy.store.quest_state.discard(self.id)
     
     @property
     def passed(self):
@@ -84,10 +86,14 @@ class QuestTick:
         return isinstance(self.state, bool) and self.state == False
     
     @property
+    def in_progress(self):
+        return isinstance(self.state, int)
+    
+    @property
     def state(self):
         return renpy.store.quest_state.get(self.id, None)
 
-    @state.getter
+    @state.setter
     def state(self, value):
         renpy.store.quest_state[self.id] = value
 
@@ -95,12 +101,22 @@ class QuestTick:
         if self.active:
             return
         self.active = True
-        engine.QUEST_TICK_STARTED.emit(quest=self.quest, tick=self)
+        engine.QUEST_STARTED.emit(quest=self)
     
-    def show(self):
-        if not self.active:
-            self.start()
-        
-        if self.hide:
-            self.hide = False
-            engine.QUEST_TICK_SHOWN.emit(quest=self.quest, tick=self)
+    @property
+    def visible(self):
+        return self.id in renpy.store.quest_visible
+    
+    @visible.setter
+    def visible(self, value):
+        """Shows or hides quest in quest log."""
+
+        if self.visible == value:
+            return
+
+        if value:
+            renpy.store.quest_visible.add(self.id)
+            engine.QUEST_SHOWN.emit(quest=self)
+        else:
+            renpy.store.quest_visible.discard(self.id)
+            engine.QUEST_HIDDEN.emit(quest=self)

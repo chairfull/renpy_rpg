@@ -85,7 +85,7 @@ Inside ` ```flow` blocks you can write simple ALLCAPS commands (no Python needed
 ```flow
 FLAG SET met_mayor true
 EVENT ITEM_GAINED item=gold_coin total=1
-GIVE apple 2
+GAIN apple 2
 TAKE potion 1
 GOLD 10
 REST 8
@@ -95,8 +95,8 @@ GOAL SHOW call_to_adventure
 PERK ADD silver_tongue
 STATUS ADD flu 120
 COMPANION ADD bard
-BOND ADD mayor trust 5
-BOND TAG mayor ally
+BOND mayor trust 5
+BOND mayor ally
 TRAVEL market
 JUMP SCENE__intro__flow
 COND "flag_get('met_mayor', False)" SCENE__mayor__talk SCENE__mayor__locked

@@ -30,33 +30,33 @@ screen item_inspect_screen(item):
             else:
                 text "No icon available." size 16 color "#999" xalign 0.5
 
-label inspect_item_pending:
-    $ store.inspect_force = True
-    $ iid = store.pending_inspect_item_id
-    $ store.pending_inspect_item_id = None
-    if not iid:
-        $ store.inspect_force = False
-        return
+# label inspect_item_pending:
+#     $ store.inspect_force = True
+#     $ iid = store.pending_inspect_item_id
+#     $ store.pending_inspect_item_id = None
+#     if not iid:
+#         $ store.inspect_force = False
+#         return
 
-    # Resolve the label
-    $ inspect_item(iid)
-    $ resolved_label = store.inspect_resolved_label
-    $ resolved_item = store.inspect_resolved_item
-    $ store.inspect_force = False
+#     # Resolve the label
+#     $ inspect_item(iid)
+#     $ resolved_label = store.inspect_resolved_label
+#     $ resolved_item = store.inspect_resolved_item
+#     $ store.inspect_force = False
 
-    if resolved_label:
-        call expression resolved_label
-    elif resolved_item and resolved_item.desc:
-        $ item_show_image(resolved_item)
-        "[resolved_item.desc]"
-        $ item_hide_image()
+#     if resolved_label:
+#         call expression resolved_label
+#     elif resolved_item and resolved_item.desc:
+#         $ item_show_image(resolved_item)
+#         "[resolved_item.desc]"
+#         $ item_hide_image()
 
-    $ item_hide_image()
+#     $ item_hide_image()
 
-    if store._return_to_inventory:
-        $ store._return_to_inventory = False
-        call screen inventory_screen
-    return
+#     if store._return_to_inventory:
+#         $ store._return_to_inventory = False
+#         call screen inventory_screen
+#     return
 
 
 transform inventory_icon_idle:
