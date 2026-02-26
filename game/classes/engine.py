@@ -11,7 +11,18 @@ all_lore = {}
 all_zones = {}
 all_quests = {}
 
-def get_flag(self, _id):
+def find_zone(_id):
+    """Zone ids are paths seperated by double-underscores '__'."""
+    for zone_id, zone in all_zones.items():
+        if zone_id == _id:
+            return zone
+        if f"__{id}__" in zone_id:
+            return zone
+        if zone_id.endswith(f"__{id}"):
+            return zone
+    return None
+
+def get_flag(_id):
     return renpy.store.all_flags.get(_id)
 
 def get_object_label_name(obj, suffix=None):

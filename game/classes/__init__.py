@@ -3,6 +3,8 @@ from .util_str import (bracket_label)
 from .util_color import (hex_to_rgb, rgb_to_hex, tint)
 from .vector3 import Vector3
 
+from .assets import (find_image)
+
 from .base_unit import BaseUnit
 from .milliseconds import Milliseconds
 from .millimeters import Millimeters
@@ -41,6 +43,8 @@ from .lore import Lore
 
 from .scene_camera import SceneCamera
 from .scene_child import SceneChild
+from .scene_light import SceneLight
+from .scene_debug import SceneDebug
 from .scene import Scene
 
 from .choice import Choice

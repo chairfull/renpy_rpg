@@ -1,4 +1,4 @@
-from .engine import ZONE_ENTERED, ZONE_EXITED
+from .engine import ZONE_ENTERED, ZONE_EXITED, find_zone
 
 class HasZone:
     """Mixin for objects that have a location in the game world"""
@@ -11,6 +11,9 @@ class HasZone:
     
     @zone.setter
     def zone(self, next):
+        if isinstance(next, str):
+            next = find_zone(next)
+        
         if self._zone == next:
             return
         if self._zone is not None:
@@ -28,3 +31,4 @@ class HasZone:
             path.append(z)
             z = z.zone if hasattr(z, "zone") else None
         return z
+

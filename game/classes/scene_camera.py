@@ -1,51 +1,35 @@
 import renpy.config as config
-from .vector3 import Vector3
 from .util import lerp, clamp
+from .vector3 import Vector3
+from .scene_child import SceneChild
 
-class SceneCamera:
-    def __init__(self, position=Vector3(), zoom=1.0):
-        self.position = position
-        self.target = Vector3()
+class SceneCamera(SceneChild):
+    def __init__(self, position=Vector3()):
+        SceneChild.__init__(self, position=position)
         self.follow_target = True
         self.follow_speed = 0.25
         self.screen_size = Vector3(config.screen_width, 0, config.screen_height)
         self.screen_center = self.screen_size / 2.0
-        self.zoom = zoom
-        self.target_zoom = zoom
-        self._snapped = False # Camera snap flag - skip lerp on first frame after setup
-    
+        self.position += self.screen_size
+        self.target_position = self.position + self.screen_center
+        self.zoom = 1.0
+        self.target_zoom = 1.0
+
     def _ready(self):
         pass
 
-    def _process(self, dt):
-        # Slowly move camera to target.
+    def _update(self):
         if self.follow_target:
-            self.position.move_towards(self.target - self.screen_center, self.follow_speed)
+            self.position.move_towards(self.target_position - self.screen_center, self.follow_speed)
         
-        # Skip lerp if camera was just snapped (first frame after setup)
-        # if self._snapped:
-        #     self.position = target_cam
-        #     self._snapped = False
-        # else:
-        #     lerp_speed = dt * 5.0
-        #     self.position = self.position.lerp(target_cam, lerp_speed)
-    
         if abs(self.zoom - self.target_zoom) < 0.001:
-            return None # Already at target, no update needed
+            self.zoom = self.target_zoom
         else:
-            # Get current center point in world coords BEFORE zoom changes
-            old_zoom = self.zoom
-            center_world = (self.position + self.screen_center) / old_zoom
-            
-            # Lerp zoom (fast but smooth), snap when very close
-            if abs(self.zoom - self.target_zoom) < 0.01:
-                self.zoom = self.target_zoom
-            else:
-                self.zoom = lerp(self.zoom, self.target_zoom, 0.2)
-            
-            # Calculate new scroll position to maintain center (always, including final frame)
-            self.position = center_world * self.zoom - self.screen_center
+            self.zoom = lerp(self.zoom, self.target_zoom, 0.2)
 
+    def _zoom(self, amount):
+        self.set_zoom(self.target_zoom + amount)
+    
     def set_zoom(self, z):
         self.target_zoom = clamp(z, 0.5, 5.0)
 
@@ -53,12 +37,12 @@ class SceneCamera:
         self.position = target.position - self.screen_center
     
     def world_to_screen(self, vec):
-        return (vec.x - self.x, vec.z - self.z)
+        return vec - self.position
     
     def screen_to_world(self, vec):
         rel = (vec - self.screen_center) / self.zoom
         return rel + self.screen_center + self.position
 
-    def in_view(self, position, size):
+    def inside(self, position, size):
         return True
         return -size.x < position.x < self.screen_size.x and -size.z < position.z < self.screen_size.z

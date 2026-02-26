@@ -2,7 +2,9 @@ import math
 from .util import clamp, lerp
 
 class Vector3:
-    def __init__(self, x=0.0, y=0.0, z=0.0):
+    def __init__(self, x=0.0, y=None, z=None):
+        if y is None: y = x
+        if z is None: z = x
         self.reset(x, y, z)
     
     def __add__(self, other):
@@ -23,22 +25,22 @@ class Vector3:
     def __getattr__(self, name):
         if name == "xz":
             return (self.x, self.z)
+        # Renpy screens often won't render stuff at float positions.
         elif name == "xz_int":
             return (int(self.x), int(self.z))
+        elif name == "neg_xz_int":
+            return (int(-self.x), int(-self.z))
         raise AttributeError(f"'Vector3' object has no attribute '{name}'")
 
     def __setattr__(self, name, value):
         if name == "xz":
             if isinstance(value, Vector3):
-                self.__dict__["x"] = value.x
-                self.__dict__["z"] = value.z
+                self.__dict__["x"], self.__dict__["z"] = value.x, value.z
             elif isinstance(value, (list, tuple)):
                 if len(value) == 2:
-                    self.__dict__["x"] = value[0]
-                    self.__dict__["z"] = value[1]
+                    self.__dict__["x"], self.__dict__["z"] = float(value[0]), float(value[1])
                 elif len(value) == 3:
-                    self.__dict__["x"] = value[0]
-                    self.__dict__["z"] = value[2]
+                    self.__dict__["x"], self.__dict__["z"] = float(value[0]), float(value[2])
         else:
             super().__setattr__(name, value)
     
@@ -58,7 +60,7 @@ class Vector3:
         elif isinstance(x, Vector3):
             x, y, z = x.x, x.y, x.z
         return float(x), float(y), float(z)
-    
+
     def reset(self, x=0.0, y=0.0, z=0.0): 
         self.x, self.y, self.z = self._xyz(x, y, z)
 
@@ -86,3 +88,7 @@ class Vector3:
     
     def move_towards(self, other, t):
         self.reset(*self.lerp(other, t))
+    
+    @classmethod
+    def lengthdir_xz(clss, length, angle):
+        return Vector3(math.cos(angle) * length, 0.0, math.sin(angle) * length)

@@ -1,37 +1,49 @@
 import renpy
 from .vector3 import Vector3
 from .scene_camera import SceneCamera
+from .scene_cursor import SceneCursor
 
 class Scene:
     """Object that handles updating and rendering children in a screen."""
     def __init__(self):
-        self.update_dt =  1.0 / 60.0
-        self.show_reachability = False
         self.camera = SceneCamera()
+        self.cursor = SceneCursor()
         self.bg = [] # Non-interactive images rendered below objects.
         self.children = [] # Interactive objects that implement a _process().
+        self.lights = []
         self.paused = False
-        self.smoothed_mouse = Vector3()
-    
+        self.hovering = None
+        self.msg = ""
+        self.tick = 0
+
     def _ready(self):
         self.camera._ready()
         for child in self.children:
             child._ready()
+
+    def _update_transform(self, tr, st, at):
+        self.tick += 1
+        # self.msg = f"Tick: {self.tick}"
+        # self.msg = f"Camera pos: {self.children[0].transform.pos} zoom: {self.children[0].transform.zoom}"
+        
+        self.camera._update()
+
+        for child in self.bg + self.children:
+            child._apply_camera_transform(self.camera)
+        
+        return 0.0
     
-    def _process(self, dt):
-        self.smoothed_mouse.move_towards(self.get_mouse() + self.camera.screen_center, 0.5)
-        self.camera._process(dt)
-        if self.paused:
+    def _hovered(self, what=None):
+        if what == self.hovering:
             return
-        for child in self.children:
-            child._process(dt)
-    
+        self.hovering = what
+
     def _clicked(self, what=None, alternate=False):
         if self.paused:
             return
-        if what is not None:
+        if what is None:
             x, y, z = self.get_mouse()
-            renpy.notify(f"Clicked at {x}, {y}, {z}.")
+            renpy.exports.notify(f"Clicked at {x}, {y}, {z}.")
         else:
             what._clicked(alternate)
 

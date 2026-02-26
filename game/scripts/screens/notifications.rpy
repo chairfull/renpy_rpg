@@ -101,7 +101,7 @@ screen notification_layer():
                             text "[n.title]" size 18 bold True color "#ffd700"
                             text "[n.message]" size 16 color "#fff"
     
-    timer 0.1 repeat True action Function(notification_manager.update)
+    timer 0.2 repeat True action Function(notification_manager.update)
 
 # Hook into standard renpy.notify
 init 10 python:

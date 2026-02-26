@@ -2,31 +2,20 @@
 init python:
     from classes import *
     from classes.flow_actions import (
-        NOTIFY, # x17
         QUEST_SHOW, # x12
+        NOTIFY, # x12
         QUEST_TICK, # x10
-        FLAG, # x8
-        BOND, # x4
-        GAIN, # x3
+        FLAG, # x3
         PLAYER, # x2
         ZONE, # x2
-        STAT, # x2
         SHOW, # x1
         HIDE, # x1
         QUEST_COMPLETE, # x1
-        MET, # x1
-        FOLLOWER, # x1
-        PERK, # x1
+        GAIN, # x1
     )
     #region Conditions.
-    def _cond_5382230781621058628(): return friendship.between(ash, theo) > 10
-    def _cond__5132752295964132841(): return has_flag(harmonic_key_obtained)
-    def _cond__4460574403685332220(): return not flag_get('scout_joined', False)
-    def _cond_7337637868062362015(): return flag_get('scout_joined', False)
-    def _cond_1(): return True
-    def _cond__8232899656796181603(): return flag_get('protocol_recovered', False) and not flag_get('protocol_deciphered', False)
-    def _cond__8611943072935978624(): return player.stats.charisma >= 10
-    def _cond__2297795526270318589(): return not flag_get('cadence_learned', False)
+    def _cond_9173912679931843605(): return friendship.between(ash, theo) > 10
+    def _cond_5222493714123714281(): return has_flag(harmonic_key_obtained)
     #endregion
 
 #region Awards x5
@@ -188,8 +177,8 @@ define silent_tide__the_road_back = QuestTick("silent_tide__the_road_back", desc
 define silent_tide__resurrection = QuestTick("silent_tide__resurrection", desc='Visit the market.', mark=['market'], trigger={'event': 'LOCATION_ENTERED', 'state': {'character': 'theo', 'location': 'market'}, 'flags': {'broadcast_success': True}}, name='Resurrection')
 define silent_tide__return_with_the_elixir = QuestTick("silent_tide__return_with_the_elixir", mark='temple', trigger={'event': 'LOCATION_ENTERED', 'state': {'character': 'theo', 'location': 'temple'}}, name='Return with the Elixir')
 define silent_tide__ask_the_clerk = Choice("silent_tide__ask_the_clerk", menu='clerk', text="Ask the clerk about the sleepers' rhythm.", flags={'asked_clerk': None})
-define silent_tide__share_the_pattern_with_ash = Choice("silent_tide__share_the_pattern_with_ash", menu='ash', text="Share the pattern you've recorded with Ash.", cond='5382230781621058628')
-define silent_tide__attempt_harmonic_broadcast = Choice("silent_tide__attempt_harmonic_broadcast", menu='clerk', text='Offer to run the harmonic broadcast (requires harmonic key).', cond='_5132752295964132841')
+define silent_tide__share_the_pattern_with_ash = Choice("silent_tide__share_the_pattern_with_ash", menu='ash', text="Share the pattern you've recorded with Ash.", cond='9173912679931843605')
+define silent_tide__attempt_harmonic_broadcast = Choice("silent_tide__attempt_harmonic_broadcast", menu='clerk', text='Offer to run the harmonic broadcast (requires harmonic key).', cond='5222493714123714281')
 #endregion
 
 #region Quest_ticks x0
@@ -208,39 +197,85 @@ define found_spoon = Flag("found_spoon", name='Found Spoon')
 define craft_signal_baton = Craft("craft_signal_baton", name='Signal Baton', inputs={'wood': 1, 'stone': 1}, output={'signal_baton': 1}, req_skill={'dexterity': 1}, tags=['beginner', 'tool'])
 #endregion
 
-#region Beings x16
-# Faye. Manages the rationed cots and the only filtered-air room in the district.
-default faye = Being("faye", name='Faye', desc='Manages the rationed cots and the only filtered-air room in the district.', location='tavern', pos='300,350', factions=['supply_union'], tags=['host', 'friendly', 'logistics'], affinity=10, gender='female', age=31, height='165 cm', weight='58 kg', hair_color='auburn', hair_style='braided', eye_color='green', face_shape='heart', skin_tone='light', build='slim', body_type='humanoid', breast_size='small', dick_size='n/a', foot_size=37, distinctive_feature='freckled nose', equipment={'head': 'bandana', 'torso': 'supply_apron', 'pants': 'work_pants', 'feet': 'work_boots'}, items=['ration_pack', 'water_flask', 'note_card', 'sewing_kit'])
-# Theo. Dedicated to preserving pre-fall data logs and charting the decay of the global transmission grid.
-default theo = Being("theo", name='Theo', desc='Dedicated to preserving pre-fall data logs and charting the decay of the global transmission grid.', base_image='chars/male_thin.png', location='temple', pos=[500, 0, 500], stats={'strength': 8, 'dexterity': 10, 'intelligence': 16, 'charisma': 14}, tags=['archivist', 'lore', 'researcher'], gender='male', age=27, height='172 cm', weight='60 kg', hair_color='dark brown', hair_style='messy', eye_color='green', face_shape='oval', skin_tone='light', build='slim', body_type='humanoid', breast_size='n/a', dick_size='average', foot_size=41, distinctive_feature='ink-smudged collar', equipment={'head': 'knit_cap', 'torso': 'archivist_coat', 'pants': 'slacks', 'feet': 'sneakers'}, items=['ration_bar', 'note_card', 'map_fragment', 'radio_receiver', 'battery_cell'])
-# Nia. A sharp-eyed orphan who navigates the crawlspaces and service tunnels to avoid the 'Sleeper' drifts.
-default nia = Being("nia", name='Nia', desc="A sharp-eyed orphan who navigates the crawlspaces and service tunnels to avoid the 'Sleeper' drifts.", location='market', pos='200,600', factions=[], tags=['child', 'scavenger', 'runner'], affinity=0, gender='female', age=12, height='145 cm', weight='38 kg', hair_color='black', hair_style='short curls', eye_color='brown', face_shape='round', skin_tone='medium', build='slight', body_type='humanoid', breast_size='n/a', dick_size='n/a', foot_size=35, distinctive_feature='scuffed knees', equipment={'head': 'knit_cap', 'torso': 'signal_hoodie', 'pants': 'track_pants', 'feet': 'sneakers'}, items=['glow_stick', 'protein_bar', 'water_flask', 'note_card'])
-# Hakim. Manages the settlement's ration crates, medical supplies, and barter ledgers.
-default hakim = Being("hakim", name='Hakim', desc="Manages the settlement's ration crates, medical supplies, and barter ledgers.", location='market', pos='600,550', factions=['supply_union'], tags=['merchant', 'organizer', 'logistics'], gender='male', age=45, height='180 cm', weight='82 kg', hair_color='black', hair_style='close-cropped', eye_color='brown', face_shape='rectangular', skin_tone='medium', build='solid', body_type='humanoid', breast_size='n/a', dick_size='average', foot_size=43, distinctive_feature='trimmed beard', equipment={'head': 'ball_cap', 'torso': 'logistics_coat', 'pants': 'slacks', 'feet': 'work_boots'}, items=['ration_pack', 'note_card', 'keycard', 'water_flask'])
-# Clerk. A no-nonsense clerk who manages the official settlement exchange and logbooks.
-default clerk = Being("clerk", name='Clerk', desc='A no-nonsense clerk who manages the official settlement exchange and logbooks.', base_image='chars/male_average.png', location='shop', tags=['trader', 'logistics'], gender='male', age=38, height='175 cm', weight='78 kg', hair_color='brown', hair_style='neat short', eye_color='hazel', face_shape='square', skin_tone='light', build='average', body_type='humanoid', breast_size=None, dick_size='average', foot_size=42, distinctive_feature='ink-stained fingertips', equipment={'head': 'ball_cap', 'torso': 'logistics_coat', 'pants': 'slacks', 'feet': 'sneakers'}, items=['keycard', 'note_card', 'ration_pack', 'battery_cell'])
-# Greta. Keeps the shelter's alarms, air filtration, and signal rigs working with scrap-tech.
-default greta = Being("greta", name='Greta', desc="Keeps the shelter's alarms, air filtration, and signal rigs working with scrap-tech.", location='market', pos='400,500', factions=['supply_union'], tags=['crafter', 'mechanic', 'scraptech'], affinity=0, gender='female', age=40, height='172 cm', weight='74 kg', hair_color='blonde', hair_style='tied back', eye_color='blue', face_shape='square', skin_tone='light', build='sturdy', body_type='humanoid', breast_size='medium', dick_size='n/a', foot_size=39, distinctive_feature='oil-stained knuckles', equipment={'head': 'bandana', 'two_piece': 'coveralls', 'feet': 'work_boots'}, items=['scrap_parts', 'battery_cell', 'multitool', 'tool_pouch'])
-# Lena. A veteran scout who reads the perimeter drifts like a topography map.
-default lena = Being("lena", name='Lena', desc='A veteran scout who reads the perimeter drifts like a topography map.', location='forest_edge', pos='400,300', factions=['perimeter_watch'], tags=['outdoors', 'scout', 'tracker'], affinity=-5, gender='female', age=33, height='176 cm', weight='66 kg', hair_color='black', hair_style='braided ponytail', eye_color='amber', face_shape='diamond', skin_tone='olive', build='athletic', body_type='humanoid', breast_size='small', dick_size='n/a', foot_size=39, distinctive_feature='sun-faded freckles', equipment={'head': 'watch_cap', 'torso': 'utility_jacket', 'pants': 'cargo_pants', 'feet': 'trail_boots'}, items=['map_fragment', 'compass', 'protein_bar', 'water_flask'])
-# Mara. The steady hand keeping the settlement's life-support and quarantine running.
-default mara = Being("mara", name='Mara', desc="The steady hand keeping the settlement's life-support and quarantine running.", base_image='chars/male_fit.png', location='market', pos='800,600', factions=['perimeter_watch', 'supply_union'], tags=['important', 'leader', 'coordinator'], gender='male', age=42, height='178 cm', weight='80 kg', hair_color='black', hair_style='short', eye_color='brown', face_shape='square', skin_tone='medium', build='sturdy', body_type='humanoid', breast_size='n/a', dick_size='average', foot_size=42, distinctive_feature='deep laugh lines', equipment={'head': 'watch_cap', 'torso': 'logistics_coat', 'pants': 'slacks', 'feet': 'work_boots'}, items=['keycard', 'note_card', 'compass', 'water_flask'])
-# Jace. A lookout at the rusted harbor who watches for 'Drifter' anomalies in the fog.
-default jace = Being("jace", name='Jace', desc="A lookout at the rusted harbor who watches for 'Drifter' anomalies in the fog.", location='docks', pos='700,500', factions=[], tags=['lookout', 'worker'], affinity=5, gender='male', age=28, height='182 cm', weight='76 kg', hair_color='sandy blond', hair_style='messy', eye_color='gray-blue', face_shape='long', skin_tone='light', build='lean', body_type='humanoid', breast_size='n/a', dick_size='average', foot_size=44, distinctive_feature='weathered hands', equipment={'head': 'watch_cap', 'torso': 'rain_shell', 'pants': 'cargo_pants', 'feet': 'rubber_boots'}, items=['signal_chalk', 'glow_stick', 'water_flask', 'protein_bar'])
-# Ash. A quiet survivor who claims to have walked from the Dead Zones without a signal baton.
-default ash = Being("ash", name='Ash', desc='A quiet survivor who claims to have walked from the Dead Zones without a signal baton.', location='tavern', pos='150,400', factions=[], tags=['mysterious', 'survivor', 'drifter'], affinity=-10, gender='nonbinary', age=29, height='178 cm', weight='70 kg', hair_color='black', hair_style='cropped', eye_color='dark brown', face_shape='angular', skin_tone='medium', build='lean', body_type='humanoid', breast_size='n/a', dick_size='n/a', foot_size=42, distinctive_feature='scar across left eyebrow', equipment={'head': 'knit_cap', 'torso': 'rain_shell', 'pants': 'cargo_pants', 'feet': 'trail_boots'}, items=['protein_bar', 'water_flask', 'glow_stick', 'map_fragment'])
-# Rafi. The firm voice at the quarantine gate, ensuring no 'Drift' enters the settlement.
-default rafi = Being("rafi", name='Rafi', desc="The firm voice at the quarantine gate, ensuring no 'Drift' enters the settlement.", location='guardhouse', pos='600,400', factions=['perimeter_watch'], tags=['authority', 'watch', 'guard'], affinity=0, gender='male', age=39, height='183 cm', weight='86 kg', hair_color='black', hair_style='buzzed', eye_color='brown', face_shape='square', skin_tone='medium-dark', build='muscular', body_type='humanoid', breast_size='n/a', dick_size='average', foot_size=44, distinctive_feature='scar along jaw', equipment={'head': 'watch_cap', 'torso': 'patrol_jacket', 'pants': 'patrol_pants', 'feet': 'patrol_boots'}, items=['keycard', 'multitool', 'water_flask', 'ration_pack'])
-# Imani. A high-level policy lead tracking route safety, ration efficiency, and drift probability.
-default imani = Being("imani", name='Imani', desc='A high-level policy lead tracking route safety, ration efficiency, and drift probability.', base_image='chars/female_fit.png', location='market', pos='900,600', factions=['supply_union'], tags=['planner', 'leader', 'logistics'], gender='female', age=36, height='168 cm', weight='60 kg', hair_color='black', hair_style='short twists', eye_color='brown', face_shape='oval', skin_tone='dark', build='fit', body_type='humanoid', breast_size='small', dick_size='n/a', foot_size=38, distinctive_feature='sharp cheekbones', equipment={'head': 'ball_cap', 'torso': 'logistics_coat', 'pants': 'slacks', 'feet': 'sneakers'}, items=['map_fragment', 'note_card', 'compass', 'water_flask'])
-# Kael. A high-risk courier who uses kinetic force to clear 'Sleeper' blockades.
-default kael = Being("kael", name='Kael', desc="A high-risk courier who uses kinetic force to clear 'Sleeper' blockades.", base_image='chars/male_fit.png', location='market', items=['utility_pry_bar', 'protein_bar', 'water_flask', 'multitool', 'lockpick_set'], stats={'strength': 14, 'dexterity': 12, 'intelligence': 8, 'charisma': 10}, factions=['perimeter_watch'], tags=['breacher', 'combat'], gender='male', age=30, height='185 cm', weight='85 kg', hair_color='dark brown', hair_style='cropped', eye_color='hazel', face_shape='angular', skin_tone='tan', build='muscular', body_type='humanoid', breast_size='n/a', dick_size='average', foot_size=44, distinctive_feature='scarred knuckles', equipment={'head': 'watch_cap', 'torso': 'patrol_jacket', 'pants': 'patrol_pants', 'feet': 'patrol_boots', 'main_hand': 'utility_pry_bar'})
-# Survivor. A veteran of the Dead Zones who can hear the rhythm of the Silence.
-default survivor = Being("survivor", name='Survivor', desc='A veteran of the Dead Zones who can hear the rhythm of the Silence.', base_image='chars/male_fit.png', location='market', pos=[960, 0, 800], stats={'strength': 14, 'dexterity': 12, 'intelligence': 10, 'charisma': 8, 'hp': 100, 'max_hp': 100}, tags=['protagonist', 'survivor'], gender='male', age=32, height='179 cm', weight='76 kg', hair_color='brown', hair_style='shaggy', eye_color='gray', face_shape='angular', skin_tone='light', build='lean', body_type='humanoid', breast_size='n/a', dick_size='average', foot_size=42, distinctive_feature='sunburned nose', equipment={'head': 'knit_cap', 'torso': 'utility_jacket', 'pants': 'cargo_pants', 'feet': 'trail_boots', 'main_hand': 'signal_baton'}, items=['camp_kit', 'water_flask', 'ration_pack', 'compass', 'protein_bar', 'ration_bar'])
-# Jun. A calm voice who keeps the shelter steady with rhythmic cadence and signal-dampening tones.
-default jun = Being("jun", name='Jun', desc='A calm voice who keeps the shelter steady with rhythmic cadence and signal-dampening tones.', location='tavern', pos='500,300', factions=[], tags=['signal', 'tech', 'signalist'], affinity=10, gender='male', age=26, height='171 cm', weight='63 kg', hair_color='black', hair_style='straight medium', eye_color='brown', face_shape='oval', skin_tone='light-medium', build='slender', body_type='humanoid', breast_size='n/a', dick_size='average', foot_size=41, distinctive_feature='inked signal lines on wrist', equipment={'head': 'knit_cap', 'torso': 'signal_hoodie', 'pants': 'track_pants', 'feet': 'sneakers'}, items=['radio_receiver', 'battery_cell', 'signal_chalk', 'water_flask'])
-# Elena. A high-tension combat medic who specializes in frequency-induced trauma and Sleeper-bite stabilization.
-default elena = Being("elena", name='Elena', base_image='chars/female_fit.png', desc='A high-tension combat medic who specializes in frequency-induced trauma and Sleeper-bite stabilization.', location='temple', pos='500,300', factions=['field_meds'], tags=['medic', 'clinician', 'healer'], affinity=20, gender='female', age=34, height='170 cm', weight='62 kg', hair_color='black', hair_style='tight bun', eye_color='gray', face_shape='oval', skin_tone='olive', build='athletic', body_type='humanoid', breast_size='medium', dick_size='n/a', foot_size=38, distinctive_feature='clinic tattoo behind ear', equipment={'head': 'surgical_cap', 'torso': 'medical_coat', 'pants': 'scrub_pants', 'feet': 'clinic_shoes'}, items=['med_patch', 'antiseptic_wipe', 'bandage_roll', 'water_flask'])
+#region Beings x39
+# Heather Poe. Devoted potential ghoul.
+default poe = Being("poe", name='Heather Poe', desc='Devoted potential ghoul.', zone='santa_monica', clans=['human'], gender='female', tags=['companion'])
+# Beckett. Independent Gangrel scholar observing events.
+default beckett = Being("beckett", name='Beckett', desc='Independent Gangrel scholar observing events.', zone='downtown', clans=['gangrel'], gender='male', tags=['lore_master', 'advisor'])
+# Ming Xiao. Kuei-Jin leader of Chinatown.
+default ming_xiao = Being("ming_xiao", name='Ming Xiao', desc='Kuei-Jin leader of Chinatown.', zone='chinatown', clans=['kuei_jin'], gender='female', tags=['boss', 'shapeshift'])
+# Diego Santiago. Sabbat ductus encountered mid-game.
+default santiago = Being("santiago", name='Diego Santiago', desc='Sabbat ductus encountered mid-game.', zone='downtown', clans=['sabbat'], gender='male', tags=['boss', 'ambush'])
+# Damsel. Fierce Anarch activist and Brujah.
+default damsel = Being("damsel", name='Damsel', desc='Fierce Anarch activist and Brujah.', zone='downtown', clans=['brujah'], gender='female', tags=['agitator', 'melee'])
+# Bertram Tung. Nosferatu information broker.
+default tung = Being("tung", name='Bertram Tung', desc='Nosferatu information broker.', zone='santa_monica', clans=['nosferatu'], gender='male', tags=['intel', 'blackmail'])
+# Alistair Grout. Malkavian primogen found dead in mansion.
+default alistair_grout = Being("alistair_grout", name='Alistair Grout', desc='Malkavian primogen found dead in mansion.', zone='hollywood', clans=['malkavian'], gender='male', tags=['lore', 'primogen'])
+# Tourette. Merged personality outcome of the Voermans.
+default tourette = Being("tourette", name='Tourette', desc='Merged personality outcome of the Voermans.', zone='santa_monica', clans=['malkavian', 'ventrue'], gender='female', tags=['dominate', 'seduction'])
+# Romero. Cemetery guard fighting zombies.
+default romero = Being("romero", name='Romero', desc='Cemetery guard fighting zombies.', zone='hollywood', clans=['ghoul'], gender='male', tags=['shotgun', 'defense_event'])
+# Julius. Thin-blood trying to organize his kind.
+default julius = Being("julius", name='Julius', desc='Thin-blood trying to organize his kind.', zone='santa_monica', clans=['thin_blood'], gender='male', tags=['group_leader'])
+# Malcolm. Confused thin-blood seeking answers.
+default malcolm = Being("malcolm", name='Malcolm', desc='Confused thin-blood seeking answers.', zone='santa_monica', clans=['thin_blood'], gender='male', tags=['side_quest'])
+# Trip. Occult shop owner and dealer.
+default trip = Being("trip", name='Trip', desc='Occult shop owner and dealer.', zone='santa_monica', clans=['human'], gender='male', tags=['merchant'])
+# Knox Harrington. Nosferatu ghoul errand runner.
+default knox = Being("knox", name='Knox Harrington', desc='Nosferatu ghoul errand runner.', zone='santa_monica', clans=['ghoul'], gender='male', tags=['quest_giver'])
+# Barabus. Assamite assassin captured by the Sabbat.
+default barabus = Being("barabus", name='Barabus', desc='Assamite assassin captured by the Sabbat.', zone='hallowbrook_hotel', clans=['assamite'], gender='male', tags=['stealth_master', 'assassin'])
+# Mercurio. Camarilla ghoul and weapons contact.
+default mercurio = Being("mercurio", name='Mercurio', desc='Camarilla ghoul and weapons contact.', zone='santa_monica', clans=['ghoul'], gender='male', tags=['weapons_supplier', 'quest_giver'])
+# Gary Golden. Nosferatu primogen and spymaster.
+default gary_golden = Being("gary_golden", name='Gary Golden', desc='Nosferatu primogen and spymaster.', zone='nosferatu_warrens', clans=['nosferatu'], gender='male', tags=['intel_network'])
+# Leopold Bach. Hunter commander of the Society of Leopold.
+default bach = Being("bach", name='Leopold Bach', desc='Hunter commander of the Society of Leopold.', zone='society_of_leopold', clans=['hunter'], gender='male', tags=['final_boss', 'holy_weapons'])
+# Arthur Kilpatrick. Private investigator.
+default arthur_kilpatrick = Being("arthur_kilpatrick", name='Arthur Kilpatrick', desc='Private investigator.', zone='santa_monica', clans=['human'], gender='male', tags=['side_quests'])
+# Rosa. Fragmented thin-blood seer.
+default rosa = Being("rosa", name='Rosa', desc='Fragmented thin-blood seer.', zone='santa_monica', clans=['thin_blood'], gender='female', tags=['prophecy'])
+# Venus Dare. Domina running a debt-ridden club.
+default venus_dare = Being("venus_dare", name='Venus Dare', desc='Domina running a debt-ridden club.', zone='downtown', clans=['human'], gender='female', tags=['social_quest'])
+# E. Philosophical thin-blood observer.
+default e = Being("e", name='E', desc='Philosophical thin-blood observer.', zone='santa_monica', clans=['thin_blood'], gender='male', tags=['lore'])
+# Therese Voerman. Camarilla-aligned club owner.
+default therese = Being("therese", name='Therese Voerman', desc='Camarilla-aligned club owner.', zone='santa_monica', clans=['ventrue'], gender='female', tags=['dominate', 'political_power'])
+# Bishop Vick. Fanatical Sabbat leader.
+default bishop = Being("bishop", name='Bishop Vick', desc='Fanatical Sabbat leader.', zone='santa_monica', clans=['sabbat'], gender='male', tags=['boss', 'fire_combat'])
+# Pisha. Nagaraja necromancer feeding on corpses.
+default pisha = Being("pisha", name='Pisha', desc='Nagaraja necromancer feeding on corpses.', zone='hollywood', clans=['nagaraja'], gender='female', tags=['necromancy', 'occult_quests'])
+# You. Main player character. Changed in editor.
+default you = Being("you", name='You', desc='Main player character. Changed in editor.', zone=downtown__your_apartment)
+# Jack. Veteran Brujah mentor figure.
+default jack = Being("jack", name='Jack', desc='Veteran Brujah mentor figure.', zone='santa_monica', clans=['brujah'], gender='male', tags=['mentor', 'combat_experienced'])
+# Nines Rodriguez. Anarch leader and fighter.
+default nines_rodriguez = Being("nines_rodriguez", name='Nines Rodriguez', desc='Anarch leader and fighter.', zone='downtown', clans=['brujah'], gender='male', tags=['melee_master', 'leadership'])
+# Vandal. Blood Guardian boss in Chinatown temple.
+default vandel = Being("vandel", name='Vandal', desc='Blood Guardian boss in Chinatown temple.', zone='chinatown', clans=['kuei_jin'], gender='male', tags=['boss', 'melee'])
+# Gimble. Deranged prosthetics shop killer.
+default gimble = Being("gimble", name='Gimble', desc='Deranged prosthetics shop killer.', zone='santa_monica', clans=['human'], gender='male', tags=['serial_killer', 'boss'])
+# Fat Larry. Flashy illegal arms dealer.
+default fat_larry = Being("fat_larry", name='Fat Larry', desc='Flashy illegal arms dealer.', zone='downtown', clans=['ghoul'], gender='male', tags=['merchant', 'rare_items'])
+# Maximillian Strauss. Tremere regent and sorcerer.
+default strauss = Being("strauss", name='Maximillian Strauss', desc='Tremere regent and sorcerer.', zone='downtown', clans=['tremere'], gender='male', tags=['thaumaturgy', 'ritual_magic'])
+# Brother Kanker. Plague-ridden Sabbat Tzimisce.
+default brother_kanker = Being("brother_kanker", name='Brother Kanker', desc='Plague-ridden Sabbat Tzimisce.', zone='hallowbrook_hotel', clans=['tzimisce', 'sabbat'], gender='male', tags=['boss', 'disease_aura'])
+# Isaac Abrams. Hollywood Anarch baron.
+default isaac = Being("isaac", name='Isaac Abrams', desc='Hollywood Anarch baron.', zone='hollywood', clans=['toreador'], gender='male', tags=['influence', 'patron'])
+# Andrei. Tzimisce Sabbat archbishop and main antagonist.
+default andrei = Being("andrei", name='Andrei', desc='Tzimisce Sabbat archbishop and main antagonist.', zone='hallowbrook_hotel', clans=['tzimisce', 'sabbat'], gender='male', tags=['final_boss', 'vicissitude'])
+# Sebastian LaCroix. Ambitious Camarilla Prince.
+default lacroix = Being("lacroix", name='Sebastian LaCroix', desc='Ambitious Camarilla Prince.', zone='venture_tower', clans=['ventrue'], gender='male', tags=['dominate', 'political_power'])
+# Chunk. Nervous security guard at Venture Tower.
+default chunk = Being("chunk", name='Chunk', desc='Nervous security guard at Venture Tower.', zone='venture_tower', clans=['human'], gender='male', tags=['comic_relief', 'access_control'])
+# Yuki. Kuei-Jin ally opposing Ming Xiao.
+default yuki = Being("yuki", name='Yuki', desc='Kuei-Jin ally opposing Ming Xiao.', zone='chinatown', clans=['kuei_jin'], gender='female', tags=['ally'])
+# Jeanette Voerman. Seductive and chaotic club co-owner.
+default jeanette = Being("jeanette", name='Jeanette Voerman', desc='Seductive and chaotic club co-owner.', zone='santa_monica', clans=['malkavian'], gender='female', tags=['seduction', 'manipulation'])
+# Lily. Troubled thin-blood caught in abuse.
+default lily = Being("lily", name='Lily', desc='Troubled thin-blood caught in abuse.', zone='santa_monica', clans=['thin_blood'], gender='female', tags=['quest_target'])
 #endregion
 
 #region Inventorys x0
@@ -256,43 +291,27 @@ default elena = Being("elena", name='Elena', base_image='chars/female_fit.png', 
 #endregion
 
 #region Zones x10
-# Supply Depot. Shelves of ration tins and repair tools.
-define shop = Zone("shop", name='Supply Depot', desc='Shelves of ration tins and repair tools.', entities=[{'id': 'market', 'type': 'link', 'x': 960, 'y': 800, 'spawn': [1600, 540]}])
-define shop__back_room = Zone("shop__back_room", desc='Shelves are here.', name='Back Room')
-# Civic Hub. A sandbagged plaza with radios and posted routes.
-define civic_hub = Zone("civic_hub", name='Civic Hub', desc='A sandbagged plaza with radios and posted routes.', subtype='city', position=[1000, 0, 1000], entities=[])
-# Quarantine Docks. Silent piers and a distant, empty harbor.
-define docks = Zone("docks", name='Quarantine Docks', desc='Silent piers and a distant, empty harbor.', subtype='city', position=[1300, 1200])
-# Outskirts Line. The fence line where the city thins into overgrowth and silent lots.
-define outskirts_line = Zone("outskirts_line", name='Outskirts Line', desc='The fence line where the city thins into overgrowth and silent lots.', subtype='wilderness', position=[600, 0, 500])
-# Dawn Clinic. Clean sheets, soft lights, and careful hands.
-define dawn_clinic = Zone("dawn_clinic", name='Dawn Clinic', desc='Clean sheets, soft lights, and careful hands.', subtype='city', position=[900, 0, 700], tags=['safe'], entities=[])
-# Broadcast Tower. A concrete spire that once blanketed the city with signal.
-define broadcast_tower = Zone("broadcast_tower", name='Broadcast Tower', desc='A concrete spire that once blanketed the city with signal.', subtype='structure', position=[1200, 0, 800], entities=[])
-define broadcast_tower__lobby = Zone("broadcast_tower__lobby", name='Broadcast Tower Lobby', desc='Dusty consoles and a sealed control room.', subtype='floor', position=[1200, 0, 800], floor=1, entities=[{'id': 'signal_console', 'type': 'object', 'name': 'Signal Console', 'desc': 'A flickering screen covered in grime. It hums with a steady rhythm.', 'label': 'console_interaction', 'x': 800, 'y': 400, 'sprite': 'images/topdown/chars/male_base.png'}])
-# Quarantine Gate. Checkpoint lights, logbooks, and a tight line of rules.
-define quarantine_gate = Zone("quarantine_gate", name='Quarantine Gate', desc='Checkpoint lights, logbooks, and a tight line of rules.', subtype='city', position=[1050, 0, 1050], entities=[])
-# Temple. asd
-define temple = Zone("temple", name='Temple', desc='asd', entities=[{'id': 'market', 'type': 'link', 'x': 960, 'y': 800, 'spawn': [1600, 540]}])
-define temple__back_room = Zone("temple__back_room", desc='Shelves are here.', name='Back Room')
-# Shelter Hall. Cots, quiet songs, and a warm meal if you're lucky.
-define shelter_hall = Zone("shelter_hall", name='Shelter Hall', desc="Cots, quiet songs, and a warm meal if you're lucky.", tags=['safe'], subtype='city', position=[800, 0, 1100], entities=[])
-# Safehouse. A quiet multi-level safehouse assigned to you within the quarantine block.
-define safehouse = Zone("safehouse", name='Safehouse', desc='A quiet multi-level safehouse assigned to you within the quarantine block.', tags=['safe'], subtype='structure', position=[1000, 0, 1000], entities=[{'id': 'market', 'type': 'link', 'x': 200, 'y': 540, 'spawn': [200, 540]}])
-define safehouse__attic = Zone("safehouse__attic", name='Attic', desc='A cramped attic full of stored crates and old insulation.', subtype='floor', floor=3)
-define safehouse__top_floor = Zone("safehouse__top_floor", name='Top Floor', desc='Quiet sleeping quarters and the bathroom.', subtype='floor', floor=2)
-define safehouse__main_bedroom = Zone("safehouse__main_bedroom", desc='Your assigned room with a narrow cot and a small mirror.', subtype='room', entities=[{'id': 'bed', 'type': 'object', 'name': 'Cot', 'desc': 'A narrow cot with a clean blanket.', 'x': 300, 'y': 500, 'sprite': 'images/topdown/chars/male_base.png'}, {'id': 'mirror', 'type': 'object', 'name': 'Small Mirror', 'desc': 'Check your face and move on.', 'x': 1400, 'y': 300, 'sprite': 'images/topdown/chars/male_base.png'}, {'id': 'closet', 'type': 'container', 'name': 'Supply Locker', 'desc': 'A battered locker for your essentials.', 'x': 0, 'y': 0, 'items': ['camp_kit', 'ration_bar', 'antiseptic_ampoule'], 'sprite': 'images/topdown/chars/male_base.png'}], name='Main Bedroom')
-define safehouse__guest_bedroom = Zone("safehouse__guest_bedroom", desc='A spare room kept ready for visitors or injured runners.', subtype='room', name='Guest Bedroom')
-define safehouse__kids_bedroom = Zone("safehouse__kids_bedroom", desc='A small room with mismatched blankets and hand-drawn maps.', subtype='room', name='Kids Bedroom')
-define safehouse__bathroom = Zone("safehouse__bathroom", desc='A compact washroom with a trickling filter line.', subtype='room', name='Bathroom')
-define safehouse__main_floor = Zone("safehouse__main_floor", name='Main Floor', desc='The day-to-day living space, with work areas and a garage.', subtype='floor', floor=1)
-define safehouse__garage = Zone("safehouse__garage", desc='A converted bay for carts, tools, and quiet repairs.', subtype='room', name='Garage')
-define safehouse__kitchen = Zone("safehouse__kitchen", desc='A narrow galley for ration prep and shared meals.', subtype='room', name='Kitchen')
-define safehouse__living_room = Zone("safehouse__living_room", desc='A low-lit common area with patched couches and old screens.', subtype='room', name='Living Room')
-define safehouse__office = Zone("safehouse__office", desc='A cramped desk space for logs, maps, and comms.', subtype='room', name='Office')
-define safehouse__basement = Zone("safehouse__basement", name='Basement', desc='Utility space with old ducting and supply cages.', subtype='floor', floor=0)
-define safehouse__furnace_room = Zone("safehouse__furnace_room", desc='The heat hub, lined with filters and rumbling vents.', subtype='room', name='Furnace Room')
-define safehouse__supply_room = Zone("safehouse__supply_room", desc='Locked shelves of spare parts and emergency stocks.', subtype='room', name='Supply Room')
+# Hallowbrook Hotel. Sabbat headquarters in Downtown.
+define hallowbrook_hotel = Zone("hallowbrook_hotel", name='Hallowbrook Hotel', desc='Sabbat headquarters in Downtown.', subtype='structure')
+# Venture Tower. Prince LaCroix's skyscraper headquarters.
+define venture_tower = Zone("venture_tower", name='Venture Tower', desc="Prince LaCroix's skyscraper headquarters.", subtype='structure')
+# Griffith Park. Wilderness combat zone with supernatural threats.
+define griffith_park = Zone("griffith_park", name='Griffith Park', desc='Wilderness combat zone with supernatural threats.', subtype='world')
+# Society of Leopold Monastery. Hunter stronghold and late-game assault area.
+define society_of_leopold = Zone("society_of_leopold", name='Society of Leopold Monastery', desc='Hunter stronghold and late-game assault area.', subtype='structure')
+# Ocean House Hotel. Haunted seaside mansion dungeon.
+define ocean_house_hotel = Zone("ocean_house_hotel", name='Ocean House Hotel', desc='Haunted seaside mansion dungeon.', subtype='structure')
+# Chinatown. Kuei-Jin territory led by Ming Xiao.
+define chinatown = Zone("chinatown", name='Chinatown', desc='Kuei-Jin territory led by Ming Xiao.', subtype='city')
+# Nosferatu Warrens. Underground sewer network and Nosferatu base.
+define nosferatu_warrens = Zone("nosferatu_warrens", name='Nosferatu Warrens', desc='Underground sewer network and Nosferatu base.', subtype='structure')
+# Santa Monica. Coastal starter hub with Anarch influence and thin-blood presence.
+define santa_monica = Zone("santa_monica", name='Santa Monica', desc='Coastal starter hub with Anarch influence and thin-blood presence.', subtype='city')
+# Hollywood. Anarch stronghold filled with decadence and occult activity.
+define hollywood = Zone("hollywood", name='Hollywood', desc='Anarch stronghold filled with decadence and occult activity.', subtype='city')
+# Downtown Los Angeles. Camarilla-controlled financial district and political center.
+define downtown = Zone("downtown", name='Downtown Los Angeles', desc='Camarilla-controlled financial district and political center.', subtype='city')
+define downtown__your_apartment = Zone("downtown__your_apartment", subtype='room', name='Your Apartment')
 #endregion
 
 #region Item_filterss x0
@@ -338,7 +357,7 @@ define age = Trait("age", name='Age', tags=['body'], defaults={'age': {'range': 
 
 #region Appearances x0
 #endregion
-#region Labels x296
+#region Labels x173
 label camp_kit:
     label .inspect:
         "A compact bedroll, a small firestarter, and a waterproof tarp."
@@ -596,187 +615,6 @@ label silent_tide:
         clerk "If it works, it could guide them. If it fails..."
         $ FLAG(broadcast_attempted)
         $ GAIN(protocol_deciphered)
-        return
-    return
-label faye:
-    label .talk:
-        faye "You look like you've been breathing too much static. Sit, eat your rations, then move on."
-        faye "Space is tight, but I can find a cot if you need to let your frequency drop for a while."
-        $ faye.mark_as_met()
-        return
-    return
-label theo:
-    label .talk:
-        theo "If we can chart the pattern decay of the Spire, we can predict when the next drift will peak."
-        theo "History isn't just about what we lost; it's about the frequencies we forgot how to tune into."
-        $ MET("theo")
-        return
-    return
-label nia:
-    label .talk:
-        nia "You move like you're wearing heavy boots. You'll wake the whole block up like that."
-        nia "If you ever need a route that doesn't involve walking through a drift, I know where the ducts still hold."
-        $ nia.mark_as_met()
-        return
-    return
-label hakim:
-    label .talk:
-        hakim "Every nutrition bar is counted. Every medical kit is signed for by the Coordinator."
-        hakim "If you want to barter, bring something the settlement can actually use—scrap tech, clean water, or data logs."
-        $ hakim.mark_as_met()
-        return
-    return
-label clerk:
-    label .talk:
-        clerk "Take what you've been rationed for, and make sure you log your exchange in the book. No credit in the Silence."
-        $ clerk.mark_as_met()
-        return
-    return
-label greta:
-    label .talk:
-        greta "I can quiet a rusty hinge or wake the whole block with one frequency tap."
-        greta "If you're heading out, you'll need a signal baton. Bring me enough scrap wood and stone weights, and I'll rig one for you."
-        $ greta.mark_as_met()
-        return
-    return
-label lena:
-    label .talk:
-        lena "The sleepers follow sound more than sight. If you're going to survive the forest edge, you need to learn to walk between the beats."
-        lena "Keep your steps light and your voice softer. The drift is sensitive today."
-        $ lena.mark_as_met()
-        return
-    label .ask_for_a_guide:
-        lena "Fine. But if you start humming or dragging your feet, I'm leaving you as bait. Keep up."
-        $ FOLLOWER("lena")
-        $ FLAG(scout_joined)
-        $ BOND(trust, "lena")
-        return
-    return
-label mara:
-    label .talk:
-        mara "You made it in. Good. We need fast legs and even calmer voices."
-        mara "The signal from the old Spire is shifting. If we don't adapt the perimeter sonar, the sleepers will be at the gates by dawn."
-        $ mara.mark_as_met()
-        return
-    label .offer_help:
-        player "If you need someone fast, I can run the perimeter."
-        mara "Good. We're blind out there. Take this route map—it's marked with the latest safe-zones and frequency dead-spots."
-        $ mara.items.append(Item("Safe Route Map", "Marked safe corridors and quiet zones."))
-        $ BOND("mara", trust, 5)
-        return
-    label .ask_about_the_signal:
-        mara "It started three nights ago. A rhythmic, low-frequency pulse."
-        mara "It's drawing the sleepers in from the plains. If we can't find a way to shift the frequency, we'll be overrun by the week's end."
-        return
-    label .report_on_spire:
-        player "I have the protocol drive from the Spire. The lobby was full of them—it was like walking through a dream where nobody breathes."
-        mara "Every year we lose more to the drift. This drive... it's the first real data we've had on their resonance in a decade."
-        mara "Give me a moment to patch it into the main console. We need to see if we can broadcast a counter-tone."
-        $ NOTIFY("Deciphering protocol...")
-        $ FLAG(protocol_deciphered)
-        mara "There. It's not just a signal. It's a bridge. We can lead them away, or we can shut their cognitive resonance down entirely."
-        return
-    return
-label jace:
-    label .talk:
-        jace "No ships coming in, just the wind and the sound of the structural rust groaning."
-        jace "If the tide brings in a drift from the Spire, I ring the chime and we all evacuate to the higher districts."
-        $ jace.mark_as_met()
-        return
-    return
-label ash:
-    label .talk:
-        ash "The city isn't dead. It's just listening for the right frequency to scream."
-        ash "If you go out into the drift, go light. The Silence doesn't like heavy footsteps."
-        $ ash.mark_as_met()
-        return
-    return
-label rafi:
-    label .talk:
-        rafi "Keep your steps light and your voice lower. The fence only holds if the noise stays inside."
-        rafi "We keep the line so others can sleep without waking up as one of them."
-        $ rafi.mark_as_met()
-        return
-    label .request_gate_pass:
-        rafi "I can log a short-term pass. If the sensors pick up a spike in your frequency, don't expect us to open the gate when you come back."
-        $ FLAG(SET, gate_pass, true)
-        $ BOND("rafi", respect, 3)
-        $ NOTIFY("Gate pass logged.")
-        return
-    label .report_a_quiet_route:
-        rafi "Good. Every quiet route is a lifeline. I'll update the patrol logs."
-        $ BOND("rafi", trust, 2)
-        return
-    return
-label imani:
-    label .talk:
-        imani "We balance the data points: food, water, and Silence. If any one drops, the settlement falls."
-        imani "If you've been outside, report any changes in the sleeper patterns immediately. Every pulse counts."
-        $ imani.mark_as_met()
-        return
-    return
-label kael:
-    label .talk:
-        kael "Don't just stand there making noise. Noise is death."
-        kael "Unless you're making it to clear a path. You looking for a piece of the next breach?"
-        $ kael.mark_as_met()
-        return
-    label .ask_about_breaching:
-        kael "You don't clear them all. You find the resonance point, hit it hard, and run through the gap before they reset."
-        kael "It's about timing and weight. Stay heavy, move fast."
-        return
-    return
-label survivor:
-    label .talk:
-        player "I've walked the quiet roads since the first pattern broke. These 'Sleepers'... they're just echoes of us, waiting for the right tone to wake up."
-        return
-    return
-label jun:
-    label .talk:
-        jun "The hall is loud inside, but the Silence is louder outside. The right cadence keeps the drift from noticing we're still here."
-        jun "If you can carry a signal baton, I can teach you a dampening cadence."
-        $ jun.mark_as_met()
-        return
-    label .learn_cadence:
-        jun "Three beats, then a breath. Let the frequency settle between your steps. Keep it even."
-        $ PERK(silver_tongue)
-        $ FLAG(cadence_learned, true)
-        return
-    return
-label elena:
-    label .talk:
-        elena "Slow breaths. Keep your hands where I can see them. Clean hands keep people on this side of the pulse."
-        elena "If you feel the 'Static' in your head, report to the clinic immediately. We can't afford a sleeper waking up inside the walls."
-        $ elena.mark_as_met()
-        return
-    label .checkup:
-        elena "Hold still. It's just a diagnostic sweep."
-        $ STAT(flu, remove=True)
-        $ NOTIFY("Your cognitive resonance stabilizes.")
-        return
-    label .battery_cell:
-        elena "Good. I can keep the clinic lights stable for another night."
-        $ GAIN(battery_cell, _from=player, who="elena")
-        $ NOTIFY("You gave Elena a Battery Cell.")
-        return
-    return
-label broadcast_tower:
-    label .console:
-        player "The screen is asking for an override."
-        player "If I can pull the data now, maybe I can make it back before the sleepers shift."
-        $ NOTIFY("Recovering protocol...")
-        $ GAIN(broadcast_protocol)
-        $ FLAG(protocol_recovered)
-        return
-    return
-label safehouse:
-    label .bed:
-        $ STAT(energy, 8)
-        "You wake to the soft hum of the wall speakers."
-        return
-    label .mirror:
-        "You check for dust, bruises, and any new marks."
-        "All clear."
         return
     return
 #endregion
