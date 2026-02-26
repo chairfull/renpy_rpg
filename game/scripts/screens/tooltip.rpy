@@ -41,10 +41,8 @@ init python:
     _tt = _TooltipState()
 
 screen tooltip_screen:
-    # timer 0.1 repeat True action Function(renpy.restart_interaction)
-    
     frame at Transform(function=_tt.update):
-        offset (32, 32)
+        offset (16, 16)
         vbox:
             if _tt.text:
                 text "[_tt.text!ti]":

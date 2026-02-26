@@ -1,5 +1,5 @@
 import renpy
-from .vector3 import Vector3
+from .point import Point
 from .scene_camera import SceneCamera
 from .scene_cursor import SceneCursor
 
@@ -8,9 +8,12 @@ class Scene:
     def __init__(self):
         self.camera = SceneCamera()
         self.cursor = SceneCursor()
+        # TODO: change bg, children, lights, ui to all use dict and have ids for easier
         self.bg = [] # Non-interactive images rendered below objects.
         self.children = [] # Interactive objects that implement a _process().
         self.lights = []
+        self.ui = [] # Rendered over everything including the lights.
+        self.debug = {}
         self.paused = False
         self.hovering = None
         self.msg = ""
@@ -28,7 +31,7 @@ class Scene:
         
         self.camera._update()
 
-        for child in self.bg + self.children:
+        for child in self.bg + self.children + self.ui:
             child._apply_camera_transform(self.camera)
         
         return 0.0
@@ -49,4 +52,4 @@ class Scene:
 
     def get_mouse(self):
         mx, my = renpy.exports.get_mouse_pos()
-        return self.camera.screen_to_world(Vector3(mx, 0, my))
+        return self.camera.to_world(Point(mx, 0, my))

@@ -14,8 +14,8 @@ init python:
         GAIN, # x1
     )
     #region Conditions.
-    def _cond_9173912679931843605(): return friendship.between(ash, theo) > 10
-    def _cond_5222493714123714281(): return has_flag(harmonic_key_obtained)
+    def _cond__6587573756661970148(): return friendship.between(ash, theo) > 10
+    def _cond_4383161032429654808(): return has_flag(harmonic_key_obtained)
     #endregion
 
 #region Awards x5
@@ -177,8 +177,8 @@ define silent_tide__the_road_back = QuestTick("silent_tide__the_road_back", desc
 define silent_tide__resurrection = QuestTick("silent_tide__resurrection", desc='Visit the market.', mark=['market'], trigger={'event': 'LOCATION_ENTERED', 'state': {'character': 'theo', 'location': 'market'}, 'flags': {'broadcast_success': True}}, name='Resurrection')
 define silent_tide__return_with_the_elixir = QuestTick("silent_tide__return_with_the_elixir", mark='temple', trigger={'event': 'LOCATION_ENTERED', 'state': {'character': 'theo', 'location': 'temple'}}, name='Return with the Elixir')
 define silent_tide__ask_the_clerk = Choice("silent_tide__ask_the_clerk", menu='clerk', text="Ask the clerk about the sleepers' rhythm.", flags={'asked_clerk': None})
-define silent_tide__share_the_pattern_with_ash = Choice("silent_tide__share_the_pattern_with_ash", menu='ash', text="Share the pattern you've recorded with Ash.", cond='9173912679931843605')
-define silent_tide__attempt_harmonic_broadcast = Choice("silent_tide__attempt_harmonic_broadcast", menu='clerk', text='Offer to run the harmonic broadcast (requires harmonic key).', cond='5222493714123714281')
+define silent_tide__share_the_pattern_with_ash = Choice("silent_tide__share_the_pattern_with_ash", menu='ash', text="Share the pattern you've recorded with Ash.", cond='_6587573756661970148')
+define silent_tide__attempt_harmonic_broadcast = Choice("silent_tide__attempt_harmonic_broadcast", menu='clerk', text='Offer to run the harmonic broadcast (requires harmonic key).', cond='4383161032429654808')
 #endregion
 
 #region Quest_ticks x0

@@ -1,8 +1,8 @@
-import Vector3
+import Point
 
 class HasFixture:
     """Place a Being can fixate to (seat, bed, table, floor spot)."""
-    def __init__(self, _id, name, subtype="seat", position=Vector3()):
+    def __init__(self, _id, name, subtype="seat", position=Point()):
         self.id = _id
         self.name = name
         self.position = position

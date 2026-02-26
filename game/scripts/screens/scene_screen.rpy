@@ -1,89 +1,125 @@
-# init python:
-#     from renpy.uguu import GL_FUNC_ADD, GL_FUNC_SUBTRACT, GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_MIN, GL_ONE_MINUS_DST_COLOR, GL_MAX, GL_ZERO
-#     config.gl_blend_func["screen"] = (GL_FUNC_ADD, GL_ONE_MINUS_DST_COLOR, GL_ONE, GL_FUNC_ADD, GL_ONE, GL_ONE)
-#     config.gl_blend_func["lighten"] = (GL_MAX, GL_ONE, GL_ONE, GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-#     config.gl_blend_func["darken"] = (GL_MIN, GL_ONE, GL_ONE, GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-#     config.gl_blend_func["erase"] = (GL_FUNC_ADD, GL_ZERO, GL_ONE, GL_FUNC_ADD, GL_ZERO, GL_ONE_MINUS_SRC_ALPHA)
-#     config.gl_blend_func["sub"] = (GL_FUNC_SUBTRACT, GL_ONE, GL_ONE, GL_FUNC_ADD, GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-#     config.gl_blend_func["sub_better"] = (GL_FUNC_SUBTRACT, GL_ONE, GL_ONE, GL_FUNC_SUBTRACT, GL_ONE, GL_ONE)
+init python:
+    class SceneLightingLayer(renpy.Displayable):
+        """
+        Black = full darkness, color = illumination.
+        """
+        def _get_surface(self, light, zoom):
+            key = (light.radius, light.energy, light.color, zoom)
+            if getattr(light, "_light_surf_key", None) != key:
+                r = int(light.radius * zoom)
+                d = r * 2
+                raw = pg.image.load(renpy.loader.load(light.image))
+                surf = pg.transform.scale(raw.convert_alpha(), (d, d))
 
-# init python:
-#     import pygame_sdl2 as pg
+                # Bake color tint into RGB only.
+                cr, cg, cb = light.color[:3]
+                tint = pg.Surface((d, d), pg.SRCALPHA)
+                tint.fill((cr, cg, cb, 255))
+                surf.blit(tint, (0, 0), special_flags=pg.BLEND_RGB_MULT)
 
-#     class DarknessLayer(renpy.Displayable):
-#         def get_light_surface(self, light):
-#             if not hasattr(light, "_light_surf"):
-#                 raw = pg.image.load(renpy.loader.load(light.image))
-#                 d = light.radius * 2
-#                 scaled = pg.transform.scale(raw.convert_alpha(), (d, d))
-#                 light._light_surf = scaled
-#             return light._light_surf
-        
-#         def render(self, width, height, st, at):
-#             mx, my = renpy.get_mouse_pos()
+                # Bake energy into alpha only.
+                energy_surf = pg.Surface((d, d), pg.SRCALPHA)
+                energy_surf.fill((255, 255, 255, int(light.energy * 255)))
+                surf.blit(energy_surf, (0, 0), special_flags=pg.BLEND_RGBA_MULT)
 
-#             # Black overlay at full opacity
-#             overlay = renpy.display.pgrender.surface((width, height), True)
-#             overlay.fill((0, 0, 0, 255))
+                light._light_surf = surf
+                light._light_surf_key = key
+            return light._light_surf
 
-#             # Subtract the light's alpha channel from the overlay,
-#             # punching a transparent hole where the light is brightest
-#             for light in renpy.store.current_scene.lights:
-#                 lx, _, lz = light.position
-#                 overlay.blit(self.get_light_surface(light), (lx - light.radius, lz - light.radius), special_flags=pg.BLEND_RGBA_SUB)
+        def render(self, width, height, st, at):
+            scene  = renpy.store.current_scene
+            camera = scene.camera
 
-#             # Convert the pygame surface into a Ren'Py render
-#             tex = renpy.display.draw.load_texture(overlay, transient=True)
-#             rv = renpy.Render(width, height)
-#             rv.blit(tex, (0, 0))
+            # Hash the state — only rebuild if something moved or changed.
+            state = (camera.zoom, camera.position, tuple(
+                (id(l), l.position.xz)
+                for l in scene.lights
+            ))
 
-#             renpy.redraw(self, 0)
-#             return rv
+            if not hasattr(self, "_last_state") or self._last_state != state:
 
-#         def visit(self):
-#             return []  # no child Ren'Py displayables to visit (raw pygame surface)
+                # Black = darkness; lights will carve out and tint illuminated areas.
+                overlay = renpy.display.pgrender.surface((width, height), True)
+                overlay.fill((0, 0, 0, 255))
 
-#     class LightingLayer(renpy.Displayable):
-#         def get_light_surface(self, light):
-#             if not hasattr(light, "_light_surf"):
-#                 raw = pg.image.load(renpy.loader.load(light.image))
-#                 d = light.radius * 2
-#                 light._light_surf = pg.transform.scale(raw.convert_alpha(), (d, d))
-#             return light._light_surf
+                for light in scene.lights:
+                    surf = self._get_surface(light, camera.zoom)
+                    r = int(light.radius * camera.zoom)
+                    sx, sz = camera.to_screen(light.position).xz_int
+                    overlay.blit(surf, (sx - r, sz - r))
+                
+                self._cached_tex = renpy.display.draw.load_texture(overlay, transient=True)
+                self._last_state = state
 
-#         def render(self, width, height, st, at):
-#             r = renpy.Render(width, height)
+            # tex = renpy.display.draw.load_texture(overlay, transient=True)
+            rv  = renpy.Render(width, height)
+            rv.blit(self._cached_tex, (0, 0))
+            renpy.redraw(self, 1/24) # 25 frames per second seems an okay tradeoff
+            return rv
 
-#             for light in renpy.store.current_scene.lights:
-#                 lx, _, lz = light.position
-#                 d = light.radius * 2
+        def visit(self):
+            return []
+    
+    class SceneDebugLayer(renpy.Displayable):
+        def render(self, width, height, st, at):
+            scene  = renpy.store.current_scene
+            camera = scene.camera
 
-#                 t = Transform(
-#                     renpy.display.im.Scale(light.image, d, d),
-#                     alpha=light.energy,
-#                     matrixcolor=TintMatrix(light.color)
-#                 )
-#                 light_r = renpy.render(t, d, d, st, at)
-#                 r.blit(light_r, (lx - light.radius, lz - light.radius))
+            surf = renpy.display.pgrender.surface((width, height), True)
 
-#             renpy.redraw(self, 0)
-#             return r
+            for k, v in scene.debug.items():
+                clr = v.debug_color if hasattr(v, "debug_color") else "#ff00ff"
+                wid = v.debug_width if hasattr(v, "debug_width") else 1
+                # Draw point list
+                if isinstance(v, PointList):
+                    points = [camera.to_screen(x).xz_int for x in v.points]
+                    for i in range(0, len(points)-1):
+                        pg.draw.line(surf, clr, points[i], points[i+1], wid)
+                    if v.closed:
+                        pg.draw.line(surf, clr, points[0], points[-1], wid)
+                # Draw circle
+                elif isinstance(v, Sphere):
+                    points = [camera.to_screen(x).xz_int for x in v.get_circle(32)]
+                    for i in range(0, len(points)):
+                        pg.draw.line(surf, clr, points[i-1], points[i], wid)
+                elif isinstance(v, Point):
+                    pass
+            
+            tex = renpy.display.draw.load_texture(surf, transient=True)
+            rv  = renpy.Render(width, height)
+            rv.blit(tex, (0, 0))
+            renpy.redraw(self, 1/20)
+            return rv
 
-#         def visit(self):
-#             return []
+        def visit(self):
+            return []
 
-# define darkness = DarknessLayer()
-# define lighting = LightingLayer()
+define scene_lighting_layer = SceneLightingLayer()
+define scene_debug_layer = SceneDebugLayer()
 
 transform updater_transform(ent):
     subpixel True
     function ent._update_transform
+
+transform scene_hovered:
+    subpixel True
+    alpha 0.0
+    on show:
+        block:
+            ease 0.1 alpha 1.0
+        block:
+            ease 0.5 alpha 0.5
+            ease 0.25 alpha 1.0
+            repeat
+    on hide:
+        ease 0.2 alpha 0.0
 
 screen scene_screen():
     """Updates and renders a Scene object and it's children."""
     modal True
     zorder 10
     # timer 0.1 action Function(renpy.restart_interaction) repeat True
+    default hover_entity = None
     $ scene = current_scene or null_scene
     $ camera = scene.camera
     
@@ -128,6 +164,7 @@ screen scene_screen():
             for entity in scene.children:
                 imagebutton at updater_transform(entity):
                     hovered Function(scene._hovered, entity)
+                    unhovered NullAction()
                     action Function(scene._clicked, entity)
                     alternate Function(scene._clicked, entity, True)
                     idle entity.image
@@ -136,13 +173,29 @@ screen scene_screen():
                     background None
                 # text "[entity.transform.pos] [entity.transform.zoom]" at _entity_transform(entity)
     
-    add lighting:
+    # Lighting.
+    add scene_lighting_layer:
         blend "multiply"
     
+    # UI elements.
+    for entity in scene.ui:
+        imagebutton at updater_transform(entity):
+            idle entity.image
+            background None
+
     text "[scene.msg]":
         size 64
         color "#ffffff"
 
+    # Highlight hovered entity.
+    $ hover_entity = scene.hovering or hover_entity
+    showif scene.hovering is not None:
+        if hover_entity is not None:
+            add hover_entity.image at [hover_entity.transform, scene_hovered]
+
+    add scene_debug_layer
+
+    # Cursor.
     fixed at updater_transform(scene.cursor):
         if scene.hovering == None:
             add Solid("#ff69b4") xsize 16 ysize 16

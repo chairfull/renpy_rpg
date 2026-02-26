@@ -1,23 +1,37 @@
 import renpy
-from .vector3 import Vector3
+from .point import Point
 
 class SceneChild:
     """Object that can draw to screen."""
-    def __init__(self, position=Vector3(), tooltip=None, image=None,
+    def __init__(self, position=Point(), tooltip=None, image=None,
                  zoom=1.0, flipped=False,
                  matrixcolor=None, **kwargs):
-        self._transform = renpy.store.Transform(anchor=(0.5, 0.5), size=(256, 256), zoom=zoom, xzoom=1.0, yzoom=1.0, subpixel=True, **kwargs)
+        self._transform = renpy.store.Transform(anchor=(0.5, 0.5), zoom=zoom, xzoom=1.0, yzoom=1.0, subpixel=True, **kwargs)
         self._matrixcolor = matrixcolor
         if flipped:
             self.flipped = True
         self.position = position
-        self.tooltip = tooltip
+        self._tooltip = tooltip
         self._image = image
+        self.screen_anchor = (0.5, 0.5)
+        self.screen_zoom = zoom
+        self.screen_pos = position.xz
     
+    @property
+    def tooltip(self):
+        return "My tooltip needs implementing."
+    
+    def _apply_camera_transform(self, camera):
+        x, _, z = (self.position - camera.position) * camera.zoom + camera.screen_center
+        self.screen_pos = (int(x), int(z))
+        self.screen_zoom = camera.zoom
+
     def _update_transform(self, tr, st, at):
         tr.subpixel = True
-        tr.zoom = self._transform.zoom
-        tr.pos = self._transform.pos
+        tr.anchor = self.screen_anchor
+        tr.zoom = self.screen_zoom
+        tr.pos = self.screen_pos
+        self._transform = tr
         return 0.0
 
     @property
@@ -59,11 +73,6 @@ class SceneChild:
     def _clicked(self, alt=False):
         """Called when clicked on."""
         return renpy.store.NullAction()
-    
-    def _apply_camera_transform(self, camera):
-        x, _, z = (self.position - camera.position) * camera.zoom + camera.screen_center
-        self._transform.pos = (int(x), int(z))
-        self._transform.zoom = camera.zoom
     
     def _process(self, dt):
         """Called every update tick."""

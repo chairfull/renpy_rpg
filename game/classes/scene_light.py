@@ -1,11 +1,11 @@
 import renpy
 from renpy.color import Color
 from .util import clamp
-from .vector3 import Vector3
+from .point import Point
 
 class SceneLight:
     def __init__(self, color="#fff", radius=256.0, energy=0.9, image="light.svg"):
-        self.position = Vector3()
+        self.position = Point()
         self._color = Color(color)
         self._radius = radius
         self._energy = clamp(energy, 0.0, 1.0)

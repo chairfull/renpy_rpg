@@ -1,7 +1,9 @@
 from .util import (clamp, lerp)
 from .util_str import (bracket_label)
 from .util_color import (hex_to_rgb, rgb_to_hex, tint)
-from .vector3 import Vector3
+from .point import Point
+from .point_list import PointList
+from .sphere import Sphere
 
 from .assets import (find_image)
 

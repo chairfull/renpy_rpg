@@ -1,5 +1,5 @@
 import heapq
-from .vector3 import Vector3
+from .point import Point
 
 class Astar:
     def __init__(self):
@@ -7,7 +7,7 @@ class Astar:
         self.edges = {}
 
     def add_node(self, key, position=None):
-        self.nodes[key] = position if position is not None else Vector3()
+        self.nodes[key] = position if position is not None else Point()
 
     def add_edge(self, a_key, b_key, bidirectional=True):
         self.edges[(a_key, b_key)] = True

@@ -1,26 +1,37 @@
 import math
 from .util import clamp, lerp
 
-class Vector3:
+class Point:
     def __init__(self, x=0.0, y=None, z=None):
+        if isinstance(x, tuple):
+            if len(x) == 2:
+                x, z = x
+                y = 0.0
+            elif len(x) == 3:
+                x, y, z = x
         if y is None: y = x
         if z is None: z = x
         self.reset(x, y, z)
     
+    def set_debug(self, color="#ff0000", width=1):
+        self.debug_color = color
+        self.debug_width = width
+        return self
+    
     def __add__(self, other):
-        return Vector3(self.x + other.x, self.y + other.y, self.z + other.z)
+        return Point(self.x + other.x, self.y + other.y, self.z + other.z)
 
     def __sub__(self, other):
-        return Vector3(self.x - other.x, self.y - other.y, self.z - other.z)
+        return Point(self.x - other.x, self.y - other.y, self.z - other.z)
 
     def __mul__(self, scalar):
-        return Vector3(self.x * scalar, self.y * scalar, self.z * scalar)
+        return Point(self.x * scalar, self.y * scalar, self.z * scalar)
 
     def __truediv__(self, scalar):
-        return Vector3(self.x / scalar, self.y / scalar, self.z / scalar)
+        return Point(self.x / scalar, self.y / scalar, self.z / scalar)
 
     def __floordiv__(self, scalar):
-        return Vector3(self.x // scalar, self.y // scalar, self.z // scalar)
+        return Point(self.x // scalar, self.y // scalar, self.z // scalar)
 
     def __getattr__(self, name):
         if name == "xz":
@@ -30,11 +41,11 @@ class Vector3:
             return (int(self.x), int(self.z))
         elif name == "neg_xz_int":
             return (int(-self.x), int(-self.z))
-        raise AttributeError(f"'Vector3' object has no attribute '{name}'")
+        raise AttributeError(f"'Point' object has no attribute '{name}'")
 
     def __setattr__(self, name, value):
         if name == "xz":
-            if isinstance(value, Vector3):
+            if isinstance(value, Point):
                 self.__dict__["x"], self.__dict__["z"] = value.x, value.z
             elif isinstance(value, (list, tuple)):
                 if len(value) == 2:
@@ -57,7 +68,7 @@ class Vector3:
                 x, z = x
             else:
                 raise ValueError("Expected a list or tuple of 2-3 elements")
-        elif isinstance(x, Vector3):
+        elif isinstance(x, Point):
             x, y, z = x.x, x.y, x.z
         return float(x), float(y), float(z)
 
@@ -76,11 +87,11 @@ class Vector3:
     def normalized(self):
         l = self.length()
         if l == 0:
-            return Vector3(0.0, 0.0, 0.0)
-        return Vector3(self.x / l, self.y / l, self.z / l)
+            return Point(0.0, 0.0, 0.0)
+        return Point(self.x / l, self.y / l, self.z / l)
         
     def lerp(self, other, t):
-        return Vector3(
+        return Point(
             lerp(self.x, other.x, t),
             lerp(self.y, other.y, t),
             lerp(self.z, other.z, t)
@@ -91,4 +102,4 @@ class Vector3:
     
     @classmethod
     def lengthdir_xz(clss, length, angle):
-        return Vector3(math.cos(angle) * length, 0.0, math.sin(angle) * length)
+        return Point(math.cos(angle) * length, 0.0, math.sin(angle) * length)

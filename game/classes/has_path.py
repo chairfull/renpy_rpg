@@ -1,8 +1,8 @@
-from .vector3 import Vector3
+from .point import Point
 
-class HasPath(Vector3):
-    def __init__(self, position=Vector3(), speed=300):
-        Vector3.__init__(self, position)
+class HasPath(Point):
+    def __init__(self, position=Point(), speed=300):
+        Point.__init__(self, position)
         self.path = []
         self.speed = speed
         self.moving = False

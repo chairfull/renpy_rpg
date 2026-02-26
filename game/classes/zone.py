@@ -1,5 +1,5 @@
 from .engine import all_beings, all_zones, all_lore
-from .vector3 import Vector3
+from .point import Point
 from .has_flags import HasFlags
 from .has_zone import HasZone
 from .has_tags import HasTags
@@ -15,7 +15,7 @@ class Zone(HasFlags, HasZone, HasTags):
     ROOM = "room"
     FLOOR = "floor"
 
-    def __init__(self, _id, name, desc=None, obstacles=None, entities=None, zone=None, position=Vector3(0,0,0), tags=None,
+    def __init__(self, _id, name, desc=None, obstacles=None, entities=None, zone=None, position=Point(0,0,0), tags=None,
             parent_id=None, subtype="world", flags={}, floor=0):
         HasFlags.__init__(self, flags)
         HasZone.__init__(self, zone)
@@ -37,7 +37,7 @@ class Zone(HasFlags, HasZone, HasTags):
         lore = all_lore.get(self.id)
         lore and lore.unlock()
     
-    def get_path(self, start=Vector3(), end=Vector3()):
+    def get_path(self, start=Point(), end=Point()):
         """Find a path between points."""
         # TODO: AStart pathfinding.
         return [start, end]
