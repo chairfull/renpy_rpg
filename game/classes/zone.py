@@ -15,8 +15,8 @@ class Zone(HasFlags, HasZone, HasTags):
     ROOM = "room"
     FLOOR = "floor"
 
-    def __init__(self, _id, name, desc=None, obstacles=None, entities=None, zone=None, position=Point(0,0,0), tags=None,
-            parent_id=None, subtype="world", flags={}, floor=0):
+    def __init__(self, _id, name, desc=None, objects=None, obstacles=None, entities=None, zone=None, position=Point(0,0,0), tags=None,
+            parent_id=None, subtype="world", flags={}, floor=0, **kwargs):
         HasFlags.__init__(self, flags)
         HasZone.__init__(self, zone)
         HasTags.__init__(self, tags)

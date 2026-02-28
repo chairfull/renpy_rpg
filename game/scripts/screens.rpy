@@ -953,6 +953,11 @@ screen preferences():
             null height (4 * gui.pref_spacing)
 
             hbox:
+                label "Lighting"
+                textbutton "On" action SetField(persistent, "lighting_enabled", True)
+                textbutton "Off" action SetField(persistent, "lighting_enabled", False)
+
+            hbox:
                 style_prefix "slider"
                 box_wrap True
 

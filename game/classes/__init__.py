@@ -48,6 +48,7 @@ from .scene_child import SceneChild
 from .scene_light import SceneLight
 from .scene_debug import SceneDebug
 from .scene import Scene
+from .scene_objects.travel_node import TravelNode
 
 from .choice import Choice
 from .meta_menu import MetaMenu

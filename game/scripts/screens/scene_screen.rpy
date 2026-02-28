@@ -33,7 +33,7 @@ init python:
             # Hash the state — only rebuild if something moved or changed.
             state = (camera.zoom, camera.position, tuple(
                 (id(l), l.position.xz)
-                for l in scene.lights
+                for l in scene.lights.values()
             ))
 
             if not hasattr(self, "_last_state") or self._last_state != state:
@@ -42,7 +42,7 @@ init python:
                 overlay = renpy.display.pgrender.surface((width, height), True)
                 overlay.fill((0, 0, 0, 255))
 
-                for light in scene.lights:
+                for light in scene.lights.values():
                     surf = self._get_surface(light, camera.zoom)
                     r = int(light.radius * camera.zoom)
                     sx, sz = camera.to_screen(light.position).xz_int
@@ -68,8 +68,8 @@ init python:
             surf = renpy.display.pgrender.surface((width, height), True)
 
             for k, v in scene.debug.items():
-                clr = v.debug_color if hasattr(v, "debug_color") else "#ff00ff"
-                wid = v.debug_width if hasattr(v, "debug_width") else 1
+                clr = getattr(v, "debug_color", "#ff00ff")
+                wid = getattr(v, "debug_width", 1)
                 # Draw point list
                 if isinstance(v, PointList):
                     points = [camera.to_screen(x).xz_int for x in v.points]
@@ -82,13 +82,15 @@ init python:
                     points = [camera.to_screen(x).xz_int for x in v.get_circle(32)]
                     for i in range(0, len(points)):
                         pg.draw.line(surf, clr, points[i-1], points[i], wid)
+                # Draw point
                 elif isinstance(v, Point):
-                    pass
+                    px, pz = v.xz_int
+                    pg.draw.circle(surf, clr, px, pz, 16)
             
             tex = renpy.display.draw.load_texture(surf, transient=True)
             rv  = renpy.Render(width, height)
             rv.blit(tex, (0, 0))
-            renpy.redraw(self, 1/20)
+            renpy.redraw(self, 1/40)
             return rv
 
         def visit(self):
@@ -148,9 +150,9 @@ screen scene_screen():
             yfill True
             
             # Non-interactive background elements.
-            for entity in scene.bg:
-                add entity.image at updater_transform(entity):
-                    matrixcolor entity.matrixcolor
+            for bg_entity in scene.bg.values():
+                add bg_entity.image at updater_transform(bg_entity):
+                    matrixcolor bg_entity.matrixcolor
             
             # Detect when clicking nothing.
             button:
@@ -161,7 +163,7 @@ screen scene_screen():
                 background None
             
             # Interactive objects.
-            for entity in scene.children:
+            for entity in scene.children.values():
                 imagebutton at updater_transform(entity):
                     hovered Function(scene._hovered, entity)
                     unhovered NullAction()
@@ -174,13 +176,14 @@ screen scene_screen():
                 # text "[entity.transform.pos] [entity.transform.zoom]" at _entity_transform(entity)
     
     # Lighting.
-    add scene_lighting_layer:
-        blend "multiply"
+    if persistent.lighting_enabled:
+        add scene_lighting_layer:
+            blend "multiply"
     
     # UI elements.
-    for entity in scene.ui:
-        imagebutton at updater_transform(entity):
-            idle entity.image
+    for ui_entity in scene.ui.values():
+        imagebutton at updater_transform(ui_entity):
+            idle ui_entity.image
             background None
 
     text "[scene.msg]":

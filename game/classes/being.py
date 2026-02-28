@@ -9,6 +9,7 @@ from .has_rich_text import HasRichText
 from .stat import Stat
 from .perk import Perk
 from .clan import Clan
+from .point import Point
 
 class Being(HasZone, HasTraits, HasFlags, HasItems, HasPath, HasRichText):
     def __init__(self, _id, name, desc, **kwargs):
@@ -21,12 +22,24 @@ class Being(HasZone, HasTraits, HasFlags, HasItems, HasPath, HasRichText):
         self.id = _id
         self.name = name
         self.desc = desc
+        self._area = kwargs.get("area")
         self.following = None
         self._cached_stats = {}
         self.pchar = renpy.store.Character(name)
         self.dialogue_history = set()
         self.fixture = None
         engine.all_beings[_id] = self
+
+    @property
+    def area(self):
+        if isinstance(self._area, tuple):
+            return Point(self._area)
+        elif isinstance(self._area, Point):
+            return self._area
+        elif isinstance(self._area, str):
+            return Point()
+        raise Exception(f"Unkown area {self._area} in Being '{self.id}'.")
+        return None
 
     def get_rich_string(self, **kwargs):
         if self.id in engine.all_lore:

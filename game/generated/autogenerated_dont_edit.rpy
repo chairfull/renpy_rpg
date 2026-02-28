@@ -14,8 +14,8 @@ init python:
         GAIN, # x1
     )
     #region Conditions.
-    def _cond__6587573756661970148(): return friendship.between(ash, theo) > 10
-    def _cond_4383161032429654808(): return has_flag(harmonic_key_obtained)
+    def _cond__5885777566947206878(): return friendship.between(ash, theo) > 10
+    def _cond__6698186877833586943(): return has_flag(harmonic_key_obtained)
     #endregion
 
 #region Awards x5
@@ -177,8 +177,8 @@ define silent_tide__the_road_back = QuestTick("silent_tide__the_road_back", desc
 define silent_tide__resurrection = QuestTick("silent_tide__resurrection", desc='Visit the market.', mark=['market'], trigger={'event': 'LOCATION_ENTERED', 'state': {'character': 'theo', 'location': 'market'}, 'flags': {'broadcast_success': True}}, name='Resurrection')
 define silent_tide__return_with_the_elixir = QuestTick("silent_tide__return_with_the_elixir", mark='temple', trigger={'event': 'LOCATION_ENTERED', 'state': {'character': 'theo', 'location': 'temple'}}, name='Return with the Elixir')
 define silent_tide__ask_the_clerk = Choice("silent_tide__ask_the_clerk", menu='clerk', text="Ask the clerk about the sleepers' rhythm.", flags={'asked_clerk': None})
-define silent_tide__share_the_pattern_with_ash = Choice("silent_tide__share_the_pattern_with_ash", menu='ash', text="Share the pattern you've recorded with Ash.", cond='_6587573756661970148')
-define silent_tide__attempt_harmonic_broadcast = Choice("silent_tide__attempt_harmonic_broadcast", menu='clerk', text='Offer to run the harmonic broadcast (requires harmonic key).', cond='4383161032429654808')
+define silent_tide__share_the_pattern_with_ash = Choice("silent_tide__share_the_pattern_with_ash", menu='ash', text="Share the pattern you've recorded with Ash.", cond='_5885777566947206878')
+define silent_tide__attempt_harmonic_broadcast = Choice("silent_tide__attempt_harmonic_broadcast", menu='clerk', text='Offer to run the harmonic broadcast (requires harmonic key).', cond='_6698186877833586943')
 #endregion
 
 #region Quest_ticks x0
@@ -199,7 +199,7 @@ define craft_signal_baton = Craft("craft_signal_baton", name='Signal Baton', inp
 
 #region Beings x39
 # Heather Poe. Devoted potential ghoul.
-default poe = Being("poe", name='Heather Poe', desc='Devoted potential ghoul.', zone='santa_monica', clans=['human'], gender='female', tags=['companion'])
+default poe = Being("poe", name='Heather Poe', desc='Devoted potential ghoul.', zone=downtown__your_apartment, area=[0, 0, 0], clans=['human'], gender='female', tags=['companion'])
 # Beckett. Independent Gangrel scholar observing events.
 default beckett = Being("beckett", name='Beckett', desc='Independent Gangrel scholar observing events.', zone='downtown', clans=['gangrel'], gender='male', tags=['lore_master', 'advisor'])
 # Ming Xiao. Kuei-Jin leader of Chinatown.
@@ -247,7 +247,7 @@ default bishop = Being("bishop", name='Bishop Vick', desc='Fanatical Sabbat lead
 # Pisha. Nagaraja necromancer feeding on corpses.
 default pisha = Being("pisha", name='Pisha', desc='Nagaraja necromancer feeding on corpses.', zone='hollywood', clans=['nagaraja'], gender='female', tags=['necromancy', 'occult_quests'])
 # You. Main player character. Changed in editor.
-default you = Being("you", name='You', desc='Main player character. Changed in editor.', zone=downtown__your_apartment)
+default you = Being("you", name='You', desc='Main player character. Changed in editor.', zone=downtown__your_apartment, area=[256, 0, 256])
 # Jack. Veteran Brujah mentor figure.
 default jack = Being("jack", name='Jack', desc='Veteran Brujah mentor figure.', zone='santa_monica', clans=['brujah'], gender='male', tags=['mentor', 'combat_experienced'])
 # Nines Rodriguez. Anarch leader and fighter.
@@ -311,7 +311,8 @@ define santa_monica = Zone("santa_monica", name='Santa Monica', desc='Coastal st
 define hollywood = Zone("hollywood", name='Hollywood', desc='Anarch stronghold filled with decadence and occult activity.', subtype='city')
 # Downtown Los Angeles. Camarilla-controlled financial district and political center.
 define downtown = Zone("downtown", name='Downtown Los Angeles', desc='Camarilla-controlled financial district and political center.', subtype='city')
-define downtown__your_apartment = Zone("downtown__your_apartment", subtype='room', name='Your Apartment')
+define downtown__your_apartment = Zone("downtown__your_apartment", subtype='room', objects={'front_door': {'type': ['link', 'area'], 'position': [300, 0, 0], 'link_zone': 'downtown#apartment_hall', 'link_area': 'your_apartment_door'}, 'window': {'type': ['link', 'area'], 'link_zone': 'santa_monica#street', 'link_area': 'your_window'}}, name='Your Apartment')
+define downtown__apartment_hall = Zone("downtown__apartment_hall", name='Apartment Hall')
 #endregion
 
 #region Item_filterss x0
